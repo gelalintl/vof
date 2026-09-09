@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="vof-g2" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0284C7"/>
+      <stop offset="1" stop-color="#0C4A6E"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="800" fill="url(#vof-g2)"/>
+  <circle cx="160" cy="640" r="180" fill="#F8FAFC" opacity=".16"/>
+</svg>

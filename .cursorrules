@@ -1,0 +1,15 @@
+# Instructions Permanentes pour Cursor AI - Église VOF (Voice Of Freedom)
+
+- Respecter strictement l'arborescence modulaire dans src/ (ui/design-system, ui/components, ui/modules).
+- Ne jamais importer de types métiers (Sermon, Event) dans src/ui/design-system/.
+- Utiliser obligatoirement la charte graphique officielle VOF définie dans tailwind.config.js :
+  - Primary / Brand & Cultes    : #6D28D9 (violet-700)
+  - Secondary / Logo & Nav      : #0284C7 (sky-600)
+  - Accent / Badges & CTA       : #F59E0B (amber-500)
+  - Impact / Séminaires Spéciaux: #DC2626 (red-600)
+  - Arrière-plans               : #FFFFFF / #F8FAFC (slate-50)
+  - Corps de texte              : #1E293B (slate-800)
+- Appliquer la typographie : Plus Jakarta Sans (titres), Inter (texte), Lora (citations/versets).
+- Veiller à l'approche Mobile-First et à l'optimisation des performances 3G/4G (YoutubeLiteEmbed.tsx).
+- Tous les montants financiers dans les formulaires et modales doivent être exprimés en FCFA.
+- Centraliser l'ensemble des contrats de données dans src/types/index.ts.
