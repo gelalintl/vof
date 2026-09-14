@@ -1,4 +1,4 @@
-import { Footer } from "@/ui/components/Footer";
+import { Footer } from "@/ui/components/layout";
 import { HeaderLayout } from "@/ui/layouts/HeaderLayout";
 
 interface MainLayoutProps {

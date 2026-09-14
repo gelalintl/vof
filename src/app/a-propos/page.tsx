@@ -7,14 +7,11 @@ import {
   aboutVisionHeader,
   pastoralPortraits,
 } from "@/datas/about";
-import { CalendarWidget } from "@/ui/components/CalendarWidget";
-import { ContentSection } from "@/ui/components/ContentSection";
-import { FeatureCardGrid } from "@/ui/components/FeatureCard";
-import { PageHero } from "@/ui/components/PageHero";
-import { PortraitBlockList } from "@/ui/components/PortraitBlock";
-import { QuoteBlock } from "@/ui/components/QuoteBlock";
-import { SectionHeader } from "@/ui/components/SectionHeader";
+import { FeatureCardGrid, PortraitBlockList } from "@/ui/components/cards";
+import { QuoteBlock } from "@/ui/components/content";
+import { ContentSection, PageHero, SectionHeader } from "@/ui/components/layout";
 import { MainLayout } from "@/ui/layouts/MainLayout";
+import { CalendarWidget } from "@/ui/modules/calendar";
 
 export const metadata: Metadata = {
   title: "À propos",

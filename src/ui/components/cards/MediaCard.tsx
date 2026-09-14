@@ -5,7 +5,7 @@ import { cn } from "@/utils/cn";
 import { eventColorStyles } from "@/utils/theme/eventColors";
 import { Badge } from "@/ui/design-system/badge";
 import { Typography } from "@/ui/design-system/typography";
-import { MediaCover } from "@/ui/components/MediaCover";
+import { MediaCover } from "@/ui/components/media/MediaCover";
 
 export interface MediaCardProps {
   card: MediaCardData;

@@ -1,15 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { events, getEventBySlug, toEventDetailView } from "@/datas/events";
-import { AuthorSignature } from "@/ui/components/AuthorSignature";
-import { ContentSection } from "@/ui/components/ContentSection";
-import { EventHeadline } from "@/ui/components/EventHeadline";
-import { MediaCover } from "@/ui/components/MediaCover";
-import { ProseBlocks } from "@/ui/components/ProseBlocks";
-import { YoutubeLiteEmbed } from "@/ui/components/YoutubeLiteEmbed";
-import { GalleryGrid } from "@/ui/components/gallery";
+import { AuthorSignature, EventHeadline, ProseBlocks } from "@/ui/components/content";
+import { ContentSection } from "@/ui/components/layout";
+import { GalleryGrid, MediaCover, YoutubeLiteEmbed } from "@/ui/components/media";
 import { MainLayout } from "@/ui/layouts/MainLayout";
-import { CommentSection } from "@/ui/modules/events/CommentSection";
+import { CommentSection } from "@/ui/modules/events";
 
 interface EventDetailPageProps {
   params: Promise<{ slug: string }>;

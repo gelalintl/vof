@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { events, getFeaturedEvents } from "@/datas/events";
 import { churchLifeHero } from "@/datas/pageCopy";
-import { PageHero } from "@/ui/components/PageHero";
+import { PageHero } from "@/ui/components/layout";
 import { MainLayout } from "@/ui/layouts/MainLayout";
-import { EventCatalog } from "@/ui/modules/events/EventCatalog";
-import { EventSlider } from "@/ui/modules/events/EventSlider";
+import { EventCatalog, EventSlider } from "@/ui/modules/events";
 
 export const metadata: Metadata = {
   title: "Vie de l'église",

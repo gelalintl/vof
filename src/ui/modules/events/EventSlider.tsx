@@ -9,7 +9,7 @@ import { formatEventDate, formatEventTime } from "@/utils/date/format";
 import { eventColorStyles } from "@/utils/theme/eventColors";
 import { Badge } from "@/ui/design-system/badge";
 import { Button } from "@/ui/design-system/button";
-import { MediaCover } from "@/ui/components/MediaCover";
+import { MediaCover } from "@/ui/components/media/MediaCover";
 
 interface EventSliderProps {
   events: Event[];

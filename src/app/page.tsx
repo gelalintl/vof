@@ -6,12 +6,10 @@ import {
   homeWelcomeHeader,
   homeWelcomeQuote,
 } from "@/datas/home";
-import { ContentSection } from "@/ui/components/ContentSection";
-import { InfoTileGrid } from "@/ui/components/InfoTile";
-import { PageHero } from "@/ui/components/PageHero";
-import { QuoteBlock } from "@/ui/components/QuoteBlock";
-import { SectionHeader } from "@/ui/components/SectionHeader";
-import { GalleryGrid } from "@/ui/components/gallery";
+import { InfoTileGrid } from "@/ui/components/cards";
+import { QuoteBlock } from "@/ui/components/content";
+import { ContentSection, PageHero, SectionHeader } from "@/ui/components/layout";
+import { GalleryGrid } from "@/ui/components/media";
 import { MainLayout } from "@/ui/layouts/MainLayout";
 
 export default function HomePage() {

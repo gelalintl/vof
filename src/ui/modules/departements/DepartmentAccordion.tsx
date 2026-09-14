@@ -19,7 +19,7 @@ import type { Department, EventColorToken } from "@/types";
 import { cn } from "@/utils/cn";
 import { Button } from "@/ui/design-system/button";
 import { Typography } from "@/ui/design-system/typography";
-import { JoinDepartmentModal } from "@/ui/components/JoinDepartmentModal";
+import { JoinDepartmentModal } from "@/ui/components/modals";
 
 const icons = {
   music: Music,

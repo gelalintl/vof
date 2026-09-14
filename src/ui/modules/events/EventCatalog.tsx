@@ -4,7 +4,7 @@ import type { Event, EventCategoryFilter } from "@/types";
 import { cn } from "@/utils/cn";
 import { EventFilterProvider } from "@/context/EventFilterContext";
 import { useEventFilter } from "@/hooks/useEventFilter";
-import { EventCard } from "@/ui/modules/events/EventCard";
+import { EventCard } from "./EventCard";
 import { Typography } from "@/ui/design-system/typography";
 
 const filters: { id: EventCategoryFilter; label: string; className: string }[] = [

@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { donateHero, donateQuote } from "@/datas/pageCopy";
-import { ContentSection } from "@/ui/components/ContentSection";
-import { DonateFlow } from "@/ui/components/DonateFlow";
-import { PageHero } from "@/ui/components/PageHero";
-import { QuoteBlock } from "@/ui/components/QuoteBlock";
-import { SoftPanel } from "@/ui/components/SoftPanel";
+import { QuoteBlock } from "@/ui/components/content";
+import { DonateFlow } from "@/ui/components/forms";
+import { ContentSection, PageHero, SoftPanel } from "@/ui/components/layout";
 import { MainLayout } from "@/ui/layouts/MainLayout";
 
 export const metadata: Metadata = {

@@ -1,5 +1,4 @@
-import { Header } from "@/ui/components/Header";
-import { Navbar } from "@/ui/components/Navbar";
+import { Header, Navbar } from "@/ui/components/layout";
 
 export function HeaderLayout() {
   return (

@@ -3,7 +3,7 @@ import { cn } from "@/utils/cn";
 import { Badge } from "@/ui/design-system/badge";
 import { Button } from "@/ui/design-system/button";
 import { Typography } from "@/ui/design-system/typography";
-import { YoutubeLiteEmbed } from "@/ui/components/YoutubeLiteEmbed";
+import { YoutubeLiteEmbed } from "@/ui/components/media/YoutubeLiteEmbed";
 
 export type PageHeroProps = PageHeroData;
 

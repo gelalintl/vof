@@ -8,7 +8,7 @@ import { mainNavigation } from "@/config/navigation";
 import { cn } from "@/utils/cn";
 import { Button } from "@/ui/design-system/button";
 import { Logo } from "@/ui/design-system/logo";
-import { DonateModal } from "@/ui/components/DonateModal";
+import { DonateModal } from "@/ui/components/modals";
 
 export function Navbar() {
   const pathname = usePathname();

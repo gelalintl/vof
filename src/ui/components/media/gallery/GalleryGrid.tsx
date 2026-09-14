@@ -3,8 +3,8 @@
 import { useState } from "react";
 import type { GalleryImage as GalleryImageData, GalleryLayout } from "@/types";
 import { cn } from "@/utils/cn";
-import { ImageLightbox } from "@/ui/components/ImageLightbox";
-import { GalleryImage } from "@/ui/components/gallery/GalleryImage";
+import { ImageLightbox } from "@/ui/components/media/ImageLightbox";
+import { GalleryImage } from "./GalleryImage";
 import { Typography } from "@/ui/design-system/typography";
 
 export interface GalleryGridProps {

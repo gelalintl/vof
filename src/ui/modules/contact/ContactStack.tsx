@@ -1,7 +1,7 @@
-import { ContactMap } from "@/ui/modules/contact/ContactMap";
-import { QuickAccess } from "@/ui/modules/contact/QuickAccess";
-import { PhoneHours } from "@/ui/modules/contact/PhoneHours";
-import { ContactForm } from "@/ui/modules/contact/ContactForm";
+import { ContactForm } from "./ContactForm";
+import { ContactMap } from "./ContactMap";
+import { PhoneHours } from "./PhoneHours";
+import { QuickAccess } from "./QuickAccess";
 
 export function ContactStack() {
   return (

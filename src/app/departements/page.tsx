@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { departments } from "@/datas/departments";
 import { departmentsHero } from "@/datas/pageCopy";
-import { ContentSection } from "@/ui/components/ContentSection";
-import { PageHero } from "@/ui/components/PageHero";
+import { ContentSection, PageHero } from "@/ui/components/layout";
 import { MainLayout } from "@/ui/layouts/MainLayout";
-import { DepartmentAccordion } from "@/ui/modules/departements/DepartmentAccordion";
+import { DepartmentAccordion } from "@/ui/modules/departements";
 
 export const metadata: Metadata = {
   title: "Départements",

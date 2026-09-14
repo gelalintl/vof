@@ -12,8 +12,8 @@ import type {
 import { formatFcfa } from "@/utils/formatters/currency";
 import { cn } from "@/utils/cn";
 import { Button } from "@/ui/design-system/button";
-import { DonateCardPayment } from "@/ui/components/DonateCardPayment";
-import { DonateMobileMoney } from "@/ui/components/DonateMobileMoney";
+import { DonateCardPayment } from "./DonateCardPayment";
+import { DonateMobileMoney } from "./DonateMobileMoney";
 
 const paymentMethods: {
   id: PaymentMethod;

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { contactHero } from "@/datas/pageCopy";
-import { PageHero } from "@/ui/components/PageHero";
+import { PageHero } from "@/ui/components/layout";
 import { MainLayout } from "@/ui/layouts/MainLayout";
-import { ContactStack } from "@/ui/modules/contact/ContactStack";
+import { ContactStack } from "@/ui/modules/contact";
 
 export const metadata: Metadata = {
   title: "Contact",

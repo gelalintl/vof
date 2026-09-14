@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import { DonateFlow } from "@/ui/components/DonateFlow";
+import { DonateFlow } from "@/ui/components/forms";
 
 interface DonateModalProps {
   isOpen: boolean;
