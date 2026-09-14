@@ -1,4 +1,4 @@
-import type { GalleryImage } from "@/types";
+import type { EventGalleryItem, GalleryImage } from "@/types";
 
 export const homeHighlights: GalleryImage[] = [
   {
@@ -38,4 +38,19 @@ export function resolveGallerySrc(imageUrl: string | undefined, index: number) {
     return imageUrl;
   }
   return homeHighlights[index % homeHighlights.length]?.src ?? "/assets/gallery/culte.svg";
+}
+
+export function toGalleryImages(
+  items: EventGalleryItem[] | undefined,
+): GalleryImage[] {
+  if (!items || items.length === 0) {
+    return [];
+  }
+
+  return items.map((item, itemIndex) => ({
+    id: item.id,
+    src: resolveGallerySrc(item.imageUrl, itemIndex),
+    alt: item.alt,
+    caption: item.caption,
+  }));
 }

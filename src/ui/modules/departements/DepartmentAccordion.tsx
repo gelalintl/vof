@@ -15,7 +15,6 @@ import {
   Video,
   Handshake,
 } from "lucide-react";
-import { departments } from "@/datas/departments";
 import type { Department, EventColorToken } from "@/types";
 import { cn } from "@/utils/cn";
 import { Button } from "@/ui/design-system/button";
@@ -45,38 +44,40 @@ const panelTransition = {
   ease: [0.22, 1, 0.36, 1] as const,
 };
 
-export function DepartmentAccordion() {
+interface DepartmentAccordionProps {
+  departments: Department[];
+}
+
+export function DepartmentAccordion({ departments }: DepartmentAccordionProps) {
   const [openId, setOpenId] = useState<string | null>(departments[0]?.id ?? null);
   const [joining, setJoining] = useState<Department | null>(null);
 
   return (
-    <section className="bg-white" aria-labelledby="liste-departements">
-      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <Typography id="liste-departements" variant="h2" className="sr-only">
-          Liste des départements
-        </Typography>
-        <ul className="space-y-3">
-          {departments.map((department) => (
-            <DepartmentItem
-              key={department.id}
-              department={department}
-              isOpen={openId === department.id}
-              onToggle={() =>
-                setOpenId((current) =>
-                  current === department.id ? null : department.id,
-                )
-              }
-              onJoin={() => setJoining(department)}
-            />
-          ))}
-        </ul>
-      </div>
+    <>
+      <Typography id="liste-departements" variant="h2" className="sr-only">
+        Liste des départements
+      </Typography>
+      <ul className="space-y-3">
+        {departments.map((department) => (
+          <DepartmentItem
+            key={department.id}
+            department={department}
+            isOpen={openId === department.id}
+            onToggle={() =>
+              setOpenId((current) =>
+                current === department.id ? null : department.id,
+              )
+            }
+            onJoin={() => setJoining(department)}
+          />
+        ))}
+      </ul>
       <JoinDepartmentModal
         department={joining}
         isOpen={Boolean(joining)}
         onClose={() => setJoining(null)}
       />
-    </section>
+    </>
   );
 }
 

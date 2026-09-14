@@ -1,6 +1,14 @@
-import type { Event, EventKind, MonthlyGeneratedEvent, SpecialEvent } from "@/types";
+import type {
+  Event,
+  EventHeadlineData,
+  EventKind,
+  MediaCardData,
+  MonthlyGeneratedEvent,
+  SpecialEvent,
+} from "@/types";
 import { siteConfig } from "@/config/site";
-import { formatEventTime, parseIsoDate, toDateKey } from "@/utils/date/format";
+import { toGalleryImages } from "@/datas/gallery";
+import { formatEventDate, formatEventTime, parseIsoDate, toDateKey } from "@/utils/date/format";
 
 export const eventKindLabels: Record<EventKind, string> = {
   culte: "Culte",
@@ -360,4 +368,49 @@ export function getEventBySlug(slug: string): Event | undefined {
 
 export function getFeaturedEvents(): Event[] {
   return events.filter((event) => event.isFeatured);
+}
+
+export function toMediaCard(event: Event): MediaCardData {
+  const time = formatEventTime(event.startsAt);
+
+  return {
+    href: `/vie-de-leglise/${event.slug}`,
+    title: event.title,
+    imageAlt: event.title,
+    imageSrc: event.imageUrl,
+    badge: eventKindLabels[event.kind],
+    description: event.description,
+    location: event.location,
+    dateLabel: `${formatEventDate(event.startsAt)}${time ? ` · ${time}` : ""}`,
+    colorToken: event.colorToken,
+  };
+}
+
+export function toEventHeadline(event: Event): EventHeadlineData {
+  const time = formatEventTime(event.startsAt);
+
+  return {
+    badge: eventKindLabels[event.kind],
+    title: event.title,
+    dateLabel: `${formatEventDate(event.startsAt)}${time ? ` · ${time}` : ""}`,
+    location: event.location,
+    colorToken: event.colorToken,
+  };
+}
+
+export function toEventDetailView(event: Event) {
+  return {
+    headline: toEventHeadline(event),
+    body: event.body ?? event.description,
+    gallery: toGalleryImages(event.gallery),
+    author: event.author,
+    youtubeId: event.youtubeId,
+    cover: {
+      alt: event.title,
+      src: event.imageUrl,
+      colorToken: event.colorToken,
+    },
+    comments: event.comments,
+    title: event.title,
+  };
 }

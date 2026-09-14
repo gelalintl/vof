@@ -9,7 +9,7 @@ import { formatEventDate, formatEventTime } from "@/utils/date/format";
 import { eventColorStyles } from "@/utils/theme/eventColors";
 import { Badge } from "@/ui/design-system/badge";
 import { Button } from "@/ui/design-system/button";
-import { EventCover } from "@/ui/modules/events/EventCover";
+import { MediaCover } from "@/ui/components/MediaCover";
 
 interface EventSliderProps {
   events: Event[];
@@ -39,10 +39,10 @@ export function EventSlider({ events }: EventSliderProps) {
           >
             {slides.map((event) => (
               <article key={event.id} className="relative w-full shrink-0">
-                <EventCover
-                  title={event.title}
+                <MediaCover
+                  alt={event.title}
+                  src={event.imageUrl}
                   colorToken={event.colorToken}
-                  imageUrl={event.imageUrl}
                   rounded="rounded-none"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-transparent" />

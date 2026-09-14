@@ -10,6 +10,8 @@ const variants = {
     "bg-amber-500 text-slate-900 hover:bg-amber-400 focus-visible:ring-amber-500 font-semibold",
   outline:
     "border-2 border-violet-700 text-violet-700 bg-transparent hover:bg-violet-50 focus-visible:ring-violet-700",
+  outlineLight:
+    "border-2 border-white text-white bg-transparent hover:bg-white/10 focus-visible:ring-white",
   ghost:
     "text-slate-800 hover:bg-slate-50 focus-visible:ring-slate-400",
 } as const;

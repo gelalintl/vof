@@ -190,3 +190,117 @@ export interface ContactMessage {
   subject: ContactSubject;
   message: string;
 }
+
+export type GalleryLayout = "bento" | "grid";
+
+export type FeatureCardTone = "brand" | "secondary" | "accent";
+
+export interface FeatureCardData {
+  id: string;
+  title: string;
+  text: string;
+  tone?: FeatureCardTone;
+}
+
+export interface MediaCardData {
+  href: string;
+  title: string;
+  imageAlt: string;
+  imageSrc?: string;
+  badge?: string;
+  description?: string;
+  location?: string;
+  dateLabel?: string;
+  colorToken?: EventColorToken;
+}
+
+export type ContentSectionTone = "white" | "muted";
+export type ContentSectionWidth = "default" | "narrow" | "prose" | "article";
+export type ContentSectionPadding = "default" | "compact";
+export type ContentSectionGap = "md" | "lg";
+
+export interface PortraitBlockData {
+  name: string;
+  role: string;
+  bio: string;
+  photoSrc: string;
+  photoAlt: string;
+  quote?: string;
+  reversed?: boolean;
+}
+
+export interface QuoteBlockData {
+  quote: string;
+  caption?: string;
+  attribution?: string;
+  note?: string;
+  align?: "left" | "center";
+  attributionVariant?: "muted" | "brand";
+}
+
+export type InfoTileIcon = "clock" | "map" | "message";
+
+export interface InfoTileItem {
+  title: string;
+  detail: string;
+}
+
+export interface InfoTileData {
+  id: string;
+  title: string;
+  icon: InfoTileIcon;
+  description?: string;
+  href?: string;
+  items?: InfoTileItem[];
+}
+
+export interface SectionHeaderData {
+  title: string;
+  titleId?: string;
+  badge?: string;
+  kicker?: string;
+  description?: string;
+  align?: "left" | "center";
+  titleStyle?: "default" | "display";
+}
+
+export interface AuthorSignatureData {
+  name: string;
+  role: string;
+  signature?: string;
+}
+
+export type PageHeroGlow = "sky" | "amber";
+export type PageHeroWidth = "default" | "narrow";
+
+export interface PageHeroAction {
+  href: string;
+  label: string;
+  variant?: "primary" | "secondary" | "accent" | "outline" | "ghost" | "outlineLight";
+}
+
+export interface PageHeroMedia {
+  videoId?: string;
+  videoTitle?: string;
+  fallbackDay?: string;
+  fallbackTime?: string;
+  fallbackText?: string;
+}
+
+export interface PageHeroData {
+  badge: string;
+  title: string;
+  description: string;
+  glow?: PageHeroGlow;
+  width?: PageHeroWidth;
+  actions?: PageHeroAction[];
+  media?: PageHeroMedia;
+}
+
+export interface EventHeadlineData {
+  badge: string;
+  title: string;
+  dateLabel: string;
+  location: string;
+  colorToken?: EventColorToken;
+}
