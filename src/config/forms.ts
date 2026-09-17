@@ -1,4 +1,20 @@
-import type { ContactSubject, DonationRecurrence } from "@/types";
+import type { ContactSubject, DonationRecurrence, DonationType } from "@/types";
+
+export const donationTypeLabels: Record<DonationType, string> = {
+  dime: "Dîme",
+  action_de_grace: "Action de grâce",
+  voeu: "Voeu",
+  premice: "Prémices",
+  offrande: "Offrande",
+};
+
+export const donationTypes: DonationType[] = [
+  "dime",
+  "action_de_grace",
+  "voeu",
+  "premice",
+  "offrande",
+];
 
 export const donationRecurrenceLabels: Record<DonationRecurrence, string> = {
   once: "Une fois",

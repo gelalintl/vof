@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { ArrowLeft, Building2, CreditCard, Smartphone } from "lucide-react";
-import { donationRecurrenceLabels } from "@/config/forms";
+import { donationRecurrenceLabels, donationTypeLabels, donationTypes } from "@/config/forms";
 import { donationOptions, ribDetails } from "@/config/site";
 import type {
+  DonationDraft,
   DonationOption,
   DonationRecurrence,
+  DonationType,
   PaymentMethod,
 } from "@/types";
 import { formatFcfa } from "@/utils/formatters/currency";
@@ -54,6 +56,7 @@ interface DonateFlowProps {
 
 export function DonateFlow({ layout = "modal" }: DonateFlowProps) {
   const [step, setStep] = useState<1 | 2>(1);
+  const [donationType, setDonationType] = useState<DonationType>("offrande");
   const [selectedId, setSelectedId] = useState(donationOptions[2]?.id ?? "10000");
   const [customAmount, setCustomAmount] = useState("");
   const [recurrence, setRecurrence] = useState<DonationRecurrence>("once");
@@ -70,14 +73,37 @@ export function DonateFlow({ layout = "modal" }: DonateFlowProps) {
   }, [customAmount, selectedOption]);
 
   const canContinue = amountFcfa > 0;
+  const typeLabel = donationTypeLabels[donationType];
+  const recap = `${typeLabel} · ${formatFcfa(amountFcfa)} · ${donationRecurrenceLabels[recurrence].toLowerCase()}`;
+  const draft: DonationDraft = {
+    type: donationType,
+    amountFcfa,
+    recurrence,
+    method,
+  };
 
   return (
     <div className={cn(layout === "page" && "space-y-6")}>
       {step === 1 ? (
         <div className="space-y-4">
           <p className="font-heading text-xs font-bold uppercase tracking-widest text-violet-700">
-            Étape 1 sur 2 · Montant (FCFA)
+            Étape 1 sur 2 · Type et montant (FCFA)
           </p>
+          <fieldset>
+            <legend className="font-heading text-sm font-bold text-slate-800">
+              Type de don
+            </legend>
+            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {donationTypes.map((type) => (
+                <TypeChoice
+                  key={type}
+                  type={type}
+                  selected={donationType === type}
+                  onSelect={setDonationType}
+                />
+              ))}
+            </div>
+          </fieldset>
           <div
             className={cn(
               "grid gap-2",
@@ -151,14 +177,12 @@ export function DonateFlow({ layout = "modal" }: DonateFlowProps) {
             className="inline-flex items-center gap-1 font-heading text-sm font-bold text-sky-600"
           >
             <ArrowLeft className="size-4" />
-            Modifier le montant
+            Modifier le don
           </button>
           <p className="font-heading text-xs font-bold uppercase tracking-widest text-violet-700">
             Étape 2 sur 2 · Paiement
           </p>
-          <p className="font-sans text-sm text-slate-600">
-            {formatFcfa(amountFcfa)} · {donationRecurrenceLabels[recurrence].toLowerCase()}
-          </p>
+          <p className="font-sans text-sm text-slate-600">{recap}</p>
           <div className="grid gap-2">
             {paymentMethods.map((item) => {
               const Icon = item.icon;
@@ -188,14 +212,36 @@ export function DonateFlow({ layout = "modal" }: DonateFlowProps) {
               );
             })}
           </div>
-          <PaymentDetails
-            method={method}
-            amountFcfa={amountFcfa}
-            recurrence={recurrence}
-          />
+          <PaymentDetails draft={draft} summary={recap} />
         </div>
       )}
     </div>
+  );
+}
+
+function TypeChoice({
+  type,
+  selected,
+  onSelect,
+}: {
+  type: DonationType;
+  selected: boolean;
+  onSelect: (type: DonationType) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(type)}
+      aria-pressed={selected}
+      className={cn(
+        "rounded-full px-3 py-2.5 font-heading text-sm font-bold tracking-tight",
+        selected
+          ? "bg-violet-700 text-white ring-2 ring-amber-500"
+          : "bg-slate-50 text-slate-800 ring-1 ring-slate-200 hover:ring-amber-500",
+      )}
+    >
+      {donationTypeLabels[type]}
+    </button>
   );
 }
 
@@ -232,22 +278,20 @@ function AmountChoice({
 }
 
 function PaymentDetails({
-  method,
-  amountFcfa,
-  recurrence,
+  draft,
+  summary,
 }: {
-  method: PaymentMethod;
-  amountFcfa: number;
-  recurrence: DonationRecurrence;
+  draft: DonationDraft;
+  summary: string;
 }) {
-  const summary = `${formatFcfa(amountFcfa)} (${donationRecurrenceLabels[recurrence].toLowerCase()})`;
-
-  if (method === "mobile_money") {
-    return <DonateMobileMoney amountFcfa={amountFcfa} summary={summary} />;
+  if (draft.method === "mobile_money") {
+    return <DonateMobileMoney amountFcfa={draft.amountFcfa} summary={summary} />;
   }
 
-  if (method === "card") {
-    return <DonateCardPayment amountFcfa={amountFcfa} />;
+  if (draft.method === "card") {
+    return (
+      <DonateCardPayment amountFcfa={draft.amountFcfa} purpose={donationTypeLabels[draft.type]} />
+    );
   }
 
   return (

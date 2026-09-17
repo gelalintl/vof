@@ -77,8 +77,8 @@ export function DonateModal({ isOpen, onClose }: DonateModalProps) {
           id="vof-donate-description"
           className="mt-1 font-sans text-sm leading-relaxed text-slate-600"
         >
-          Choisissez un montant en FCFA, une récurrence, puis un moyen de
-          paiement.
+          Choisissez le type de don, un montant en FCFA, une récurrence, puis
+          un moyen de paiement.
         </p>
         <div className="mt-5">
           <DonateFlow key={flowKey} layout="modal" />

@@ -20,17 +20,20 @@ export function InfoTile({ tile }: InfoTileProps) {
       <span className="flex size-11 items-center justify-center rounded-full bg-violet-700 text-white">
         <Icon className="size-5" />
       </span>
-      <span className="flex w-full flex-col items-center text-center">
+      <span className="flex w-full flex-col items-center justify-center text-center">
         <Typography variant="caption" className="uppercase tracking-widest text-sky-600">
           {tile.title}
         </Typography>
         {tile.description ? (
-          <Typography variant="h4" className="mt-1 text-base sm:text-lg">
+          <Typography
+            variant="h4"
+            className="mx-auto mt-1 max-w-prose text-center text-base leading-relaxed sm:max-w-xl sm:text-lg"
+          >
             {tile.description}
           </Typography>
         ) : null}
         {tile.items && tile.items.length > 0 ? (
-          <ul className="mt-3 w-full space-y-2">
+          <ul className="mx-auto mt-3 w-full max-w-prose space-y-2 text-center">
             {tile.items.map((item) => (
               <li key={item.title} className="font-sans text-sm text-slate-800">
                 <span className="block font-heading text-sm font-bold tracking-tight">

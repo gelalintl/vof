@@ -146,12 +146,26 @@ export type PaymentMethod = "mobile_money" | "card" | "rib";
 
 export type DonationRecurrence = "once" | "monthly" | "quarterly" | "yearly";
 
+export type DonationType =
+  | "dime"
+  | "action_de_grace"
+  | "voeu"
+  | "premice"
+  | "offrande";
+
 export interface DonationOption {
   id: string;
   label: string;
   amountFcfa: number;
   isCustom?: boolean;
   description?: string;
+}
+
+export interface DonationDraft {
+  type: DonationType;
+  amountFcfa: number;
+  recurrence: DonationRecurrence;
+  method: PaymentMethod;
 }
 
 export interface NavItem {

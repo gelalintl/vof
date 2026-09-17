@@ -10,6 +10,7 @@ type CardBrand = "visa" | "mastercard" | "unknown";
 
 interface DonateCardPaymentProps {
   amountFcfa: number;
+  purpose: string;
 }
 
 function digitsOnly(value: string, max: number) {
@@ -59,7 +60,7 @@ function isValidExpiry(value: string) {
   return month >= 1 && month <= 12;
 }
 
-export function DonateCardPayment({ amountFcfa }: DonateCardPaymentProps) {
+export function DonateCardPayment({ amountFcfa, purpose }: DonateCardPaymentProps) {
   const [cardNumber, setCardNumber] = useState("");
   const [holderName, setHolderName] = useState("");
   const [expiry, setExpiry] = useState("");
@@ -95,7 +96,8 @@ export function DonateCardPayment({ amountFcfa }: DonateCardPaymentProps) {
           Don enregistré
         </p>
         <p className="mt-2 font-sans text-sm leading-relaxed text-slate-800">
-          Merci. Votre don de <strong>{formatFcfa(amountFcfa)}</strong> a été
+          Merci. Votre {purpose.toLowerCase()} de{" "}
+          <strong>{formatFcfa(amountFcfa)}</strong> a été
           préparé. Le terminal de paiement sécurisé sera branché sur cette
           étape. Aucune donnée de carte n&apos;est transmise pour le moment.
         </p>

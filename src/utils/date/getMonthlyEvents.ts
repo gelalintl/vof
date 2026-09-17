@@ -14,7 +14,7 @@ export const monthlyEventTypeLabels: Record<MonthlyEventType, string> = {
 const LOCATION = `${siteConfig.location.address}, ${siteConfig.location.country}`;
 
 const WEEKLY_PRAYER = {
-  title: "Rassemblement de prière",
+  title: "Etude biblique",
   weekday: 2,
   time: "19h00",
   type: "prayer" as const,
@@ -22,7 +22,7 @@ const WEEKLY_PRAYER = {
 };
 
 const WEEKLY_TESTIMONY = {
-  title: "Rassemblement de témoignages",
+  title: "Prière et témoignages",
   weekday: 4,
   time: "19h00",
   type: "testimony" as const,
@@ -31,8 +31,8 @@ const WEEKLY_TESTIMONY = {
 
 /**
  * Génère tous les événements récurrents d'un mois (1 = janvier … 12 = décembre).
- * Le jeûne à 19h00 remplace le rassemblement de prière (mardi) ou de
- * témoignages (jeudi) lorsqu'ils tombent le même jour.
+ * Le jeûne à 19h00 remplace l'etude biblique (mardi) ou de
+ * prière et témoignages (jeudi) lorsqu'ils tombent le même jour.
  */
 export function generateMonthlyEvents(
   year: number,
@@ -48,7 +48,7 @@ export function generateMonthlyEvents(
   const fasting: MonthlyGeneratedEvent[] = fastingDates.map((date, index) =>
     buildEvent({
       type: "fasting",
-      title: "Rassemblement de jeûne et prière",
+      title: "Jeûne et prière",
       date,
       time: "19h00",
       colorToken: "impact",
@@ -83,7 +83,7 @@ export function generateMonthlyEvents(
   const vigils = secondAndLastWeekdays(year, month, 5).map((date) =>
     buildEvent({
       type: "vigil",
-      title: "Veillée de prières",
+      title: "Veillée de prière",
       date,
       time: "23h00",
       timeEnd: "05h00",
