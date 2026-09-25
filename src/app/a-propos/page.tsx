@@ -7,6 +7,7 @@ import {
   aboutVisionHeader,
   pastoralPortraits,
 } from "@/datas/about";
+import { getMonthlyEvents } from "@/lib/publicContent";
 import { FeatureCardGrid, PortraitBlockList } from "@/ui/components/cards";
 import { QuoteBlock } from "@/ui/components/content";
 import { ContentSection, PageHero, SectionHeader } from "@/ui/components/layout";
@@ -19,7 +20,12 @@ export const metadata: Metadata = {
     "Vision, équipe pastorale et agenda de l'Église Voice Of Freedom.",
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const monthEvents = await getMonthlyEvents(year, month);
+
   return (
     <MainLayout>
       <PageHero {...aboutHero} />
@@ -32,7 +38,11 @@ export default function AboutPage() {
         <SectionHeader {...aboutPastoralHeader} />
         <PortraitBlockList portraits={pastoralPortraits} />
       </ContentSection>
-      <CalendarWidget />
+      <CalendarWidget
+        initialYear={year}
+        initialMonth={month}
+        initialEvents={monthEvents}
+      />
     </MainLayout>
   );
 }

@@ -2,20 +2,20 @@
 
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Clock, MapPin } from "lucide-react";
-import type { EventColorToken, MonthlyGeneratedEvent } from "@/types";
+import { loadCalendarMonth } from "@/app/calendar-actions";
+import { eventKindLabels } from "@/lib/eventPresentation";
+import type { CalendarEventPayload, EventColorToken, MonthlyGeneratedEvent } from "@/types";
 import { cn } from "@/utils/cn";
 import { formatEventDate, toDateKey } from "@/utils/date/format";
 import {
   calendarAccentToken,
   calendarDotClass,
   formatMonthTitle,
-  generateMonthlyEvents,
   getCalendarMonthCells,
-  mergeCalendarEvents,
+  hydrateCalendarEvents,
   monthlyEventTypeLabels,
   shiftCalendarMonth,
 } from "@/utils/date/getMonthlyEvents";
-import { eventKindLabels, getSpecialEvents } from "@/datas/events";
 import { Badge } from "@/ui/design-system/badge";
 import { Typography } from "@/ui/design-system/typography";
 
@@ -35,17 +35,28 @@ const badgeVariant: Record<EventColorToken, "brand" | "secondary" | "accent" | "
   impact: "impact",
 };
 
-export function CalendarWidget() {
+interface CalendarWidgetProps {
+  initialYear: number;
+  initialMonth: number;
+  initialEvents: CalendarEventPayload[];
+}
+
+export function CalendarWidget({
+  initialYear,
+  initialMonth,
+  initialEvents,
+}: CalendarWidgetProps) {
   const todayKey = toDateKey(new Date());
-  const [year, setYear] = useState(() => new Date().getFullYear());
-  const [month, setMonth] = useState(() => new Date().getMonth() + 1);
+  const [year, setYear] = useState(initialYear);
+  const [month, setMonth] = useState(initialMonth);
+  const [payloads, setPayloads] = useState(initialEvents);
+  const [loading, setLoading] = useState(false);
   const [selectedKey, setSelectedKey] = useState<string | null>(todayKey);
 
-  const allEvents = useMemo(() => {
-    const routineEvents = generateMonthlyEvents(year, month);
-    const specificEvents = getSpecialEvents(year, month);
-    return mergeCalendarEvents(routineEvents, specificEvents);
-  }, [year, month]);
+  const allEvents = useMemo(
+    () => hydrateCalendarEvents(payloads),
+    [payloads],
+  );
 
   const cells = useMemo(() => getCalendarMonthCells(year, month), [year, month]);
   const monthLabel = formatMonthTitle(year, month);
@@ -64,10 +75,17 @@ export function CalendarWidget() {
     .filter((event) => toDateKey(event.date) >= todayKey)
     .slice(0, 6);
 
-  function goToMonth(delta: number) {
+  async function goToMonth(delta: number) {
     const next = shiftCalendarMonth(year, month, delta);
     setYear(next.year);
     setMonth(next.month);
+    setLoading(true);
+    try {
+      const nextEvents = await loadCalendarMonth(next.year, next.month);
+      setPayloads(nextEvents);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const listedEvents = selectedEvent ? [selectedEvent] : upcoming;
@@ -81,8 +99,7 @@ export function CalendarWidget() {
             Calendrier de l&apos;église
           </Typography>
           <Typography variant="body" className="mt-3 text-slate-600">
-            Un rendez-vous par jour : les temps forts priment, puis le jeûne,
-            puis les rassemblements hebdomadaires et veillées.
+            Les rendez-vous du mois, lus depuis l&apos;agenda de l&apos;église.
           </Typography>
 
           <div className="mt-6 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-violet-100 sm:p-6">
@@ -169,37 +186,55 @@ export function CalendarWidget() {
               : "Prochains rendez-vous"}
           </Typography>
 
-          {listedEvents.map((event) => {
-            const accent = calendarAccentToken(event);
-            return (
-              <article
-                key={event.id}
-                className={cn(
-                  "rounded-2xl border-l-4 bg-white p-4 shadow-sm",
-                  tokenSoft[accent],
-                )}
-              >
-                <Badge variant={badgeVariant[accent]} size="sm">
-                  {event.type === "special" && event.kind
-                    ? eventKindLabels[event.kind]
-                    : monthlyEventTypeLabels[event.type]}
-                </Badge>
-                <Typography variant="h4" className="mt-2">
-                  {event.title}
-                </Typography>
-                <p className="mt-1 flex items-center gap-2 font-sans text-sm text-slate-600">
-                  <Clock className="size-4 text-sky-600" />
-                  {formatEventDate(event.date)}
-                  {` · ${event.time}`}
-                  {event.timeEnd ? ` – ${event.timeEnd}` : ""}
-                </p>
-                <p className="mt-1 flex items-center gap-2 font-sans text-sm text-slate-600">
-                  <MapPin className="size-4 text-sky-600" />
-                  {event.location}
-                </p>
-              </article>
-            );
-          })}
+          {loading ? (
+            <p className="font-sans text-sm text-slate-500">Chargement de l&apos;agenda…</p>
+          ) : listedEvents.length === 0 ? (
+            <p className="font-sans text-sm text-slate-500">
+              Aucun rendez-vous enregistré pour cette période.
+            </p>
+          ) : (
+            listedEvents.map((event) => {
+              const accent = calendarAccentToken(event);
+              return (
+                <article
+                  key={event.id}
+                  className={cn(
+                    "overflow-hidden rounded-2xl border-l-4 bg-white shadow-sm",
+                    tokenSoft[accent],
+                  )}
+                >
+                  {event.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={event.imageUrl}
+                      alt={event.title}
+                      className="h-32 w-full object-cover"
+                    />
+                  ) : null}
+                  <div className="p-4">
+                    <Badge variant={badgeVariant[accent]} size="sm">
+                      {event.type === "special" && event.kind
+                        ? eventKindLabels[event.kind]
+                        : monthlyEventTypeLabels[event.type]}
+                    </Badge>
+                    <Typography variant="h4" className="mt-2">
+                      {event.title}
+                    </Typography>
+                    <p className="mt-1 flex items-center gap-2 font-sans text-sm text-slate-600">
+                      <Clock className="size-4 text-sky-600" />
+                      {formatEventDate(event.date)}
+                      {` · ${event.time}`}
+                      {event.timeEnd ? ` – ${event.timeEnd}` : ""}
+                    </p>
+                    <p className="mt-1 flex items-center gap-2 font-sans text-sm text-slate-600">
+                      <MapPin className="size-4 text-sky-600" />
+                      {event.location}
+                    </p>
+                  </div>
+                </article>
+              );
+            })
+          )}
         </div>
       </div>
     </section>

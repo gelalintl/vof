@@ -3,17 +3,24 @@
 import { useMemo, useState } from "react";
 import { ArrowLeft, Building2, CreditCard, Smartphone } from "lucide-react";
 import { donationRecurrenceLabels, donationTypeLabels, donationTypes } from "@/config/forms";
-import { donationOptions, ribDetails } from "@/config/site";
+import { donationOptions } from "@/config/site";
+import {
+  defaultPublicPaymentConfig,
+  enabledOperators,
+  hasMobileMoney,
+} from "@/lib/paymentConfig";
 import type {
   DonationDraft,
   DonationOption,
   DonationRecurrence,
   DonationType,
   PaymentMethod,
+  PublicPaymentConfig,
 } from "@/types";
 import { formatFcfa } from "@/utils/formatters/currency";
 import { cn } from "@/utils/cn";
 import { Button } from "@/ui/design-system/button";
+import { DonateBankTransfer } from "./DonateBankTransfer";
 import { DonateCardPayment } from "./DonateCardPayment";
 import { DonateMobileMoney } from "./DonateMobileMoney";
 
@@ -52,15 +59,48 @@ const recurrences: DonationRecurrence[] = [
 
 interface DonateFlowProps {
   layout?: "modal" | "page";
+  paymentConfig?: PublicPaymentConfig;
 }
 
-export function DonateFlow({ layout = "modal" }: DonateFlowProps) {
+function visiblePaymentMethods(config: PublicPaymentConfig) {
+  return paymentMethods.filter((item) => {
+    if (item.id === "mobile_money") {
+      return hasMobileMoney(config);
+    }
+    if (item.id === "card") {
+      return config.cardEnabled;
+    }
+    return config.bank.enabled;
+  });
+}
+
+function firstAvailableMethod(config: PublicPaymentConfig): PaymentMethod {
+  return visiblePaymentMethods(config)[0]?.id ?? "mobile_money";
+}
+
+export function DonateFlow({
+  layout = "modal",
+  paymentConfig = defaultPublicPaymentConfig(),
+}: DonateFlowProps) {
+  const availableMethods = useMemo(
+    () => visiblePaymentMethods(paymentConfig),
+    [paymentConfig],
+  );
+  const operators = useMemo(() => enabledOperators(paymentConfig), [paymentConfig]);
+  const mobileDescription = operators.map((item) => item.label).join(", ") || "Mobile Money";
+
   const [step, setStep] = useState<1 | 2>(1);
   const [donationType, setDonationType] = useState<DonationType>("offrande");
   const [selectedId, setSelectedId] = useState(donationOptions[2]?.id ?? "10000");
   const [customAmount, setCustomAmount] = useState("");
   const [recurrence, setRecurrence] = useState<DonationRecurrence>("once");
-  const [method, setMethod] = useState<PaymentMethod>("mobile_money");
+  const [method, setMethod] = useState<PaymentMethod>(() =>
+    firstAvailableMethod(paymentConfig),
+  );
+
+  const resolvedMethod = availableMethods.some((item) => item.id === method)
+    ? method
+    : firstAvailableMethod(paymentConfig);
 
   const selectedOption = donationOptions.find((option) => option.id === selectedId);
 
@@ -79,7 +119,7 @@ export function DonateFlow({ layout = "modal" }: DonateFlowProps) {
     type: donationType,
     amountFcfa,
     recurrence,
-    method,
+    method: resolvedMethod,
   };
 
   return (
@@ -183,36 +223,52 @@ export function DonateFlow({ layout = "modal" }: DonateFlowProps) {
             Étape 2 sur 2 · Paiement
           </p>
           <p className="font-sans text-sm text-slate-600">{recap}</p>
-          <div className="grid gap-2">
-            {paymentMethods.map((item) => {
-              const Icon = item.icon;
-              const selected = method === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setMethod(item.id)}
-                  className={cn(
-                    "flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-colors",
-                    selected
-                      ? "border-violet-700 bg-violet-50"
-                      : "border-slate-200 hover:border-sky-600",
-                  )}
-                >
-                  <Icon className={cn("size-5", selected ? "text-violet-700" : "text-sky-600")} />
-                  <span>
-                    <span className="block font-heading text-sm font-bold text-slate-800">
-                      {item.label}
-                    </span>
-                    <span className="block font-sans text-xs text-slate-600">
-                      {item.description}
-                    </span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          <PaymentDetails draft={draft} summary={recap} />
+          {availableMethods.length === 0 ? (
+            <p className="rounded-2xl bg-slate-50 p-4 font-sans text-sm leading-relaxed text-slate-600">
+              Aucun moyen de paiement n&apos;est actuellement activé. Contactez
+              l&apos;église pour confirmer votre don.
+            </p>
+          ) : (
+            <>
+              <div className="grid gap-2">
+                {availableMethods.map((item) => {
+                  const Icon = item.icon;
+                  const selected = resolvedMethod === item.id;
+                  const description =
+                    item.id === "mobile_money" ? mobileDescription : item.description;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setMethod(item.id)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-colors",
+                        selected
+                          ? "border-violet-700 bg-violet-50"
+                          : "border-slate-200 hover:border-sky-600",
+                      )}
+                    >
+                      <Icon className={cn("size-5", selected ? "text-violet-700" : "text-sky-600")} />
+                      <span>
+                        <span className="block font-heading text-sm font-bold text-slate-800">
+                          {item.label}
+                        </span>
+                        <span className="block font-sans text-xs text-slate-600">
+                          {description}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <PaymentDetails
+                draft={draft}
+                summary={recap}
+                paymentConfig={paymentConfig}
+                operators={operators}
+              />
+            </>
+          )}
         </div>
       )}
     </div>
@@ -280,12 +336,22 @@ function AmountChoice({
 function PaymentDetails({
   draft,
   summary,
+  paymentConfig,
+  operators,
 }: {
   draft: DonationDraft;
   summary: string;
+  paymentConfig: PublicPaymentConfig;
+  operators: ReturnType<typeof enabledOperators>;
 }) {
   if (draft.method === "mobile_money") {
-    return <DonateMobileMoney amountFcfa={draft.amountFcfa} summary={summary} />;
+    return (
+      <DonateMobileMoney
+        amountFcfa={draft.amountFcfa}
+        summary={summary}
+        operators={operators}
+      />
+    );
   }
 
   if (draft.method === "card") {
@@ -294,30 +360,5 @@ function PaymentDetails({
     );
   }
 
-  return (
-    <div className="rounded-2xl bg-slate-50 p-4">
-      <p className="font-sans text-sm leading-relaxed text-slate-800">
-        Effectuez un virement de <strong>{summary}</strong> avec les
-        coordonnées suivantes :
-      </p>
-      <dl className="mt-3 space-y-1 font-sans text-sm text-slate-800">
-        <div>
-          <dt className="inline font-heading font-bold text-violet-700">Banque : </dt>
-          <dd className="inline">{ribDetails.bankName}</dd>
-        </div>
-        <div>
-          <dt className="inline font-heading font-bold text-violet-700">Titulaire : </dt>
-          <dd className="inline">{ribDetails.accountName}</dd>
-        </div>
-        <div>
-          <dt className="inline font-heading font-bold text-violet-700">RIB / IBAN : </dt>
-          <dd className="inline">{ribDetails.iban}</dd>
-        </div>
-        <div>
-          <dt className="inline font-heading font-bold text-violet-700">BIC : </dt>
-          <dd className="inline">{ribDetails.bic}</dd>
-        </div>
-      </dl>
-    </div>
-  );
+  return <DonateBankTransfer bank={paymentConfig.bank} summary={summary} />;
 }

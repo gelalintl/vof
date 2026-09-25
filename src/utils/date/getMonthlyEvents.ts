@@ -1,4 +1,4 @@
-import type { MonthlyGeneratedEvent, MonthlyEventType } from "@/types";
+import type { CalendarEventPayload, MonthlyGeneratedEvent, MonthlyEventType } from "@/types";
 import { siteConfig } from "@/config/site";
 import { parseIsoDate, toDateKey } from "@/utils/date/format";
 import { getMonthlyFastingDates } from "@/utils/date/getMonthlyFastingDates";
@@ -34,6 +34,23 @@ const WEEKLY_TESTIMONY = {
  * Le jeûne à 19h00 remplace l'etude biblique (mardi) ou de
  * prière et témoignages (jeudi) lorsqu'ils tombent le même jour.
  */
+export function hydrateCalendarEvents(
+  payloads: CalendarEventPayload[],
+): MonthlyGeneratedEvent[] {
+  return payloads.map((item) => ({
+    id: item.id,
+    title: item.title,
+    date: parseIsoDate(item.dateKey),
+    time: item.time,
+    timeEnd: item.timeEnd,
+    type: item.type,
+    colorToken: item.colorToken,
+    location: item.location,
+    kind: item.kind,
+    imageUrl: item.imageUrl,
+  }));
+}
+
 export function generateMonthlyEvents(
   year: number,
   month: number,

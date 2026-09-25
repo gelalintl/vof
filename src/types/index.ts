@@ -49,6 +49,20 @@ export interface MonthlyGeneratedEvent {
   colorToken: EventColorToken;
   location: string;
   kind?: EventKind;
+  imageUrl?: string;
+}
+
+export interface CalendarEventPayload {
+  id: string;
+  title: string;
+  dateKey: string;
+  time: string;
+  timeEnd?: string;
+  type: MonthlyEventType;
+  colorToken: EventColorToken;
+  location: string;
+  kind?: EventKind;
+  imageUrl?: string;
 }
 
 export type EventCategoryFilter =
@@ -174,6 +188,8 @@ export interface NavItem {
   children?: NavItem[];
 }
 
+export type MobileMoneyOperatorId = "amana" | "nita" | "wave";
+
 export interface MobileMoneyAccount {
   id: "mynita" | "amana" | "wave";
   operator: string;
@@ -187,6 +203,29 @@ export interface RibDetails {
   accountName: string;
   iban: string;
   bic: string;
+}
+
+export interface PublicMobileMoneyOperator {
+  id: MobileMoneyOperatorId;
+  label: string;
+  enabled: boolean;
+  qrUrl: string;
+  phone: string;
+}
+
+export interface PublicBankTransfer {
+  enabled: boolean;
+  bankName: string;
+  accountName: string;
+  iban: string;
+  swift: string;
+  ribCode: string;
+}
+
+export interface PublicPaymentConfig {
+  operators: PublicMobileMoneyOperator[];
+  cardEnabled: boolean;
+  bank: PublicBankTransfer;
 }
 
 export type ContactSubject =
@@ -317,4 +356,124 @@ export interface EventHeadlineData {
   dateLabel: string;
   location: string;
   colorToken?: EventColorToken;
+}
+
+export type AdminUserRole = "ADMIN" | "EDITOR";
+
+export interface AdminSessionUser {
+  id: string;
+  email: string;
+  role: AdminUserRole;
+}
+
+export type AdminEventCategory = "ROUTINE" | "FASTING" | "VIGIL" | "SPECIAL";
+
+export interface CreateAdminEventInput {
+  title: string;
+  description: string;
+  startDate: string;
+  endDate?: string | null;
+  location: string;
+  category: AdminEventCategory;
+  isSpecial?: boolean;
+  image?: string | null;
+}
+
+export interface CreateAdminMediaInput {
+  title: string;
+  url: string;
+  category: string;
+  eventId?: string | null;
+  isFeaturedHome?: boolean;
+}
+
+export interface AdminEventRecord {
+  id: string;
+  title: string;
+  description: string;
+  startDate: string;
+  endDate: string | null;
+  location: string;
+  category: AdminEventCategory;
+  isSpecial: boolean;
+  image: string | null;
+  createdAt: string;
+}
+
+export interface AdminMediaRecord {
+  id: string;
+  title: string;
+  url: string;
+  category: string;
+  eventId: string | null;
+  eventTitle: string | null;
+  isFeaturedHome: boolean;
+  createdAt: string;
+}
+
+export interface CreateAdminArticleInput {
+  title: string;
+  slug: string;
+  content: string;
+  author: string;
+  coverImage?: string | null;
+  isPublished?: boolean;
+}
+
+export interface AdminArticleRecord {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  author: string;
+  coverImage: string | null;
+  isPublished: boolean;
+  createdAt: string;
+}
+
+export interface AdminSettingRecord {
+  id: string;
+  key: string;
+  value: string;
+  updatedAt: string;
+}
+
+export interface PublicSocialLinks {
+  facebook: string;
+  instagram: string;
+  youtube: string;
+  tiktok: string;
+  whatsapp: string;
+}
+
+export interface PublicLocationContact {
+  address: string;
+  city: string;
+  googleMapsUrl: string;
+  iframeUrl: string;
+  phone: string;
+  email: string;
+}
+
+export interface PublicSiteContact {
+  social: PublicSocialLinks;
+  location: PublicLocationContact;
+}
+
+export interface PublicSiteIdentity {
+  churchName: string;
+  tagline: string;
+  logoSrc: string | null;
+  sundayLabel: string;
+  sundayTime: string;
+}
+
+export interface PublicArticle {
+  id: string;
+  slug: string;
+  title: string;
+  content: string;
+  author: string;
+  coverImage: string | null;
+  createdAt: string;
 }

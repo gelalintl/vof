@@ -1,7 +1,16 @@
-import { Clock, Mail, Phone } from "lucide-react";
+import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import { siteConfig } from "@/config/site";
 
-export function PhoneHours() {
+interface PhoneHoursProps {
+  phone?: string;
+  email?: string;
+  address?: string;
+  city?: string;
+}
+
+export function PhoneHours({ phone, email, address, city }: PhoneHoursProps) {
+  const locationLine = [address, city].filter(Boolean).join(", ");
+
   return (
     <section
       className="rounded-3xl bg-slate-50 p-5 ring-1 ring-violet-100 sm:p-6"
@@ -11,35 +20,38 @@ export function PhoneHours() {
         id="telephones-horaires"
         className="font-heading text-lg font-bold tracking-tight text-violet-700"
       >
-        Téléphones & horaires
+        Coordonnées & horaires
       </h2>
 
       <ul className="mt-4 space-y-3">
-        {siteConfig.contacts.phones.map((item) => (
-          <li key={item.number} className="flex items-start gap-3">
-            <Phone className="mt-0.5 size-5 text-sky-600" />
-            <span>
-              <span className="block font-heading text-sm font-bold text-slate-800">
-                {item.label}
-              </span>
-              <a
-                href={`tel:${item.number.replace(/\s/g, "")}`}
-                className="font-sans text-sm text-slate-600 hover:text-sky-600"
-              >
-                {item.number}
-              </a>
-            </span>
+        {locationLine ? (
+          <li className="flex items-start gap-3">
+            <MapPin className="mt-0.5 size-5 text-sky-600" />
+            <span className="font-sans text-sm text-slate-800">{locationLine}</span>
           </li>
-        ))}
-        <li className="flex items-start gap-3">
-          <Mail className="mt-0.5 size-5 text-sky-600" />
-          <a
-            href={`mailto:${siteConfig.contacts.email}`}
-            className="font-sans text-sm text-slate-800 hover:text-sky-600"
-          >
-            {siteConfig.contacts.email}
-          </a>
-        </li>
+        ) : null}
+        {phone ? (
+          <li className="flex items-start gap-3">
+            <Phone className="mt-0.5 size-5 text-sky-600" />
+            <a
+              href={`tel:${phone.replace(/\s/g, "")}`}
+              className="font-sans text-sm text-slate-800 hover:text-sky-600"
+            >
+              {phone}
+            </a>
+          </li>
+        ) : null}
+        {email ? (
+          <li className="flex items-start gap-3">
+            <Mail className="mt-0.5 size-5 text-sky-600" />
+            <a
+              href={`mailto:${email}`}
+              className="font-sans text-sm text-slate-800 hover:text-sky-600"
+            >
+              {email}
+            </a>
+          </li>
+        ) : null}
         {siteConfig.worship.gatherings.map((gathering) => (
           <li key={gathering.id} className="flex items-start gap-3">
             <Clock className="mt-0.5 size-5 text-sky-600" />

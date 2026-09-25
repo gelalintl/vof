@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { events, getEventBySlug, toEventDetailView } from "@/datas/events";
+import { toEventDetailView } from "@/lib/eventPresentation";
+import { getEventBySlug } from "@/lib/publicContent";
 import { AuthorSignature, EventHeadline, ProseBlocks } from "@/ui/components/content";
 import { ContentSection } from "@/ui/components/layout";
 import { GalleryGrid, MediaCover, YoutubeLiteEmbed } from "@/ui/components/media";
@@ -11,15 +12,11 @@ interface EventDetailPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export function generateStaticParams() {
-  return events.map((event) => ({ slug: event.slug }));
-}
-
 export async function generateMetadata({
   params,
 }: EventDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const event = getEventBySlug(slug);
+  const event = await getEventBySlug(slug);
 
   if (!event) {
     return { title: "Événement introuvable" };
@@ -33,7 +30,7 @@ export async function generateMetadata({
 
 export default async function EventDetailPage({ params }: EventDetailPageProps) {
   const { slug } = await params;
-  const event = getEventBySlug(slug);
+  const event = await getEventBySlug(slug);
 
   if (!event) {
     notFound();

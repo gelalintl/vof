@@ -24,9 +24,58 @@ export function formatEventDate(isoOrDate: string | Date): string {
 }
 
 export function formatEventTime(iso: string): string {
+  if (iso.includes("T")) {
+    const date = new Date(iso);
+    if (!Number.isNaN(date.getTime())) {
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      return `${hours}h${minutes}`;
+    }
+  }
+
   const time = iso.slice(11, 16);
   if (!time) {
     return "";
   }
   return time.replace(":", "h");
+}
+
+const MONTHS_FR = [
+  "Janvier",
+  "Février",
+  "Mars",
+  "Avril",
+  "Mai",
+  "Juin",
+  "Juillet",
+  "Août",
+  "Septembre",
+  "Octobre",
+  "Novembre",
+  "Décembre",
+] as const;
+
+export function formatAdminDateTime(isoOrDate: string | Date): string {
+  const date = typeof isoOrDate === "string" ? new Date(isoOrDate) : isoOrDate;
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const day = date.getDate();
+  const month = MONTHS_FR[date.getMonth()];
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${day} ${month} ${year} à ${hours}:${minutes}`;
+}
+
+export function toDatetimeLocalValue(isoOrDate: string | Date): string {
+  const date = typeof isoOrDate === "string" ? new Date(isoOrDate) : isoOrDate;
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }

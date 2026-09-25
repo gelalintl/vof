@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Event } from "@/types";
-import { eventKindLabels } from "@/datas/events";
+import { eventKindLabels } from "@/lib/eventPresentation";
 import { cn } from "@/utils/cn";
 import { formatEventDate, formatEventTime } from "@/utils/date/format";
 import { eventColorStyles } from "@/utils/theme/eventColors";

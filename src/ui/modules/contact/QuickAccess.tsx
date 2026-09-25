@@ -1,27 +1,52 @@
 import { MessageCircle } from "lucide-react";
-import { siteConfig } from "@/config/site";
+import { toWhatsAppHref } from "@/lib/siteSettingsKeys";
+import type { PublicSocialLinks } from "@/types";
+import { FacebookMark, InstagramMark, YoutubeMark } from "@/ui/components/media/SocialMarks";
 
-export function QuickAccess() {
+interface QuickAccessProps {
+  social: PublicSocialLinks;
+}
+
+export function QuickAccess({ social }: QuickAccessProps) {
+  const whatsappHref = toWhatsAppHref(social.whatsapp);
   const links = [
-    {
-      href: siteConfig.contacts.whatsapp.href,
-      label: siteConfig.contacts.whatsapp.label,
-      tone: "bg-amber-500 text-slate-900 hover:bg-amber-400",
-      icon: <MessageCircle className="size-5" />,
-    },
-    {
-      href: siteConfig.social.youtube,
-      label: "YouTube VOF",
-      tone: "bg-red-600 text-white hover:bg-red-700",
-      icon: <YoutubeMark />,
-    },
-    {
-      href: siteConfig.social.facebook,
-      label: "Facebook VOF",
-      tone: "bg-sky-600 text-white hover:bg-sky-700",
-      icon: <FacebookMark />,
-    },
-  ];
+    whatsappHref
+      ? {
+          href: whatsappHref,
+          label: "WhatsApp VOF",
+          tone: "bg-amber-500 text-slate-900 hover:bg-amber-400",
+          icon: <MessageCircle className="size-5" />,
+        }
+      : null,
+    social.youtube
+      ? {
+          href: social.youtube,
+          label: "YouTube VOF",
+          tone: "bg-red-600 text-white hover:bg-red-700",
+          icon: <YoutubeMark className="size-5" />,
+        }
+      : null,
+    social.facebook
+      ? {
+          href: social.facebook,
+          label: "Facebook VOF",
+          tone: "bg-sky-600 text-white hover:bg-sky-700",
+          icon: <FacebookMark className="size-5" />,
+        }
+      : null,
+    social.instagram
+      ? {
+          href: social.instagram,
+          label: "Instagram VOF",
+          tone: "bg-violet-700 text-white hover:bg-violet-800",
+          icon: <InstagramMark className="size-5" />,
+        }
+      : null,
+  ].filter((link): link is NonNullable<typeof link> => Boolean(link));
+
+  if (links.length === 0) {
+    return null;
+  }
 
   return (
     <section aria-labelledby="acces-rapide">
@@ -46,21 +71,5 @@ export function QuickAccess() {
         ))}
       </div>
     </section>
-  );
-}
-
-function FacebookMark() {
-  return (
-    <svg viewBox="0 0 24 24" className="size-5 fill-current" aria-hidden="true">
-      <path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.6L16 12h-3V10c0-.6.4-1 1-1Z" />
-    </svg>
-  );
-}
-
-function YoutubeMark() {
-  return (
-    <svg viewBox="0 0 24 24" className="size-5 fill-current" aria-hidden="true">
-      <path d="M23 12.2s0-3.2-.4-4.6c-.2-.8-.9-1.5-1.7-1.7C19.4 5.5 12 5.5 12 5.5s-7.4 0-8.9.4c-.8.2-1.5.9-1.7 1.7C1 9 1 12.2 1 12.2s0 3.2.4 4.6c.2.8.9 1.5 1.7 1.7 1.5.4 8.9.4 8.9.4s7.4 0 8.9-.4c.8-.2 1.5-.9 1.7-1.7.4-1.4.4-4.6.4-4.6ZM9.8 15.5V8.9l6.2 3.3-6.2 3.3Z" />
-    </svg>
   );
 }

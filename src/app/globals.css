@@ -14,6 +14,10 @@
   --color-impact: #dc2626;
   --color-surface: #f8fafc;
   --color-body: #1e293b;
+  --color-burgundy: #4a0e17;
+  --color-burgundy-light: #70161e;
+  --color-cream: #fdfbf7;
+  --color-gold: #c4a35a;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-heading: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-lora), ui-serif, Georgia, "Times New Roman", serif;

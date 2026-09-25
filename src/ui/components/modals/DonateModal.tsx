@@ -3,14 +3,16 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import type { PublicPaymentConfig } from "@/types";
 import { DonateFlow } from "@/ui/components/forms";
 
 interface DonateModalProps {
   isOpen: boolean;
   onClose: () => void;
+  paymentConfig: PublicPaymentConfig;
 }
 
-export function DonateModal({ isOpen, onClose }: DonateModalProps) {
+export function DonateModal({ isOpen, onClose, paymentConfig }: DonateModalProps) {
   const [flowKey, setFlowKey] = useState(0);
   const [mounted, setMounted] = useState(false);
 
@@ -81,7 +83,7 @@ export function DonateModal({ isOpen, onClose }: DonateModalProps) {
           un moyen de paiement.
         </p>
         <div className="mt-5">
-          <DonateFlow key={flowKey} layout="modal" />
+          <DonateFlow key={flowKey} layout="modal" paymentConfig={paymentConfig} />
         </div>
       </div>
     </div>,

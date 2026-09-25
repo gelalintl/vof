@@ -8,9 +8,18 @@ import { mainNavigation } from "@/config/navigation";
 import { cn } from "@/utils/cn";
 import { Button } from "@/ui/design-system/button";
 import { Logo } from "@/ui/design-system/logo";
+import type { PublicPaymentConfig } from "@/types";
 import { DonateModal } from "@/ui/components/modals";
 
-export function Navbar() {
+export function Navbar({
+  logoSrc,
+  churchName,
+  paymentConfig,
+}: {
+  logoSrc?: string | null;
+  churchName?: string;
+  paymentConfig: PublicPaymentConfig;
+}) {
   const pathname = usePathname();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDonateOpen, setIsDonateOpen] = useState(false);
@@ -21,7 +30,7 @@ export function Navbar() {
     <header className="sticky top-0 z-50 border-b border-sky-100/50 bg-white/75 shadow-lg shadow-black/5 backdrop-blur-xl backdrop-saturate-150">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
         <Link href="/" className="shrink-0" onClick={closeDrawer}>
-          <Logo />
+          <Logo imageSrc={logoSrc} wordmark={churchName} />
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Navigation principale">
@@ -110,7 +119,11 @@ export function Navbar() {
         </div>
       ) : null}
 
-      <DonateModal isOpen={isDonateOpen} onClose={() => setIsDonateOpen(false)} />
+      <DonateModal
+        isOpen={isDonateOpen}
+        onClose={() => setIsDonateOpen(false)}
+        paymentConfig={paymentConfig}
+      />
     </header>
   );
 }

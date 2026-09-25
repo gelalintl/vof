@@ -1,5 +1,5 @@
 import type { Event } from "@/types";
-import { toMediaCard } from "@/datas/events";
+import { toMediaCard } from "@/lib/eventPresentation";
 import { MediaCard } from "@/ui/components/cards";
 
 interface EventCardProps {
