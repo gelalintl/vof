@@ -24,7 +24,7 @@ export function LoginForm() {
       {error ? (
         <p
           role="alert"
-          className="border border-burgundy bg-burgundy/5 px-4 py-3 font-sans text-sm text-burgundy"
+          className="border border-red-200 bg-red-50 px-4 py-3 font-sans text-sm text-red-700"
         >
           {error}
         </p>

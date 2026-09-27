@@ -87,3 +87,18 @@ export function sessionCookieOptions() {
     maxAge: ADMIN_SESSION_MAX_AGE,
   };
 }
+
+export function expiredSessionCookieOptions() {
+  return {
+    ...sessionCookieOptions(),
+    maxAge: 0,
+  };
+}
+
+export function clearSessionCookie(store: {
+  set: (name: string, value: string, options?: ReturnType<typeof sessionCookieOptions>) => unknown;
+  delete: (name: string) => unknown;
+}) {
+  store.set(ADMIN_SESSION_COOKIE, "", expiredSessionCookieOptions());
+  store.delete(ADMIN_SESSION_COOKIE);
+}

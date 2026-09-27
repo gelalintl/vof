@@ -12,18 +12,30 @@ interface DonateMobileMoneyProps {
   amountFcfa: number;
   summary: string;
   operators: PublicMobileMoneyOperator[];
+  operatorId?: MobileMoneyOperatorId;
+  senderNumber?: string;
+  onOperatorChange?: (id: MobileMoneyOperatorId) => void;
+  onSenderNumberChange?: (value: string) => void;
+  compact?: boolean;
 }
 
 export function DonateMobileMoney({
   amountFcfa,
   summary,
   operators,
+  operatorId: controlledOperatorId,
+  senderNumber: controlledSenderNumber,
+  onOperatorChange,
+  onSenderNumberChange,
+  compact = false,
 }: DonateMobileMoneyProps) {
-  const [operatorId, setOperatorId] = useState<MobileMoneyOperatorId>(
+  const [internalOperatorId, setInternalOperatorId] = useState<MobileMoneyOperatorId>(
     operators[0]?.id ?? "amana",
   );
-  const [senderNumber, setSenderNumber] = useState("");
+  const [internalSenderNumber, setInternalSenderNumber] = useState("");
   const [copied, setCopied] = useState(false);
+  const operatorId = controlledOperatorId ?? internalOperatorId;
+  const senderNumber = controlledSenderNumber ?? internalSenderNumber;
 
   const account =
     operators.find((item) => item.id === operatorId) ?? operators[0];
@@ -55,13 +67,16 @@ export function DonateMobileMoney({
   }
 
   return (
-    <div className="space-y-4 rounded-2xl bg-slate-50 p-4">
-      <p className="font-sans text-sm leading-relaxed text-slate-800">
-        Envoyez <strong>{summary}</strong> via Mobile Money. Choisissez
-        l&apos;opérateur, scannez le QR marchand ou copiez le numéro officiel
-        de {merchantDisplayName()}.
-      </p>
+    <div className={cn("rounded-2xl bg-slate-50", compact ? "space-y-3 p-3" : "space-y-4 p-4")}>
+      {compact ? null : (
+        <p className="font-sans text-sm leading-relaxed text-slate-800">
+          Envoyez <strong>{summary}</strong> via Mobile Money. Choisissez
+          l&apos;opérateur, scannez le QR marchand ou copiez le numéro officiel
+          de {merchantDisplayName()}.
+        </p>
+      )}
 
+      {compact && operators.length <= 1 ? null : (
       <div className="grid grid-cols-3 gap-2" role="tablist" aria-label="Opérateur Mobile Money">
         {operators.map((item) => {
           const selected = item.id === operatorId;
@@ -72,7 +87,8 @@ export function DonateMobileMoney({
               role="tab"
               aria-selected={selected}
               onClick={() => {
-                setOperatorId(item.id);
+                onOperatorChange?.(item.id);
+                setInternalOperatorId(item.id);
                 setCopied(false);
               }}
               className={cn(
@@ -87,22 +103,31 @@ export function DonateMobileMoney({
           );
         })}
       </div>
+      )}
 
-      <div className="rounded-2xl bg-white p-4 ring-1 ring-violet-100">
+      <div className={cn("rounded-2xl bg-white ring-1 ring-violet-100", compact ? "p-3" : "p-4")}>
         <div className="mx-auto flex max-w-[220px] flex-col items-center">
           {account.qrUrl ? (
-            <div className="rounded-2xl bg-white p-3 shadow-inner ring-1 ring-slate-100">
+            <div className="rounded-2xl bg-white p-2 shadow-inner ring-1 ring-slate-100">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={account.qrUrl}
                 alt={`QR Code marchand ${account.label}`}
                 width={180}
                 height={180}
-                className="size-[160px] object-contain sm:size-[180px]"
+                className={cn(
+                  "object-contain",
+                  compact ? "size-[120px]" : "size-[160px] sm:size-[180px]",
+                )}
               />
             </div>
           ) : (
-            <div className="flex size-[160px] items-center justify-center rounded-2xl bg-slate-50 text-center font-sans text-xs text-slate-500 sm:size-[180px]">
+            <div
+              className={cn(
+                "flex items-center justify-center rounded-2xl bg-slate-50 text-center font-sans text-xs text-slate-500",
+                compact ? "size-[120px]" : "size-[160px] sm:size-[180px]",
+              )}
+            >
               QR {account.label} à venir
             </div>
           )}
@@ -111,7 +136,7 @@ export function DonateMobileMoney({
           </p>
         </div>
 
-        <div className="mt-4 space-y-1 text-center">
+        <div className={cn("space-y-1 text-center", compact ? "mt-2" : "mt-4")}>
           <p className="font-heading text-lg font-extrabold tracking-tight text-slate-800">
             {account.phone || "Numéro marchand à confirmer"}
           </p>
@@ -120,7 +145,7 @@ export function DonateMobileMoney({
 
         <Button
           variant="secondary"
-          className="mt-4 w-full"
+          className={cn("w-full", compact ? "mt-3" : "mt-4")}
           onClick={copyMerchantNumber}
           disabled={!account.phone}
           aria-live="polite"
@@ -138,19 +163,24 @@ export function DonateMobileMoney({
           )}
         </Button>
 
-        <label className="mt-4 block">
-          <span className="font-heading text-sm font-bold text-slate-800">
-            Votre numéro d&apos;expéditeur
-          </span>
-          <input
-            type="tel"
-            inputMode="tel"
-            value={senderNumber}
-            onChange={(event) => setSenderNumber(event.target.value)}
-            placeholder="Ex. +227 90 00 00 00"
-            className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 font-sans text-slate-800 outline-none ring-violet-700 placeholder:text-slate-400 focus:ring-2"
-          />
-        </label>
+        {compact ? null : (
+          <label className="mt-4 block">
+            <span className="font-heading text-sm font-bold text-slate-800">
+              Votre numéro d&apos;expéditeur
+            </span>
+            <input
+              type="tel"
+              inputMode="tel"
+              value={senderNumber}
+              onChange={(event) => {
+                onSenderNumberChange?.(event.target.value);
+                setInternalSenderNumber(event.target.value);
+              }}
+              placeholder="Ex. +227 90 00 00 00"
+              className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 font-sans text-slate-800 outline-none ring-violet-700 placeholder:text-slate-400 focus:ring-2"
+            />
+          </label>
+        )}
 
         <p className="mt-3 text-center font-sans text-xs text-slate-500">
           Montant à envoyer : {formatFcfa(amountFcfa)}

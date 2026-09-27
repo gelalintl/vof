@@ -8,6 +8,7 @@ import { Button } from "@/ui/design-system/button";
 interface DonateBankTransferProps {
   bank: PublicBankTransfer;
   summary: string;
+  compact?: boolean;
 }
 
 async function copyText(value: string) {
@@ -26,7 +27,7 @@ async function copyText(value: string) {
   }
 }
 
-export function DonateBankTransfer({ bank, summary }: DonateBankTransferProps) {
+export function DonateBankTransfer({ bank, summary, compact = false }: DonateBankTransferProps) {
   const [copied, setCopied] = useState(false);
   const iban = bank.iban.replace(/\s+/g, " ").trim();
 
@@ -50,11 +51,13 @@ export function DonateBankTransfer({ bank, summary }: DonateBankTransferProps) {
         </p>
       </div>
 
-      <div className="space-y-4 p-4">
+      <div className={compact ? "space-y-3 p-3" : "space-y-4 p-4"}>
+        {compact ? null : (
         <p className="font-sans text-sm leading-relaxed text-slate-700">
           Effectuez un virement de <strong>{summary}</strong> vers le compte
           ci-dessous, puis conservez votre reçu.
         </p>
+        )}
 
         <dl className="divide-y divide-slate-100 rounded-2xl bg-slate-50">
           <BankRow label="Banque" value={bank.bankName} />

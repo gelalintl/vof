@@ -8,17 +8,21 @@ import { mainNavigation } from "@/config/navigation";
 import { cn } from "@/utils/cn";
 import { Button } from "@/ui/design-system/button";
 import { Logo } from "@/ui/design-system/logo";
-import type { PublicPaymentConfig } from "@/types";
+import type { PublicPaymentConfig, PublicProject } from "@/types";
 import { DonateModal } from "@/ui/components/modals";
 
 export function Navbar({
   logoSrc,
   churchName,
   paymentConfig,
+  projects = [],
+  whatsappHref = "",
 }: {
   logoSrc?: string | null;
   churchName?: string;
   paymentConfig: PublicPaymentConfig;
+  projects?: PublicProject[];
+  whatsappHref?: string;
 }) {
   const pathname = usePathname();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -123,6 +127,8 @@ export function Navbar({
         isOpen={isDonateOpen}
         onClose={() => setIsDonateOpen(false)}
         paymentConfig={paymentConfig}
+        projects={projects}
+        whatsappHref={whatsappHref}
       />
     </header>
   );

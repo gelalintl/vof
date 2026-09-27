@@ -1,26 +1,3 @@
-export type SermonCategory =
-  | "culte"
-  | "enseignement"
-  | "seminaire"
-  | "jeunesse";
-
-export interface Sermon {
-  id: string;
-  slug: string;
-  title: string;
-  preacher: string;
-  preacherId?: string;
-  date: string;
-  scripture?: string;
-  summary: string;
-  youtubeId?: string;
-  audioUrl?: string;
-  thumbnailUrl?: string;
-  category: SermonCategory;
-  tags?: string[];
-  durationMinutes?: number;
-}
-
 export type EventKind =
   | "culte"
   | "enseignement"
@@ -64,14 +41,6 @@ export interface CalendarEventPayload {
   kind?: EventKind;
   imageUrl?: string;
 }
-
-export type EventCategoryFilter =
-  | "all"
-  | "enseignement"
-  | "jeunesse"
-  | "seminaire"
-  | "conference"
-  | "rassemblement";
 
 export type EventRecurrence =
   | { kind: "weekly"; weekday: number }
@@ -126,12 +95,6 @@ export interface Event {
   recurrence?: EventRecurrence;
 }
 
-/** Événement ponctuel (réveillon, séminaire multi-jours, etc.). */
-export type SpecialEvent = Omit<Event, "recurrence" | "colorToken"> & {
-  /** Si omis, le calendrier applique l'impact rouge (#DC2626). */
-  colorToken?: EventColorToken;
-};
-
 export interface Department {
   id: string;
   slug: string;
@@ -140,20 +103,9 @@ export interface Department {
   leader?: string;
   meetingSchedule?: string;
   contact?: string;
+  image?: string;
   icon?: string;
   colorToken?: EventColorToken;
-}
-
-export interface Pastor {
-  id: string;
-  slug: string;
-  firstName: string;
-  lastName: string;
-  title: string;
-  role: string;
-  bio: string;
-  photoUrl?: string;
-  quote?: string;
 }
 
 export type PaymentMethod = "mobile_money" | "card" | "rib";
@@ -180,6 +132,75 @@ export interface DonationDraft {
   amountFcfa: number;
   recurrence: DonationRecurrence;
   method: PaymentMethod;
+  projectId?: string | null;
+}
+
+export type ProjectStatus = "IN_PROGRESS" | "COMPLETED" | "PLANNED";
+
+export type DonationPromiseType =
+  | "DIME"
+  | "OFFRANDE"
+  | "PROJET"
+  | "ACTION_DE_GRACE"
+  | "VOEU";
+
+export type DonationPromisePaymentMethod =
+  | "AMANA"
+  | "MYNITA"
+  | "WAVE"
+  | "BANK"
+  | "CARD";
+
+export type DonationPromiseStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
+
+export interface PublicProject {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  category: string | null;
+  targetAmount: number;
+  currentAmount: number;
+  image: string | null;
+  status: ProjectStatus;
+  isFeatured: boolean;
+  progress: number;
+}
+
+export interface AdminProjectRecord extends PublicProject {
+  order: number;
+  createdAt: string;
+}
+
+export interface AdminDonationRecord {
+  id: string;
+  donorName: string | null;
+  donorPhone: string | null;
+  donorEmail: string | null;
+  type: string;
+  amount: number;
+  paymentMethod: string;
+  status: DonationPromiseStatus;
+  notes: string | null;
+  projectId: string | null;
+  projectTitle: string | null;
+  createdAt: string;
+}
+
+export interface SubmitDonationPromiseInput {
+  donorName?: string;
+  donorPhone?: string;
+  donorEmail?: string;
+  type?: string;
+  amount: number;
+  paymentMethod: string;
+  notes?: string;
+  projectId?: string | null;
+}
+
+export interface DonationListFilters {
+  status?: DonationPromiseStatus | "ALL";
+  projectId?: string;
 }
 
 export interface NavItem {
@@ -236,14 +257,6 @@ export type ContactSubject =
   | "departement"
   | "autre";
 
-export interface ContactMessage {
-  name: string;
-  email: string;
-  phone?: string;
-  subject: ContactSubject;
-  message: string;
-}
-
 export type GalleryLayout = "bento" | "grid";
 
 export type FeatureCardTone = "brand" | "secondary" | "accent";
@@ -271,16 +284,6 @@ export type ContentSectionTone = "white" | "muted";
 export type ContentSectionWidth = "default" | "narrow" | "prose" | "article";
 export type ContentSectionPadding = "default" | "compact";
 export type ContentSectionGap = "md" | "lg";
-
-export interface PortraitBlockData {
-  name: string;
-  role: string;
-  bio: string;
-  photoSrc: string;
-  photoAlt: string;
-  quote?: string;
-  reversed?: boolean;
-}
 
 export interface QuoteBlockData {
   quote: string;
@@ -368,35 +371,65 @@ export interface AdminSessionUser {
 
 export type AdminEventCategory = "ROUTINE" | "FASTING" | "VIGIL" | "SPECIAL";
 
+export type AdminRecurrenceType =
+  | "NONE"
+  | "DAILY"
+  | "WEEKLY"
+  | "MONTHLY"
+  | "FIRST_3_DAYS_MONTH"
+  | "SECOND_AND_LAST_FRIDAY";
+
 export interface CreateAdminEventInput {
   title: string;
+  slug?: string | null;
   description: string;
   startDate: string;
   endDate?: string | null;
+  startTime?: string | null;
+  endTime?: string | null;
+  durationDays?: number;
   location: string;
   category: AdminEventCategory;
   isSpecial?: boolean;
+  isExclusive?: boolean;
+  isFeatured?: boolean;
   image?: string | null;
+  youtubeUrl?: string | null;
+  recurrenceType?: AdminRecurrenceType;
+  recurrenceRule?: AdminRecurrenceType;
+  daysOfWeek?: number[];
+  recurrenceEndDate?: string | null;
+  excludedDates?: string[];
 }
 
-export interface CreateAdminMediaInput {
+export interface PublicRecurringGathering {
+  id: string;
   title: string;
-  url: string;
-  category: string;
-  eventId?: string | null;
-  isFeaturedHome?: boolean;
+  scheduleLabel: string;
+  timeLabel: string;
+  recurrenceType: AdminRecurrenceType;
+  daysOfWeek: number[];
 }
 
 export interface AdminEventRecord {
   id: string;
   title: string;
+  slug: string | null;
   description: string;
   startDate: string;
   endDate: string | null;
+  durationDays: number;
   location: string;
   category: AdminEventCategory;
   isSpecial: boolean;
+  isExclusive: boolean;
+  isFeatured: boolean;
   image: string | null;
+  youtubeUrl: string | null;
+  recurrenceType: AdminRecurrenceType;
+  daysOfWeek: number[];
+  recurrenceEndDate: string | null;
+  excludedDates: string[];
   createdAt: string;
 }
 
@@ -411,15 +444,6 @@ export interface AdminMediaRecord {
   createdAt: string;
 }
 
-export interface CreateAdminArticleInput {
-  title: string;
-  slug: string;
-  content: string;
-  author: string;
-  coverImage?: string | null;
-  isPublished?: boolean;
-}
-
 export interface AdminArticleRecord {
   id: string;
   title: string;
@@ -427,8 +451,66 @@ export interface AdminArticleRecord {
   content: string;
   author: string;
   coverImage: string | null;
+  galleryImages: string[];
+  youtubeUrl: string | null;
   isPublished: boolean;
+  isFeatured: boolean;
   createdAt: string;
+}
+
+export interface AdminCommentRecord {
+  id: string;
+  authorName: string;
+  authorEmail: string | null;
+  content: string;
+  likesCount: number;
+  isApproved: boolean;
+  createdAt: string;
+  articleId: string | null;
+  articleTitle: string | null;
+  articleSlug: string | null;
+}
+
+export interface CreateAdminPastorInput {
+  name: string;
+  role: string;
+  bio?: string | null;
+  quote?: string | null;
+  image?: string | null;
+  order?: number;
+}
+
+export interface AdminDepartmentRecord {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  responsible: string | null;
+  contact: string | null;
+  image: string | null;
+  order: number;
+  createdAt: string;
+}
+
+export interface AdminPastorRecord {
+  id: string;
+  name: string;
+  role: string;
+  bio: string | null;
+  quote: string | null;
+  image: string | null;
+  order: number;
+  createdAt: string;
+}
+
+export interface PublicPastor {
+  id: string;
+  name: string;
+  role: string;
+  bio: string | null;
+  quote: string | null;
+  image: string | null;
+  order: number;
 }
 
 export interface AdminSettingRecord {
@@ -436,6 +518,13 @@ export interface AdminSettingRecord {
   key: string;
   value: string;
   updatedAt: string;
+}
+
+export interface AdminPrintSettings {
+  print_signatory_title: string;
+  print_header_title: string;
+  print_header_subtitle: string;
+  print_use_logo: string;
 }
 
 export interface PublicSocialLinks {
@@ -468,6 +557,14 @@ export interface PublicSiteIdentity {
   sundayTime: string;
 }
 
+export interface PublicArticleComment {
+  id: string;
+  authorName: string;
+  content: string;
+  likesCount: number;
+  createdAt: string;
+}
+
 export interface PublicArticle {
   id: string;
   slug: string;
@@ -475,5 +572,9 @@ export interface PublicArticle {
   content: string;
   author: string;
   coverImage: string | null;
+  galleryImages: string[];
+  youtubeUrl: string | null;
+  isFeatured: boolean;
+  comments: PublicArticleComment[];
   createdAt: string;
 }

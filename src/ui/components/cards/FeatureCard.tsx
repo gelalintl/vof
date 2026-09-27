@@ -1,5 +1,6 @@
 import type { FeatureCardData, FeatureCardTone } from "@/types";
 import { cn } from "@/utils/cn";
+import { interactiveCardClass } from "@/utils/theme/interactiveCard";
 
 const toneClasses: Record<FeatureCardTone, string> = {
   brand: "bg-violet-700/10 border-violet-500/20 text-violet-700",
@@ -15,7 +16,8 @@ export function FeatureCard({ card }: FeatureCardProps) {
   return (
     <article
       className={cn(
-        "rounded-3xl border border-white/20 p-6 backdrop-blur-md",
+        interactiveCardClass,
+        "rounded-3xl p-6 backdrop-blur-md",
         toneClasses[card.tone ?? "brand"],
       )}
     >

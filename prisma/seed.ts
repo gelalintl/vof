@@ -19,6 +19,7 @@ async function main() {
   await prisma.media.deleteMany()
   await prisma.event.deleteMany()
   await prisma.article.deleteMany()
+  await prisma.department.deleteMany()
   await prisma.siteSettings.deleteMany()
   await prisma.user.deleteMany()
 
@@ -134,6 +135,84 @@ async function main() {
     ],
   })
   console.log('✅ Galerie média initialisée.')
+
+  await prisma.department.createMany({
+    data: [
+      {
+        name: "Chorale",
+        slug: "chorale",
+        description:
+          "Prépare le climat d'adoration des cultes : chant, musique et présence de Dieu au centre de l'assemblée.",
+        responsible: "Emmanuel",
+        contact: "+227 XX XX XX XX",
+        order: 1,
+      },
+      {
+        name: "Intercession",
+        slug: "intercession",
+        description:
+          "Veilleurs de la maison : prière pour l'église, la ville et les nations, avant et pendant les cultes.",
+        responsible: "Pasteur Parfait",
+        contact: "+227 XX XX XX XX",
+        order: 2,
+      },
+      {
+        name: "Protocole",
+        slug: "protocole",
+        description:
+          "Premier sourire de VOF. Oriente les visiteurs, prépare la salle et veille à ce que chacun se sente attendu.",
+        responsible: "Akueté",
+        contact: "+227 XX XX XX XX",
+        order: 3,
+      },
+      {
+        name: "La jeunesse",
+        slug: "jeunesse",
+        description:
+          "Un pôle pour les adolescents et jeunes adultes : Parole, amitié, mission et une foi incarnée dans leur génération.",
+        responsible: "Mainassara Nelson",
+        contact: "+227 XX XX XX XX",
+        order: 4,
+      },
+      {
+        name: "Enfants",
+        slug: "enfants",
+        description:
+          "Éveil biblique et accueil des enfants pendant le culte, dans un cadre sûr, joyeux et adapté à leur âge.",
+        responsible: "Pasteure Rose",
+        contact: "+227 XX XX XX XX",
+        order: 5,
+      },
+      {
+        name: "Média & Communication",
+        slug: "media",
+        description:
+          "Captation, replay, graphisme et diffusion : rendre visible la vie de l'église, y compris sur les réseaux 3G/4G.",
+        responsible: "Mainassara Nelson",
+        contact: "+227 XX XX XX XX",
+        order: 6,
+      },
+      {
+        name: "Nettoyage",
+        slug: "nettoage",
+        description:
+          "Tenir la maison de Dieu propre et assurer aux enfants de Dieu un cadre sain et propice à la prière, telle est notre mission.",
+        responsible: "Alfred",
+        contact: "+227 XX XX XX XX",
+        order: 7,
+      },
+      {
+        name: "Cellules de visite",
+        slug: "visite",
+        description:
+          "Petits groupes en semaine pour prier, étudier la Parole et tisser des liens au-delà du dimanche.",
+        responsible: "Pasteur Parfait",
+        contact: "+227 XX XX XX XX",
+        order: 8,
+      },
+    ],
+  })
+  console.log("✅ Départements insérés.")
 
   console.log('🎉 Seeding terminé avec succès !')
 }

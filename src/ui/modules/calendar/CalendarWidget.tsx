@@ -18,14 +18,15 @@ import {
 } from "@/utils/date/getMonthlyEvents";
 import { Badge } from "@/ui/design-system/badge";
 import { Typography } from "@/ui/design-system/typography";
+import { interactiveCardClass } from "@/utils/theme/interactiveCard";
 
 const WEEKDAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
 const tokenSoft: Record<EventColorToken, string> = {
-  brand: "border-violet-700 bg-violet-50",
-  secondary: "border-sky-600 bg-sky-50",
-  accent: "border-amber-500 bg-amber-50",
-  impact: "border-red-600 bg-red-50",
+  brand: "border-l-violet-700",
+  secondary: "border-l-sky-600",
+  accent: "border-l-amber-500",
+  impact: "border-l-red-600",
 };
 
 const badgeVariant: Record<EventColorToken, "brand" | "secondary" | "accent" | "impact"> = {
@@ -54,23 +55,39 @@ export function CalendarWidget({
   const [selectedKey, setSelectedKey] = useState<string | null>(todayKey);
 
   const allEvents = useMemo(
-    () => hydrateCalendarEvents(payloads),
+    () =>
+      hydrateCalendarEvents(payloads).sort((left, right) => {
+        const byDate = left.date.getTime() - right.date.getTime();
+        if (byDate !== 0) {
+          return byDate;
+        }
+        return left.time.localeCompare(right.time);
+      }),
     [payloads],
   );
 
   const cells = useMemo(() => getCalendarMonthCells(year, month), [year, month]);
   const monthLabel = formatMonthTitle(year, month);
 
-  const eventByDay = useMemo(() => {
-    const map = new Map<string, MonthlyGeneratedEvent>();
+  const eventsByDay = useMemo(() => {
+    const map = new Map<string, MonthlyGeneratedEvent[]>();
     for (const event of allEvents) {
-      map.set(toDateKey(event.date), event);
+      const key = toDateKey(event.date);
+      const bucket = map.get(key);
+      if (bucket) {
+        bucket.push(event);
+      } else {
+        map.set(key, [event]);
+      }
+    }
+    for (const bucket of map.values()) {
+      bucket.sort((left, right) => left.time.localeCompare(right.time));
     }
     return map;
   }, [allEvents]);
 
   const fastingCaption = fastingCaptionFromEvents(allEvents);
-  const selectedEvent = selectedKey ? eventByDay.get(selectedKey) : undefined;
+  const selectedEvents = selectedKey ? (eventsByDay.get(selectedKey) ?? []) : [];
   const upcoming = allEvents
     .filter((event) => toDateKey(event.date) >= todayKey)
     .slice(0, 6);
@@ -79,6 +96,15 @@ export function CalendarWidget({
     const next = shiftCalendarMonth(year, month, delta);
     setYear(next.year);
     setMonth(next.month);
+    setSelectedKey((current) => {
+      if (current) {
+        const [selectedYear, selectedMonth] = current.split("-").map(Number);
+        if (selectedYear === next.year && selectedMonth === next.month) {
+          return current;
+        }
+      }
+      return `${next.year}-${String(next.month).padStart(2, "0")}-01`;
+    });
     setLoading(true);
     try {
       const nextEvents = await loadCalendarMonth(next.year, next.month);
@@ -88,7 +114,8 @@ export function CalendarWidget({
     }
   }
 
-  const listedEvents = selectedEvent ? [selectedEvent] : upcoming;
+  const listedEvents = selectedKey ? selectedEvents : upcoming;
+  const listingADay = Boolean(selectedKey);
 
   return (
     <section className="bg-slate-50" aria-labelledby="agenda-vof">
@@ -96,13 +123,13 @@ export function CalendarWidget({
         <div>
           <Badge variant="secondary">Agenda</Badge>
           <Typography id="agenda-vof" variant="h2" className="mt-3">
-            Calendrier de l&apos;église
+            Calendrier &amp; agenda mensuel
           </Typography>
           <Typography variant="body" className="mt-3 text-slate-600">
-            Les rendez-vous du mois, lus depuis l&apos;agenda de l&apos;église.
+            Sélectionnez un jour pour voir tous les rendez-vous, dans l’ordre horaire.
           </Typography>
 
-          <div className="mt-6 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-violet-100 sm:p-6">
+          <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
             <div className="mb-4 flex items-center justify-between">
               <button
                 type="button"
@@ -130,20 +157,25 @@ export function CalendarWidget({
               </p>
             ) : null}
 
-            <div className="grid grid-cols-7 gap-1 text-center">
+            <div className="mx-auto grid w-full max-w-sm grid-cols-7 place-items-center gap-1 sm:max-w-md sm:gap-1.5">
               {WEEKDAYS.map((day) => (
                 <span
                   key={day}
-                  className="py-2 font-heading text-[11px] font-bold uppercase tracking-wide text-sky-600"
+                  className="py-1 font-heading text-[11px] font-bold uppercase tracking-wide text-sky-600"
                 >
                   {day}
                 </span>
               ))}
               {cells.map((cell, index) => {
                 if (!cell) {
-                  return <span key={`pad-${index}`} className="h-11" />;
+                  return (
+                    <span
+                      key={`pad-${index}`}
+                      className="h-10 w-10 sm:h-12 sm:w-12"
+                    />
+                  );
                 }
-                const event = eventByDay.get(cell.dateKey);
+                const dayEvents = eventsByDay.get(cell.dateKey) ?? [];
                 const isSelected = selectedKey === cell.dateKey;
                 const isToday = cell.dateKey === todayKey;
 
@@ -152,25 +184,32 @@ export function CalendarWidget({
                     key={cell.dateKey}
                     type="button"
                     onClick={() => setSelectedKey(cell.dateKey)}
+                    aria-label={
+                      dayEvents.length > 0
+                        ? `${cell.day} : ${dayEvents.length} rendez-vous`
+                        : `${cell.day}`
+                    }
                     className={cn(
-                      "flex h-11 flex-col items-center justify-center rounded-lg font-sans text-sm",
+                      "mx-auto flex aspect-square h-10 w-10 flex-col items-center justify-center rounded-xl font-sans text-sm sm:h-12 sm:w-12",
                       isSelected
-                        ? "font-bold text-violet-700"
+                        ? "bg-violet-50 font-bold text-violet-700 ring-2 ring-violet-700"
                         : isToday
-                          ? "font-semibold text-slate-800"
+                          ? "font-semibold text-slate-800 ring-1 ring-sky-600"
                           : "text-slate-800 hover:bg-slate-50",
                     )}
                   >
-                    {cell.day}
-                    {event ? (
-                      <span
-                        className={cn(
-                          "mt-0.5 h-1.5 w-1.5 rounded-full",
-                          calendarDotClass(event),
-                        )}
-                      />
+                    <span>{cell.day}</span>
+                    {dayEvents.length > 0 ? (
+                      <span className="mt-0.5 flex items-center justify-center gap-0.5">
+                        {dayEvents.slice(0, 3).map((event) => (
+                          <span
+                            key={event.id}
+                            className={cn("h-1 w-1 rounded-full", calendarDotClass(event))}
+                          />
+                        ))}
+                      </span>
                     ) : (
-                      <span className="mt-0.5 h-1.5 w-1.5" />
+                      <span className="mt-0.5 h-1 w-1" />
                     )}
                   </button>
                 );
@@ -179,18 +218,25 @@ export function CalendarWidget({
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 overflow-visible">
           <Typography variant="h3">
-            {selectedEvent && selectedKey
+            {listingADay && selectedKey
               ? formatEventDate(selectedKey)
               : "Prochains rendez-vous"}
           </Typography>
+          {listingADay && selectedEvents.length > 1 ? (
+            <p className="font-sans text-sm text-slate-500">
+              {selectedEvents.length} rendez-vous ce jour, par ordre horaire
+            </p>
+          ) : null}
 
           {loading ? (
             <p className="font-sans text-sm text-slate-500">Chargement de l&apos;agenda…</p>
           ) : listedEvents.length === 0 ? (
             <p className="font-sans text-sm text-slate-500">
-              Aucun rendez-vous enregistré pour cette période.
+              {listingADay
+                ? "Aucun rendez-vous enregistré pour cette journée."
+                : "Aucun rendez-vous enregistré pour cette période."}
             </p>
           ) : (
             listedEvents.map((event) => {
@@ -199,7 +245,8 @@ export function CalendarWidget({
                 <article
                   key={event.id}
                   className={cn(
-                    "overflow-hidden rounded-2xl border-l-4 bg-white shadow-sm",
+                    interactiveCardClass,
+                    "overflow-hidden rounded-2xl border-l-4",
                     tokenSoft[accent],
                   )}
                 >

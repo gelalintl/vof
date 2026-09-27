@@ -1,6 +1,7 @@
 import type { AdminSettingRecord } from "@/types";
 import { AdminLabel } from "./AdminPageHeader";
-import { adminFieldClass, adminPrimaryButtonClass } from "./adminStyles";
+import { AdminSubmitButton } from "./AdminSubmitButton";
+import { adminFieldClass } from "./adminStyles";
 
 interface SettingFormProps {
   action: (formData: FormData) => void | Promise<void>;
@@ -34,9 +35,7 @@ export function SettingForm({ action, setting, submitLabel }: SettingFormProps) 
         />
       </label>
 
-      <button type="submit" className={adminPrimaryButtonClass}>
-        {submitLabel}
-      </button>
+      <AdminSubmitButton>{submitLabel}</AdminSubmitButton>
     </form>
   );
 }

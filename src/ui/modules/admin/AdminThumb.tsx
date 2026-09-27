@@ -12,7 +12,7 @@ export function AdminThumb({ src, alt, className }: AdminThumbProps) {
     return (
       <span
         className={cn(
-          "inline-flex size-14 shrink-0 items-center justify-center border border-burgundy/15 bg-cream text-burgundy/40",
+          "inline-flex size-14 shrink-0 items-center justify-center border border-slate-200 bg-slate-50 text-slate-400",
           className,
         )}
       >
@@ -27,7 +27,7 @@ export function AdminThumb({ src, alt, className }: AdminThumbProps) {
       src={src}
       alt={alt}
       className={cn(
-        "size-14 shrink-0 object-cover border border-burgundy/15 bg-cream",
+        "size-14 shrink-0 border border-slate-200 bg-slate-50 object-cover",
         className,
       )}
     />

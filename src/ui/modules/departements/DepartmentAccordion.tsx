@@ -100,7 +100,7 @@ function DepartmentItem({
       : Users;
 
   return (
-    <li className="overflow-hidden rounded-3xl bg-slate-50 ring-1 ring-violet-100">
+    <li className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-purple-400/60 hover:shadow-md">
       <button
         type="button"
         aria-expanded={isOpen}
@@ -108,33 +108,44 @@ function DepartmentItem({
         onClick={onToggle}
         className="flex w-full items-center gap-3 px-3 py-3 text-left sm:gap-4 sm:px-4"
       >
-        <span className="relative grid h-16 w-24 shrink-0 place-items-center sm:h-[4.5rem] sm:w-28">
-          <motion.span
-            className="absolute inset-0"
-            aria-hidden="true"
-            animate={{ opacity: isOpen ? 0 : 1 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-          >
-            <svg
-              viewBox="0 0 200 120"
-              className={cn("size-full", cloudFill[token])}
-            >
-              <path
-                fill="currentColor"
-                d="M42 92c-20 0-36-14-36-32 0-16 12-30 28-32 4-20 22-34 44-34 16 0 30 7 38 18 9-7 20-11 32-11 28 0 48 18 50 42 18 2 32 18 32 36 0 22-18 38-42 38H42Z"
+        <span className="relative grid h-16 w-24 shrink-0 place-items-center overflow-hidden sm:h-[4.5rem] sm:w-28">
+          {department.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={department.image}
+              alt=""
+              className="absolute inset-0 size-full object-cover"
+            />
+          ) : (
+            <>
+              <motion.span
+                className="absolute inset-0"
+                aria-hidden="true"
+                animate={{ opacity: isOpen ? 0 : 1 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              >
+                <svg
+                  viewBox="0 0 200 120"
+                  className={cn("size-full", cloudFill[token])}
+                >
+                  <path
+                    fill="currentColor"
+                    d="M42 92c-20 0-36-14-36-32 0-16 12-30 28-32 4-20 22-34 44-34 16 0 30 7 38 18 9-7 20-11 32-11 28 0 48 18 50 42 18 2 32 18 32 36 0 22-18 38-42 38H42Z"
+                  />
+                </svg>
+              </motion.span>
+              <Icon
+                className={cn(
+                  "relative z-10 size-6",
+                  isOpen
+                    ? cloudFill[token]
+                    : token === "accent"
+                      ? "text-slate-900"
+                      : "text-white",
+                )}
               />
-            </svg>
-          </motion.span>
-          <Icon
-            className={cn(
-              "relative z-10 size-6",
-              isOpen
-                ? cloudFill[token]
-                : token === "accent"
-                  ? "text-slate-900"
-                  : "text-white",
-            )}
-          />
+            </>
+          )}
         </span>
         <span className="min-w-0 flex-1">
           <span className="block font-heading text-base font-bold tracking-tight text-slate-800 sm:text-lg">

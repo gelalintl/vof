@@ -1,6 +1,7 @@
 import { Clock, MapPin, MessageCircle } from "lucide-react";
 import type { InfoTileData, InfoTileIcon } from "@/types";
 import { cn } from "@/utils/cn";
+import { interactiveCardClass } from "@/utils/theme/interactiveCard";
 import { Typography } from "@/ui/design-system/typography";
 
 const icons: Record<InfoTileIcon, typeof Clock> = {
@@ -49,8 +50,8 @@ export function InfoTile({ tile }: InfoTileProps) {
   );
 
   const className = cn(
-    "flex flex-col items-center gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-violet-100",
-    tile.href && "transition-colors hover:ring-amber-500",
+    interactiveCardClass,
+    "flex flex-col items-center gap-4 rounded-2xl p-5",
   );
 
   if (tile.href) {

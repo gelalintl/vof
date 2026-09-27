@@ -30,9 +30,17 @@ export const departmentsHero: PageHeroData = {
     "Une place pour chacun. Découvrez les équipes, les responsables, les horaires, puis envoyez votre demande pour rejoindre un département.",
 };
 
-export const churchLifeHero: PageHeroData = {
-  badge: "Médias & agenda",
-  title: "Vie de l'église",
+export const projectsHero: PageHeroData = {
+  badge: "Soutenir",
+  title: "Projets de l’église",
   description:
-    "Annonces, enseignements, soirées jeunesse et séminaires d'impact. Filtrez par couleur : violet, bleu ciel ou rouge.",
+    "Chaque projet a un objectif en FCFA. Choisissez une œuvre, faites une promesse de don, puis réglez via Mobile Money, carte ou virement.",
+  glow: "amber",
+};
+
+export const churchLifeHero: PageHeroData = {
+  badge: "Vie communautaire",
+  title: "La vie de l'église",
+  description:
+    "Une famille qui prie, célèbre et grandit ensemble. Découvrez les rassemblements de la semaine, le prochain événement à la une et l’agenda mensuel de Voice of Freedom — tout au même endroit.",
 };

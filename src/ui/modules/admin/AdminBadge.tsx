@@ -9,10 +9,10 @@ export const EVENT_CATEGORY_LABELS: Record<AdminEventCategory, string> = {
 };
 
 const categoryStyles: Record<AdminEventCategory, string> = {
-  ROUTINE: "border-burgundy/30 bg-cream text-burgundy",
-  FASTING: "border-amber-300 bg-amber-50 text-amber-800",
-  VIGIL: "border-burgundy-light bg-burgundy-light/10 text-burgundy-light",
-  SPECIAL: "border-gold bg-gold/15 text-[#6B4F1D]",
+  ROUTINE: "border-violet-200 bg-violet-50 text-[#6d28d9]",
+  FASTING: "border-amber-200 bg-amber-50 text-amber-800",
+  VIGIL: "border-sky-200 bg-sky-50 text-sky-700",
+  SPECIAL: "border-amber-200 bg-amber-50 text-amber-800",
 };
 
 interface AdminBadgeProps {

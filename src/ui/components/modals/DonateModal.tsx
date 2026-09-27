@@ -3,16 +3,24 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import type { PublicPaymentConfig } from "@/types";
+import type { PublicPaymentConfig, PublicProject } from "@/types";
 import { DonateFlow } from "@/ui/components/forms";
 
 interface DonateModalProps {
   isOpen: boolean;
   onClose: () => void;
   paymentConfig: PublicPaymentConfig;
+  projects?: PublicProject[];
+  whatsappHref?: string;
 }
 
-export function DonateModal({ isOpen, onClose, paymentConfig }: DonateModalProps) {
+export function DonateModal({
+  isOpen,
+  onClose,
+  paymentConfig,
+  projects = [],
+  whatsappHref = "",
+}: DonateModalProps) {
   const [flowKey, setFlowKey] = useState(0);
   const [mounted, setMounted] = useState(false);
 
@@ -59,7 +67,7 @@ export function DonateModal({ isOpen, onClose, paymentConfig }: DonateModalProps
         aria-modal="true"
         aria-labelledby="vof-donate-title"
         aria-describedby="vof-donate-description"
-        className="relative z-10 max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
+        className="relative z-10 max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl"
       >
         <button
           type="button"
@@ -79,11 +87,16 @@ export function DonateModal({ isOpen, onClose, paymentConfig }: DonateModalProps
           id="vof-donate-description"
           className="mt-1 font-sans text-sm leading-relaxed text-slate-600"
         >
-          Choisissez le type de don, un montant en FCFA, une récurrence, puis
-          un moyen de paiement.
+          Trois étapes : montant, coordonnées, puis paiement en FCFA.
         </p>
-        <div className="mt-5">
-          <DonateFlow key={flowKey} layout="modal" paymentConfig={paymentConfig} />
+        <div className="mt-4">
+          <DonateFlow
+            key={flowKey}
+            layout="modal"
+            paymentConfig={paymentConfig}
+            projects={projects}
+            whatsappHref={whatsappHref}
+          />
         </div>
       </div>
     </div>,

@@ -1,12 +1,10 @@
 import type {
   FeatureCardData,
   PageHeroData,
-  PortraitBlockData,
   QuoteBlockData,
   SectionHeaderData,
 } from "@/types";
 import { siteConfig } from "@/config/site";
-import { pastors } from "@/datas/pastors";
 
 export const aboutHero: PageHeroData = {
   badge: "À propos",
@@ -43,24 +41,3 @@ export const aboutPillars: FeatureCardData[] = [
     tone: "accent",
   },
 ];
-
-export const aboutPastoralHeader: SectionHeaderData = {
-  badge: "Équipe pastorale",
-  title: "Ceux qui portent la maison",
-  titleId: "equipe-pastorale",
-  align: "center",
-  titleStyle: "display",
-};
-
-export const pastoralPortraits: PortraitBlockData[] = pastors.map((pastor) => {
-  const name = `${pastor.title} ${pastor.firstName}`.trim();
-
-  return {
-    name,
-    role: pastor.role,
-    bio: pastor.bio,
-    photoSrc: pastor.photoUrl ?? `/assets/pastors/${pastor.id}.svg`,
-    photoAlt: name,
-    quote: pastor.quote,
-  };
-});

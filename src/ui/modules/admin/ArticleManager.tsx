@@ -14,6 +14,7 @@ import { AdminConfirmDialog, AdminDrawer } from "./AdminDrawer";
 import { AdminEmptyState, AdminLabel, AdminPanel } from "./AdminPageHeader";
 import { AdminThumb } from "./AdminThumb";
 import { ArticleForm } from "./ArticleForm";
+import { notifyAdminAction, notifyAdminConfirm } from "./notifyAdminAction";
 
 interface ArticleManagerProps {
   articles: AdminArticleRecord[];
@@ -36,9 +37,9 @@ export function ArticleManager({ articles }: ArticleManagerProps) {
       {articles.length === 0 ? (
         <AdminEmptyState>Aucun enseignement publié pour le moment.</AdminEmptyState>
       ) : (
-        <div className="overflow-x-auto border border-burgundy/15 bg-white">
+        <div className="overflow-x-auto border border-slate-200 bg-white">
           <table className="min-w-full text-left text-sm">
-            <thead className="border-b border-burgundy/10 bg-cream font-heading text-[11px] font-bold uppercase tracking-[0.16em] text-burgundy">
+            <thead className="border-b border-slate-100 bg-slate-50 font-heading text-[11px] font-bold uppercase tracking-[0.16em] text-slate-900">
               <tr>
                 <th className="px-4 py-3">Enseignement</th>
                 <th className="px-4 py-3">Auteur</th>
@@ -49,29 +50,36 @@ export function ArticleManager({ articles }: ArticleManagerProps) {
             </thead>
             <tbody>
               {articles.map((article) => (
-                <tr key={article.id} className="border-b border-burgundy/10 last:border-0">
+                <tr key={article.id} className="border-b border-slate-100 last:border-0">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <AdminThumb src={article.coverImage} alt={article.title} />
                       <div>
-                        <p className="font-heading font-bold text-burgundy">{article.title}</p>
-                        <p className="font-mono text-xs text-[#2C2424]/60">{article.slug}</p>
+                        <p className="font-heading font-bold text-slate-900">{article.title}</p>
+                        <p className="font-mono text-xs text-slate-500">{article.slug}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-[#2C2424]/80">{article.author}</td>
+                  <td className="px-4 py-3 text-slate-600">{article.author}</td>
                   <td className="px-4 py-3">
-                    <AdminBadge
-                      className={
-                        article.isPublished
-                          ? "border-gold bg-gold/20 text-[#6B4F1D]"
-                          : "border-burgundy/20 bg-cream text-burgundy"
-                      }
-                    >
-                      {article.isPublished ? "Publié" : "Brouillon"}
-                    </AdminBadge>
+                    <div className="flex flex-wrap gap-1">
+                      <AdminBadge
+                        className={
+                          article.isPublished
+                            ? "border-amber-200 bg-amber-50 text-amber-800"
+                            : "border-slate-200 bg-white text-slate-900"
+                        }
+                      >
+                        {article.isPublished ? "Publié" : "Brouillon"}
+                      </AdminBadge>
+                      {article.isFeatured ? (
+                        <AdminBadge className="border-[#6d28d9]/20 bg-[#6d28d9]/10 text-[#6d28d9]">
+                          Phare
+                        </AdminBadge>
+                      ) : null}
+                    </div>
                   </td>
-                  <td className="px-4 py-3 text-[#2C2424]/80">
+                  <td className="px-4 py-3 text-slate-600">
                     {formatAdminDateTime(article.createdAt)}
                   </td>
                   <td className="px-4 py-3">
@@ -107,16 +115,32 @@ export function ArticleManager({ articles }: ArticleManagerProps) {
               <img
                 src={selected.coverImage}
                 alt={selected.title}
-                className="w-full border border-burgundy/15 object-cover"
+                className="w-full border border-slate-200 object-cover"
               />
             ) : null}
             <Detail label="Auteur" value={selected.author} />
             <Detail label="Slug" value={selected.slug} />
             <Detail label="Statut" value={selected.isPublished ? "Publié" : "Brouillon"} />
             <Detail label="Créé le" value={formatAdminDateTime(selected.createdAt)} />
+            {selected.galleryImages.length > 0 ? (
+              <div>
+                <AdminLabel>Galerie</AdminLabel>
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {selected.galleryImages.map((src) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      key={src}
+                      src={src}
+                      alt=""
+                      className="aspect-square w-full border border-slate-200 object-cover"
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <div>
               <AdminLabel>Contenu</AdminLabel>
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[#2C2424]">
+              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
                 {selected.content}
               </p>
             </div>
@@ -133,10 +157,7 @@ export function ArticleManager({ articles }: ArticleManagerProps) {
           <ArticleForm
             key={selected.id}
             article={selected}
-            action={async (formData) => {
-              await updateArticleFromForm(formData);
-              close();
-            }}
+            action={notifyAdminAction(updateArticleFromForm, "Enseignement mis à jour.", close)}
             submitLabel="Enregistrer les modifications"
           />
         ) : null}
@@ -153,7 +174,7 @@ export function ArticleManager({ articles }: ArticleManagerProps) {
           }
           const formData = new FormData();
           formData.set("id", pendingDelete.id);
-          await deleteArticle(formData);
+          await notifyAdminConfirm(() => deleteArticle(formData), "Enseignement supprimé.");
           setPendingDelete(null);
         }}
       />
@@ -165,7 +186,7 @@ function Detail({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <AdminLabel>{label}</AdminLabel>
-      <p className="mt-1 text-sm text-[#2C2424]">{value}</p>
+      <p className="mt-1 text-sm text-slate-800">{value}</p>
     </div>
   );
 }
@@ -173,8 +194,11 @@ function Detail({ label, value }: { label: string; value: string }) {
 export function ArticleCreatePanel() {
   return (
     <AdminPanel>
-      <h2 className="mb-4 font-heading text-lg font-bold text-burgundy">Nouvel enseignement</h2>
-      <ArticleForm action={createArticleFromForm} submitLabel="Créer l’article" />
+      <h2 className="mb-4 font-heading text-lg font-bold text-slate-900">Nouvel enseignement</h2>
+      <ArticleForm
+        action={notifyAdminAction(createArticleFromForm, "Enseignement créé.")}
+        submitLabel="Créer l’article"
+      />
     </AdminPanel>
   );
 }

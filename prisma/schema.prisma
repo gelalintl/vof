@@ -19,6 +19,15 @@ enum EventCategory {
   SPECIAL
 }
 
+enum RecurrenceType {
+  NONE
+  DAILY
+  WEEKLY
+  MONTHLY
+  FIRST_3_DAYS_MONTH      // Jeûne & Prière mensuel (3 jours ajustés si weekend)
+  SECOND_AND_LAST_FRIDAY  // Veillée de prière (2e et dernier vendredi du mois)
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -29,17 +38,26 @@ model User {
 }
 
 model Event {
-  id          String         @id @default(cuid())
-  title       String
-  description String
-  startDate   DateTime
-  endDate     DateTime?
-  location    String
-  category    EventCategory
-  isSpecial   Boolean        @default(false)
-  image       String?
-  createdAt   DateTime       @default(now())
-  media       Media[]
+  id                String         @id @default(cuid())
+  title             String
+  slug              String?
+  description       String
+  startDate         DateTime
+  endDate           DateTime?
+  durationDays      Int            @default(1)
+  location          String
+  category          EventCategory
+  isSpecial         Boolean        @default(false)
+  isExclusive       Boolean        @default(false)
+  isFeatured        Boolean        @default(false)
+  image             String?
+  youtubeUrl        String?
+  recurrenceType    RecurrenceType @default(NONE)
+  daysOfWeek        Int[]          @default([])
+  recurrenceEndDate DateTime?
+  excludedDates     String[]       @default([])
+  createdAt         DateTime       @default(now())
+  media             Media[]
 }
 
 model Media {
@@ -54,13 +72,29 @@ model Media {
 }
 
 model Article {
+  id            String    @id @default(cuid())
+  title         String
+  slug          String    @unique
+  content       String
+  author        String
+  coverImage    String?
+  galleryImages String[]  @default([])
+  youtubeUrl    String?
+  isPublished   Boolean   @default(false)
+  isFeatured    Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  comments      Comment[]
+}
+
+model Comment {
   id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  content     String
-  author      String
-  coverImage  String?
-  isPublished Boolean  @default(false)
+  authorName  String
+  authorEmail String?
+  content     String   @db.Text
+  isApproved  Boolean  @default(true)
+  likesCount  Int      @default(0)
+  articleId   String?
+  article     Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
 }
 
@@ -69,4 +103,62 @@ model SiteSettings {
   key       String   @unique
   value     Json
   updatedAt DateTime @updatedAt
+}
+
+model Pastor {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  bio       String?  @db.Text
+  quote     String?  @db.Text
+  image     String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Department {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String   @db.Text
+  responsible String?
+  contact     String?
+  image       String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Project {
+  id            String            @id @default(cuid())
+  title         String
+  slug          String            @unique
+  description   String            @db.Text
+  category      String?
+  targetAmount  Float
+  currentAmount Float             @default(0)
+  image         String?
+  status        String            @default("IN_PROGRESS")
+  isFeatured    Boolean           @default(false)
+  order         Int               @default(0)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  donations     DonationPromise[]
+}
+
+model DonationPromise {
+  id            String   @id @default(cuid())
+  donorName     String?
+  donorPhone    String?
+  donorEmail    String?
+  type          String   @default("PROJET")
+  amount        Float
+  paymentMethod String
+  status        String   @default("PENDING")
+  notes         String?
+  projectId     String?
+  project       Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

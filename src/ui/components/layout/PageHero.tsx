@@ -24,8 +24,8 @@ export function PageHero({
   const hasMedia = Boolean(media);
 
   return (
-    <section className="relative overflow-hidden bg-violet-700 text-white">
-      <div className={cn("absolute inset-0", glowClass[glow])} />
+    <section className="relative bg-violet-700 text-white">
+      <div className={cn("pointer-events-none absolute inset-0 overflow-hidden", glowClass[glow])} />
       <div
         className={cn(
           "relative mx-auto px-4 py-14 sm:px-6",

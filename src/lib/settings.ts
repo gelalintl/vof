@@ -23,6 +23,27 @@ export function siteSettingsFallbacks(): Record<string, string> {
     location_city: siteConfig.location.country,
     location_google_maps_url: siteConfig.location.mapsShareUrl,
     location_iframe_url: siteConfig.location.mapsEmbedUrl,
+    featured_youtube_url: siteConfig.media.featuredYoutubeId,
+    address: "",
+    whatsapp_number: "",
+    whatsapp_channel_url: "",
+    welcome_tagline: "",
+    welcome_author: "",
+    welcome_content: "",
+    welcome_subtext: "",
+  };
+}
+
+export function homeEditorialFallbacks(): Record<string, string> {
+  return {
+    address: `${siteConfig.location.address}, ${siteConfig.location.country}`,
+    whatsapp_number: siteConfig.contacts.phone,
+    whatsapp_channel_url: siteConfig.contacts.whatsappChannel.href,
+    welcome_tagline: "MOT DU PAPA DE LA MAISON",
+    welcome_author: siteConfig.pastoral.senior.name,
+    welcome_content:
+      "Bienvenue dans la famille Voice Of Freedom. Ici, chacun trouve une place, une parole et une liberté en Christ. Nous vous attendons avec joie, dimanche après dimanche, pour adorer, grandir et servir ensemble.",
+    welcome_subtext: `${siteConfig.pastoral.senior.name}, ${siteConfig.pastoral.senior.role} — Aux côtés de ${siteConfig.pastoral.associate.name}, ${siteConfig.pastoral.associate.role.toLowerCase()}`,
   };
 }
 

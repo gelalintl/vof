@@ -11,7 +11,7 @@ interface AdminActionBarProps {
 }
 
 const buttonClass =
-  "inline-flex size-9 items-center justify-center border border-burgundy/15 text-burgundy transition-colors hover:bg-burgundy hover:text-cream";
+  "inline-flex size-9 items-center justify-center border border-slate-200 text-[#6d28d9] transition-colors hover:bg-[#6d28d9] hover:text-white";
 
 export function AdminActionBar({ onView, onEdit, onDelete, className }: AdminActionBarProps) {
   return (
@@ -25,7 +25,7 @@ export function AdminActionBar({ onView, onEdit, onDelete, className }: AdminAct
       <button
         type="button"
         onClick={onDelete}
-        className={`${buttonClass} hover:bg-burgundy-light`}
+        className={`${buttonClass} hover:bg-red-600`}
         aria-label="Supprimer"
       >
         <Trash2 className="size-4" />

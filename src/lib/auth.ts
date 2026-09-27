@@ -1,12 +1,14 @@
 "use server";
 
 import { cache } from "react";
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import {
   ADMIN_SESSION_COOKIE,
+  clearSessionCookie,
   decryptSession,
   encryptSession,
   sessionCookieOptions,
@@ -44,20 +46,30 @@ export async function loginAction(formData: FormData): Promise<{ error: string }
   const cookieStore = await cookies();
   cookieStore.set(ADMIN_SESSION_COOKIE, token, sessionCookieOptions());
 
-  redirect("/admin");
+  redirect("/admin/evenements");
 }
 
 export async function logoutAction() {
   const cookieStore = await cookies();
-  cookieStore.delete(ADMIN_SESSION_COOKIE);
+  clearSessionCookie(cookieStore);
+
+  revalidatePath("/", "layout");
+  revalidatePath("/admin", "layout");
+  revalidatePath("/admin/login");
+  revalidatePath("/admin/evenements");
+
   redirect("/admin/login");
 }
 
 export const getCurrentUser = cache(async (): Promise<AdminSessionUser | null> => {
   const cookieStore = await cookies();
-  const session = await decryptSession(cookieStore.get(ADMIN_SESSION_COOKIE)?.value);
+  const token = cookieStore.get(ADMIN_SESSION_COOKIE)?.value;
+  const session = await decryptSession(token);
 
   if (!session) {
+    if (token) {
+      clearSessionCookie(cookieStore);
+    }
     return null;
   }
 
@@ -68,6 +80,7 @@ export const getCurrentUser = cache(async (): Promise<AdminSessionUser | null> =
     });
 
     if (!user) {
+      clearSessionCookie(cookieStore);
       return null;
     }
 
@@ -84,6 +97,8 @@ export const getCurrentUser = cache(async (): Promise<AdminSessionUser | null> =
 export async function requireAdmin(): Promise<AdminSessionUser> {
   const user = await getCurrentUser();
   if (!user) {
+    const cookieStore = await cookies();
+    clearSessionCookie(cookieStore);
     redirect("/admin/login");
   }
   return user;

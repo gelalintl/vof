@@ -1,0 +1,1 @@
+export { PastorsSection } from "./PastorsSection";

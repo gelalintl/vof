@@ -1,20 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getArticleBySlug } from "@/lib/publicContent";
-import { formatEventDate } from "@/utils/date/format";
-import { AuthorSignature, ProseBlocks } from "@/ui/components/content";
-import { ContentSection } from "@/ui/components/layout";
-import { MediaCover } from "@/ui/components/media";
 import { MainLayout } from "@/ui/layouts/MainLayout";
-import { Typography } from "@/ui/design-system/typography";
+import { TeachingDetail } from "@/ui/modules/enseignements";
 
-interface ArticleDetailPageProps {
+interface TeachingDetailPageProps {
   params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({
   params,
-}: ArticleDetailPageProps): Promise<Metadata> {
+}: TeachingDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
   const article = await getArticleBySlug(slug);
 
@@ -28,7 +24,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function ArticleDetailPage({ params }: ArticleDetailPageProps) {
+export default async function TeachingDetailPage({ params }: TeachingDetailPageProps) {
   const { slug } = await params;
   const article = await getArticleBySlug(slug);
 
@@ -38,25 +34,7 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
 
   return (
     <MainLayout>
-      <ContentSection width="article" padding="compact">
-        <p className="font-heading text-xs font-bold uppercase tracking-widest text-violet-700">
-          Enseignement · {formatEventDate(article.createdAt)}
-        </p>
-        <Typography variant="h1" className="mt-3">
-          {article.title}
-        </Typography>
-        <div className="mt-6">
-          <MediaCover
-            alt={article.title}
-            src={article.coverImage ?? undefined}
-            colorToken="brand"
-          />
-        </div>
-        <div className="mt-8">
-          <ProseBlocks text={article.content} />
-        </div>
-        <AuthorSignature name={article.author} role="Enseignement VOF" />
-      </ContentSection>
+      <TeachingDetail article={article} />
     </MainLayout>
   );
 }

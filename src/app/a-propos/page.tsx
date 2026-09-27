@@ -1,31 +1,23 @@
 import type { Metadata } from "next";
 import {
   aboutHero,
-  aboutPastoralHeader,
   aboutPillars,
   aboutVerse,
   aboutVisionHeader,
-  pastoralPortraits,
 } from "@/datas/about";
-import { getMonthlyEvents } from "@/lib/publicContent";
-import { FeatureCardGrid, PortraitBlockList } from "@/ui/components/cards";
+import { FeatureCardGrid } from "@/ui/components/cards";
 import { QuoteBlock } from "@/ui/components/content";
 import { ContentSection, PageHero, SectionHeader } from "@/ui/components/layout";
 import { MainLayout } from "@/ui/layouts/MainLayout";
-import { CalendarWidget } from "@/ui/modules/calendar";
+import { PastorsSection } from "@/ui/modules/pastors";
 
 export const metadata: Metadata = {
   title: "À propos",
   description:
-    "Vision, équipe pastorale et agenda de l'Église Voice Of Freedom.",
+    "Vision et équipe pastorale de l'Église Voice Of Freedom.",
 };
 
 export default async function AboutPage() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-  const monthEvents = await getMonthlyEvents(year, month);
-
   return (
     <MainLayout>
       <PageHero {...aboutHero} />
@@ -34,15 +26,7 @@ export default async function AboutPage() {
         <QuoteBlock {...aboutVerse} />
         <FeatureCardGrid cards={aboutPillars} />
       </ContentSection>
-      <ContentSection labelledBy="equipe-pastorale" gap="lg">
-        <SectionHeader {...aboutPastoralHeader} />
-        <PortraitBlockList portraits={pastoralPortraits} />
-      </ContentSection>
-      <CalendarWidget
-        initialYear={year}
-        initialMonth={month}
-        initialEvents={monthEvents}
-      />
+      <PastorsSection />
     </MainLayout>
   );
 }

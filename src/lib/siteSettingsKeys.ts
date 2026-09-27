@@ -1,4 +1,14 @@
 export const CHURCH_LOGO_KEY = "church_logo";
+export const CHURCH_NAME_KEY = "church_name";
+export const CHURCH_TAGLINE_KEY = "church_tagline";
+export const FEATURED_YOUTUBE_URL_KEY = "featured_youtube_url";
+export const HOME_ADDRESS_KEY = "address";
+export const WHATSAPP_NUMBER_KEY = "whatsapp_number";
+export const WHATSAPP_CHANNEL_URL_KEY = "whatsapp_channel_url";
+export const WELCOME_TAGLINE_KEY = "welcome_tagline";
+export const WELCOME_AUTHOR_KEY = "welcome_author";
+export const WELCOME_CONTENT_KEY = "welcome_content";
+export const WELCOME_SUBTEXT_KEY = "welcome_subtext";
 
 export const SOCIAL_SETTING_KEYS = [
   "social_facebook",
@@ -17,9 +27,30 @@ export const LOCATION_SETTING_KEYS = [
   "contact_email",
 ] as const;
 
+export const MEDIA_SETTING_KEYS = [FEATURED_YOUTUBE_URL_KEY] as const;
+
+export const HOME_INFO_SETTING_KEYS = [
+  HOME_ADDRESS_KEY,
+  WHATSAPP_NUMBER_KEY,
+  WHATSAPP_CHANNEL_URL_KEY,
+] as const;
+
+export const WELCOME_SETTING_KEYS = [
+  WELCOME_TAGLINE_KEY,
+  WELCOME_AUTHOR_KEY,
+  WELCOME_CONTENT_KEY,
+  WELCOME_SUBTEXT_KEY,
+] as const;
+
+export const IDENTITY_SETTING_KEYS = [CHURCH_NAME_KEY, CHURCH_TAGLINE_KEY] as const;
+
 export const MANAGED_SETTING_KEYS = [
+  ...IDENTITY_SETTING_KEYS,
   ...SOCIAL_SETTING_KEYS,
   ...LOCATION_SETTING_KEYS,
+  ...MEDIA_SETTING_KEYS,
+  ...HOME_INFO_SETTING_KEYS,
+  ...WELCOME_SETTING_KEYS,
 ] as const;
 
 export type ManagedSettingKey = (typeof MANAGED_SETTING_KEYS)[number];
@@ -63,6 +94,20 @@ export type PaymentSettingKey = (typeof PAYMENT_SETTING_KEYS)[number];
 export type PaymentQrKey = (typeof PAYMENT_QR_KEYS)[number];
 export type PaymentOperatorSlug = "amana" | "nita" | "wave";
 
+export const PRINT_SIGNATORY_TITLE_KEY = "print_signatory_title";
+export const PRINT_HEADER_TITLE_KEY = "print_header_title";
+export const PRINT_HEADER_SUBTITLE_KEY = "print_header_subtitle";
+export const PRINT_USE_LOGO_KEY = "print_use_logo";
+
+export const PRINT_SETTING_KEYS = [
+  PRINT_SIGNATORY_TITLE_KEY,
+  PRINT_HEADER_TITLE_KEY,
+  PRINT_HEADER_SUBTITLE_KEY,
+  PRINT_USE_LOGO_KEY,
+] as const;
+
+export type PrintSettingKey = (typeof PRINT_SETTING_KEYS)[number];
+
 export const PAYMENT_QR_KEY_BY_OPERATOR: Record<PaymentOperatorSlug, PaymentQrKey> = {
   amana: "payment_amana_qr",
   nita: "payment_nita_qr",
@@ -72,6 +117,7 @@ export const PAYMENT_QR_KEY_BY_OPERATOR: Record<PaymentOperatorSlug, PaymentQrKe
 export const UPSERTABLE_SETTING_KEYS = [
   ...MANAGED_SETTING_KEYS,
   ...PAYMENT_SETTING_KEYS,
+  ...PRINT_SETTING_KEYS,
 ] as const;
 
 export function jsonToDisplay(value: unknown): string {
@@ -114,8 +160,19 @@ export function toWhatsAppHref(value: string): string {
   return digits ? `https://wa.me/${digits}` : "";
 }
 
+export function whatsappPrefillHref(numberOrUrl: string, message: string) {
+  const base = toWhatsAppHref(numberOrUrl);
+  if (!base) {
+    return "";
+  }
+  const separator = base.includes("?") ? "&" : "?";
+  return `${base}${separator}text=${encodeURIComponent(message)}`;
+}
+
 export function emptyManagedSettings(): Record<ManagedSettingKey, string> {
   return {
+    church_name: "",
+    church_tagline: "",
     social_facebook: "",
     social_instagram: "",
     social_youtube: "",
@@ -127,6 +184,14 @@ export function emptyManagedSettings(): Record<ManagedSettingKey, string> {
     location_iframe_url: "",
     contact_phone: "",
     contact_email: "",
+    featured_youtube_url: "",
+    address: "",
+    whatsapp_number: "",
+    whatsapp_channel_url: "",
+    welcome_tagline: "",
+    welcome_author: "",
+    welcome_content: "",
+    welcome_subtext: "",
   };
 }
 
@@ -155,5 +220,14 @@ export function emptyPaymentSettings(): Record<PaymentSettingKey, string> {
     bank_iban: "",
     bank_swift: "",
     bank_rib_code: "",
+  };
+}
+
+export function emptyPrintSettings(): Record<PrintSettingKey, string> {
+  return {
+    print_signatory_title: "Le Trésorier Général",
+    print_header_title: "Église Voice Of Freedom",
+    print_header_subtitle: "Reçu de don",
+    print_use_logo: "true",
   };
 }

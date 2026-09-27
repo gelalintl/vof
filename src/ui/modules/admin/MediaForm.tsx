@@ -1,6 +1,7 @@
 import type { AdminMediaRecord } from "@/types";
 import { AdminLabel } from "./AdminPageHeader";
-import { adminFieldClass, adminFileClass, adminPrimaryButtonClass } from "./adminStyles";
+import { AdminSubmitButton } from "./AdminSubmitButton";
+import { adminFieldClass, adminFileClass } from "./adminStyles";
 
 interface MediaFormProps {
   action: (formData: FormData) => void | Promise<void>;
@@ -44,15 +45,13 @@ export function MediaForm({ action, media, submitLabel }: MediaFormProps) {
           name="isFeaturedHome"
           type="checkbox"
           defaultChecked={media?.isFeaturedHome}
-          className="size-4 accent-burgundy"
+          className="size-4 accent-[#6d28d9]"
         />
         <span className="font-sans text-sm">Mettre en avant sur l’accueil</span>
       </label>
 
       <div className="sm:col-span-2">
-        <button type="submit" className={adminPrimaryButtonClass}>
-          {submitLabel}
-        </button>
+        <AdminSubmitButton>{submitLabel}</AdminSubmitButton>
       </div>
     </form>
   );

@@ -7,6 +7,7 @@ import { formatAdminDateTime } from "@/utils/date/format";
 import { AdminActionBar } from "./AdminActionBar";
 import { AdminConfirmDialog, AdminDrawer } from "./AdminDrawer";
 import { AdminEmptyState, AdminLabel, AdminPanel } from "./AdminPageHeader";
+import { notifyAdminAction, notifyAdminConfirm } from "./notifyAdminAction";
 import { SettingForm } from "./SettingForm";
 
 interface SettingsManagerProps {
@@ -30,9 +31,9 @@ export function SettingsManager({ settings }: SettingsManagerProps) {
       {settings.length === 0 ? (
         <AdminEmptyState>Aucun paramètre enregistré.</AdminEmptyState>
       ) : (
-        <div className="overflow-x-auto border border-burgundy/15 bg-white">
+        <div className="overflow-x-auto border border-slate-200 bg-white">
           <table className="min-w-full text-left text-sm">
-            <thead className="border-b border-burgundy/10 bg-cream font-heading text-[11px] font-bold uppercase tracking-[0.16em] text-burgundy">
+            <thead className="border-b border-slate-100 bg-slate-50 font-heading text-[11px] font-bold uppercase tracking-[0.16em] text-slate-900">
               <tr>
                 <th className="px-4 py-3">Clé</th>
                 <th className="px-4 py-3">Valeur</th>
@@ -42,12 +43,12 @@ export function SettingsManager({ settings }: SettingsManagerProps) {
             </thead>
             <tbody>
               {settings.map((setting) => (
-                <tr key={setting.id} className="border-b border-burgundy/10 last:border-0">
-                  <td className="px-4 py-3 font-heading font-bold text-burgundy">{setting.key}</td>
-                  <td className="max-w-xs truncate px-4 py-3 font-mono text-xs text-[#2C2424]/70">
+                <tr key={setting.id} className="border-b border-slate-100 last:border-0">
+                  <td className="px-4 py-3 font-heading font-bold text-slate-900">{setting.key}</td>
+                  <td className="max-w-xs truncate px-4 py-3 font-mono text-xs text-slate-600">
                     {setting.value}
                   </td>
-                  <td className="px-4 py-3 text-xs text-[#2C2424]/70">
+                  <td className="px-4 py-3 text-xs text-slate-600">
                     {formatAdminDateTime(setting.updatedAt)}
                   </td>
                   <td className="px-4 py-3">
@@ -80,11 +81,11 @@ export function SettingsManager({ settings }: SettingsManagerProps) {
           <div className="space-y-5">
             <div>
               <AdminLabel>Clé</AdminLabel>
-              <p className="mt-1 font-heading font-bold text-burgundy">{selected.key}</p>
+              <p className="mt-1 font-heading font-bold text-slate-900">{selected.key}</p>
             </div>
             <div>
               <AdminLabel>Valeur</AdminLabel>
-              <pre className="mt-2 overflow-x-auto border border-burgundy/10 bg-white p-3 font-mono text-xs text-[#2C2424]">
+              <pre className="mt-2 overflow-x-auto border border-slate-100 bg-white p-3 font-mono text-xs text-slate-800">
                 {selected.value}
               </pre>
             </div>
@@ -105,10 +106,7 @@ export function SettingsManager({ settings }: SettingsManagerProps) {
           <SettingForm
             key={selected.id}
             setting={selected}
-            action={async (formData) => {
-              await upsertSiteSettingFromForm(formData);
-              close();
-            }}
+            action={notifyAdminAction(upsertSiteSettingFromForm, "Paramètre mis à jour.", close)}
             submitLabel="Enregistrer"
           />
         ) : null}
@@ -125,7 +123,7 @@ export function SettingsManager({ settings }: SettingsManagerProps) {
           }
           const formData = new FormData();
           formData.set("id", pendingDelete.id);
-          await deleteSiteSetting(formData);
+          await notifyAdminConfirm(() => deleteSiteSetting(formData), "Paramètre supprimé.");
           setPendingDelete(null);
         }}
       />
@@ -136,8 +134,11 @@ export function SettingsManager({ settings }: SettingsManagerProps) {
 export function SettingCreatePanel() {
   return (
     <AdminPanel>
-      <h2 className="mb-4 font-heading text-lg font-bold text-burgundy">Nouveau paramètre</h2>
-      <SettingForm action={upsertSiteSettingFromForm} submitLabel="Enregistrer" />
+      <h2 className="mb-4 font-heading text-lg font-bold text-slate-900">Nouveau paramètre</h2>
+      <SettingForm
+        action={notifyAdminAction(upsertSiteSettingFromForm, "Paramètre enregistré.")}
+        submitLabel="Enregistrer"
+      />
     </AdminPanel>
   );
 }

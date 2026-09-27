@@ -3,6 +3,7 @@ import { Clock, MapPin } from "lucide-react";
 import type { MediaCardData } from "@/types";
 import { cn } from "@/utils/cn";
 import { eventColorStyles } from "@/utils/theme/eventColors";
+import { interactiveCardClass } from "@/utils/theme/interactiveCard";
 import { Badge } from "@/ui/design-system/badge";
 import { Typography } from "@/ui/design-system/typography";
 import { MediaCover } from "@/ui/components/media/MediaCover";
@@ -18,7 +19,8 @@ export function MediaCard({ card }: MediaCardProps) {
     <Link
       href={card.href}
       className={cn(
-        "group flex h-full flex-col overflow-hidden rounded-3xl border-l-4 bg-white shadow-sm ring-1 ring-slate-100 transition-shadow hover:shadow-md",
+        interactiveCardClass,
+        "group flex h-full flex-col overflow-hidden rounded-3xl border-l-4",
         colors.bar,
       )}
     >

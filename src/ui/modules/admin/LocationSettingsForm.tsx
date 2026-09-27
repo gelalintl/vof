@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from "sonner";
 import { updateSiteSettings } from "@/app/admin/actions";
 import { normalizeMapsEmbedUrl, type ManagedSettingKey } from "@/lib/siteSettingsKeys";
+import { AdminSubmitButton } from "./AdminSubmitButton";
 import { AdminLabel, AdminPanel } from "./AdminPageHeader";
-import { adminFieldClass, adminPrimaryButtonClass } from "./adminStyles";
+import { adminFieldClass } from "./adminStyles";
+import { notifyAdminAction } from "./notifyAdminAction";
 
 interface LocationSettingsFormProps {
   values: Record<ManagedSettingKey, string>;
@@ -15,22 +16,20 @@ export function LocationSettingsForm({ values }: LocationSettingsFormProps) {
   const [iframeUrl, setIframeUrl] = useState(values.location_iframe_url);
   const previewSrc = normalizeMapsEmbedUrl(iframeUrl);
 
-  async function handleSubmit(formData: FormData) {
+  const handleSubmit = notifyAdminAction(async (formData) => {
     await updateSiteSettings({
       location_address: String(formData.get("location_address") ?? ""),
       location_city: String(formData.get("location_city") ?? ""),
       location_google_maps_url: String(formData.get("location_google_maps_url") ?? ""),
       location_iframe_url: String(formData.get("location_iframe_url") ?? ""),
-      contact_phone: String(formData.get("contact_phone") ?? ""),
       contact_email: String(formData.get("contact_email") ?? ""),
     });
-    toast.success("Localisation et contact enregistrés.");
-  }
+  }, "Localisation et contact enregistrés.");
 
   return (
     <AdminPanel>
-      <h2 className="font-heading text-lg font-bold text-burgundy">Géolocalisation & accès</h2>
-      <p className="mt-1 text-sm text-[#2C2424]/70">
+      <h2 className="font-heading text-lg font-bold text-slate-900">Géolocalisation & accès</h2>
+      <p className="mt-1 text-sm text-slate-600">
         Adresse publique, téléphone, e-mail et carte Google Maps du lieu de culte.
       </p>
 
@@ -44,21 +43,11 @@ export function LocationSettingsForm({ values }: LocationSettingsFormProps) {
           />
         </label>
 
-        <label className="block">
+        <label className="block sm:col-span-2">
           <AdminLabel>Ville / Quartier</AdminLabel>
           <input
             name="location_city"
             defaultValue={values.location_city}
-            className={adminFieldClass}
-          />
-        </label>
-
-        <label className="block">
-          <AdminLabel>Téléphone</AdminLabel>
-          <input
-            name="contact_phone"
-            type="tel"
-            defaultValue={values.contact_phone}
             className={adminFieldClass}
           />
         </label>
@@ -95,9 +84,7 @@ export function LocationSettingsForm({ values }: LocationSettingsFormProps) {
         </label>
 
         <div className="sm:col-span-2">
-          <button type="submit" className={adminPrimaryButtonClass}>
-            Enregistrer l’accès
-          </button>
+          <AdminSubmitButton>Enregistrer les modifications</AdminSubmitButton>
         </div>
       </form>
 
@@ -109,11 +96,11 @@ export function LocationSettingsForm({ values }: LocationSettingsFormProps) {
             src={previewSrc}
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-            className="mt-2 h-64 w-full border border-burgundy/15"
+            className="mt-2 h-64 w-full border border-slate-200"
           />
         </div>
       ) : (
-        <p className="mt-6 text-sm text-[#2C2424]/60">
+        <p className="mt-6 text-sm text-slate-500">
           Renseignez une URL d’intégration pour prévisualiser la carte.
         </p>
       )}
