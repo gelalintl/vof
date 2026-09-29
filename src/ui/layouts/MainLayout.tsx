@@ -1,5 +1,6 @@
 import { Footer } from "@/ui/components/layout";
 import { HeaderLayout } from "@/ui/layouts/HeaderLayout";
+import { buildPublicFooter } from "@/lib/footerContent";
 import { getActivePublicProjects } from "@/lib/publicContent";
 import { getPublicPaymentConfig } from "@/lib/siteSettings";
 import { contactFromSettings, getSiteSettings, identityFromSettings } from "@/lib/settings";
@@ -31,7 +32,12 @@ export async function MainLayout({ children }: MainLayoutProps) {
         whatsappHref={whatsappHref}
       />
       <main className="flex-1">{children}</main>
-      <Footer logoSrc={identity.logoSrc} contact={contact} identity={identity} />
+      <Footer
+        logoSrc={identity.logoSrc}
+        contact={contact}
+        identity={identity}
+        content={buildPublicFooter(settings, identity)}
+      />
     </div>
   );
 }

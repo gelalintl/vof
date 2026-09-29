@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building, MapPin, Printer, Video, Wallet } from "lucide-react";
+import { Building, Columns3, MapPin, Printer, Video, Wallet } from "lucide-react";
 import { cn } from "@/utils/cn";
 
 const tabs = [
@@ -25,6 +25,11 @@ const tabs = [
     href: "/admin/parametres/paiements",
     label: "Paiements & Dons",
     icon: Wallet,
+  },
+  {
+    href: "/admin/parametres/footer",
+    label: "Pied de page",
+    icon: Columns3,
   },
   {
     href: "/admin/parametres/impression",

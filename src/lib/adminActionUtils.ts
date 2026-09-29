@@ -70,12 +70,14 @@ export function revalidateMediaContent() {
   revalidateTag(PUBLIC_MEDIA_CACHE_TAG, "max");
   revalidatePath("/");
   revalidateAdminPath("/admin/medias");
+  revalidatePath("/admin/medias", "layout");
 }
 
 export function revalidatePastorContent() {
   revalidateTag(PUBLIC_PASTORS_CACHE_TAG, "max");
   revalidatePath("/a-propos");
   revalidateAdminPath("/admin/pasteurs");
+  revalidatePath("/admin/pasteurs", "layout");
 }
 
 export function revalidateDepartmentContent() {

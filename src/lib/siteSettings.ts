@@ -10,14 +10,17 @@ import {
   identityFromSettings,
   homeEditorialFallbacks,
 } from "@/lib/settings";
+import { emptyFooterSettings } from "@/lib/footerContent";
 import {
   CHURCH_LOGO_KEY,
   emptyManagedSettings,
   jsonToDisplay,
+  FOOTER_SETTING_KEYS,
   MANAGED_SETTING_KEYS,
   PAYMENT_SETTING_KEYS,
   PRINT_SETTING_KEYS,
   emptyPrintSettings,
+  type FooterSettingKey,
   type ManagedSettingKey,
   type PaymentSettingKey,
   type PrintSettingKey,
@@ -46,12 +49,14 @@ export {
   PAYMENT_QR_KEYS,
   PAYMENT_SETTING_KEYS,
   PRINT_SETTING_KEYS,
+  FOOTER_SETTING_KEYS,
   SOCIAL_SETTING_KEYS,
   toWhatsAppHref,
   whatsappPrefillHref,
   UPSERTABLE_SETTING_KEYS,
 } from "@/lib/siteSettingsKeys";
 export type {
+  FooterSettingKey,
   ManagedSettingKey,
   PaymentOperatorSlug,
   PaymentSettingKey,
@@ -102,6 +107,13 @@ export async function getManagedSettings(): Promise<Record<ManagedSettingKey, st
     contact_phone: map.contact_phone ?? siteConfig.contacts.phone,
     contact_email: map.contact_email ?? siteConfig.contacts.email,
     featured_youtube_url: map.featured_youtube_url ?? defaults.featured_youtube_url,
+    hero_badge: map.hero_badge ?? defaults.hero_badge,
+    hero_title: map.hero_title ?? defaults.hero_title,
+    hero_description: map.hero_description ?? defaults.hero_description,
+    hero_primary_cta_text: map.hero_primary_cta_text ?? defaults.hero_primary_cta_text,
+    hero_primary_cta_link: map.hero_primary_cta_link ?? defaults.hero_primary_cta_link,
+    hero_secondary_cta_text: map.hero_secondary_cta_text ?? defaults.hero_secondary_cta_text,
+    hero_secondary_cta_link: map.hero_secondary_cta_link ?? defaults.hero_secondary_cta_link,
     address: map.address || copy.address,
     whatsapp_number: map.whatsapp_number || copy.whatsapp_number,
     whatsapp_channel_url: map.whatsapp_channel_url || copy.whatsapp_channel_url,
@@ -140,6 +152,25 @@ export async function getPrintSettings(): Promise<Record<PrintSettingKey, string
   const map = await getSettingsMap(PRINT_SETTING_KEYS);
   const merged = { ...emptyPrintSettings(), ...map };
   const missing = PRINT_SETTING_KEYS.filter((key) => !Object.hasOwn(map, key));
+
+  if (missing.length > 0) {
+    try {
+      await prisma.siteSettings.createMany({
+        data: missing.map((key) => ({ key, value: merged[key] })),
+        skipDuplicates: true,
+      });
+    } catch {
+      // La lecture admin ne doit pas échouer si l'écriture des défauts est indisponible.
+    }
+  }
+
+  return merged;
+}
+
+export async function getFooterSettings(): Promise<Record<FooterSettingKey, string>> {
+  const map = await getSettingsMap(FOOTER_SETTING_KEYS);
+  const merged = { ...emptyFooterSettings(), ...map };
+  const missing = FOOTER_SETTING_KEYS.filter((key) => !Object.hasOwn(map, key));
 
   if (missing.length > 0) {
     try {

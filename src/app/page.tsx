@@ -33,7 +33,7 @@ export default async function HomePage() {
 
   return (
     <MainLayout>
-      <PageHero {...buildHomeHero(identity, contact, settings.featured_youtube_url)} />
+      <PageHero {...buildHomeHero(identity, contact, settings)} />
       <ContentSection id="infos-pratiques" tone="muted" padding="compact">
         <InfoTileGrid tiles={buildHomeInfoTiles(identity, contact, gatherings, settings)} />
       </ContentSection>

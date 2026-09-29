@@ -29,6 +29,24 @@ export const LOCATION_SETTING_KEYS = [
 
 export const MEDIA_SETTING_KEYS = [FEATURED_YOUTUBE_URL_KEY] as const;
 
+export const HERO_BADGE_KEY = "hero_badge";
+export const HERO_TITLE_KEY = "hero_title";
+export const HERO_DESCRIPTION_KEY = "hero_description";
+export const HERO_PRIMARY_CTA_TEXT_KEY = "hero_primary_cta_text";
+export const HERO_PRIMARY_CTA_LINK_KEY = "hero_primary_cta_link";
+export const HERO_SECONDARY_CTA_TEXT_KEY = "hero_secondary_cta_text";
+export const HERO_SECONDARY_CTA_LINK_KEY = "hero_secondary_cta_link";
+
+export const HERO_SETTING_KEYS = [
+  HERO_BADGE_KEY,
+  HERO_TITLE_KEY,
+  HERO_DESCRIPTION_KEY,
+  HERO_PRIMARY_CTA_TEXT_KEY,
+  HERO_PRIMARY_CTA_LINK_KEY,
+  HERO_SECONDARY_CTA_TEXT_KEY,
+  HERO_SECONDARY_CTA_LINK_KEY,
+] as const;
+
 export const HOME_INFO_SETTING_KEYS = [
   HOME_ADDRESS_KEY,
   WHATSAPP_NUMBER_KEY,
@@ -49,6 +67,7 @@ export const MANAGED_SETTING_KEYS = [
   ...SOCIAL_SETTING_KEYS,
   ...LOCATION_SETTING_KEYS,
   ...MEDIA_SETTING_KEYS,
+  ...HERO_SETTING_KEYS,
   ...HOME_INFO_SETTING_KEYS,
   ...WELCOME_SETTING_KEYS,
 ] as const;
@@ -108,6 +127,26 @@ export const PRINT_SETTING_KEYS = [
 
 export type PrintSettingKey = (typeof PRINT_SETTING_KEYS)[number];
 
+export const FOOTER_DESCRIPTION_KEY = "footer_description";
+export const FOOTER_COPYRIGHT_KEY = "footer_copyright";
+export const FOOTER_NAV_LINKS_KEY = "footer_nav_links";
+export const FOOTER_SCHEDULE_TITLE_KEY = "footer_schedule_title";
+export const FOOTER_SCHEDULE_ITEMS_KEY = "footer_schedule_items";
+export const FOOTER_SHOW_CONTACT_KEY = "footer_show_contact";
+export const FOOTER_SHOW_SOCIALS_KEY = "footer_show_socials";
+
+export const FOOTER_SETTING_KEYS = [
+  FOOTER_DESCRIPTION_KEY,
+  FOOTER_COPYRIGHT_KEY,
+  FOOTER_NAV_LINKS_KEY,
+  FOOTER_SCHEDULE_TITLE_KEY,
+  FOOTER_SCHEDULE_ITEMS_KEY,
+  FOOTER_SHOW_CONTACT_KEY,
+  FOOTER_SHOW_SOCIALS_KEY,
+] as const;
+
+export type FooterSettingKey = (typeof FOOTER_SETTING_KEYS)[number];
+
 export const PAYMENT_QR_KEY_BY_OPERATOR: Record<PaymentOperatorSlug, PaymentQrKey> = {
   amana: "payment_amana_qr",
   nita: "payment_nita_qr",
@@ -118,6 +157,7 @@ export const UPSERTABLE_SETTING_KEYS = [
   ...MANAGED_SETTING_KEYS,
   ...PAYMENT_SETTING_KEYS,
   ...PRINT_SETTING_KEYS,
+  ...FOOTER_SETTING_KEYS,
 ] as const;
 
 export function jsonToDisplay(value: unknown): string {
@@ -185,6 +225,13 @@ export function emptyManagedSettings(): Record<ManagedSettingKey, string> {
     contact_phone: "",
     contact_email: "",
     featured_youtube_url: "",
+    hero_badge: "",
+    hero_title: "",
+    hero_description: "",
+    hero_primary_cta_text: "",
+    hero_primary_cta_link: "",
+    hero_secondary_cta_text: "",
+    hero_secondary_cta_link: "",
     address: "",
     whatsapp_number: "",
     whatsapp_channel_url: "",

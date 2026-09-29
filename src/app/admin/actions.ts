@@ -523,10 +523,11 @@ export async function uploadAdminImageFromForm(formData: FormData) {
   await requireAdmin();
   const uploaded = await optionalUploadedUrl(formData, "file");
   const existingUrl = readString(formData, "url");
-  const url = uploaded || existingUrl;
+  const videoUrl = readString(formData, "videoUrl");
+  const url = uploaded || videoUrl || existingUrl;
 
   if (!url) {
-    throw new Error("Aucun fichier fourni.");
+    throw new Error("Fournissez une image ou un lien vidéo.");
   }
 
   await prisma.media.create({
@@ -552,7 +553,8 @@ export async function updateMediaFromForm(formData: FormData) {
   }
 
   const uploaded = await optionalUploadedUrl(formData, "file");
-  const nextUrl = uploaded || readString(formData, "url") || current.url;
+  const videoUrl = readString(formData, "videoUrl");
+  const nextUrl = uploaded || videoUrl || readString(formData, "url") || current.url;
 
   if (uploaded && current.url !== nextUrl) {
     await deleteLocalFile(current.url);
@@ -1148,6 +1150,12 @@ export async function getPastors(): Promise<AdminPastorRecord[]> {
     orderBy: [{ order: "asc" }, { name: "asc" }],
   });
   return pastors.map(serializePastor);
+}
+
+export async function getPastor(id: string): Promise<AdminPastorRecord | null> {
+  await requireAdmin();
+  const pastor = await prisma.pastor.findUnique({ where: { id } });
+  return pastor ? serializePastor(pastor) : null;
 }
 
 function slugify(value: string) {

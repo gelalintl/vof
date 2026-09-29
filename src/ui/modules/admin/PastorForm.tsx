@@ -21,18 +21,18 @@ export function PastorForm({ action, pastor, submitLabel }: PastorFormProps) {
       {pastor ? <input type="hidden" name="id" value={pastor.id} /> : null}
 
       <label className="block sm:col-span-2">
-        <AdminLabel>Nom</AdminLabel>
+        <AdminLabel>Nom complet</AdminLabel>
         <input
           name="name"
           required
           defaultValue={pastor?.name}
-          placeholder="Révérend Nelson"
+          placeholder="Révérend Pasteur Nelson Nwene"
           className={adminFieldClass}
         />
       </label>
 
       <label className="block">
-        <AdminLabel>Rôle / Titre</AdminLabel>
+        <AdminLabel>Rôle</AdminLabel>
         <input
           name="role"
           required
@@ -55,7 +55,7 @@ export function PastorForm({ action, pastor, submitLabel }: PastorFormProps) {
       </label>
 
       <label className="block sm:col-span-2">
-        <AdminLabel>Verset / Citation</AdminLabel>
+        <AdminLabel>Verset biblique / Citation</AdminLabel>
         <textarea
           name="quote"
           rows={2}
@@ -66,7 +66,7 @@ export function PastorForm({ action, pastor, submitLabel }: PastorFormProps) {
       </label>
 
       <label className="block sm:col-span-2">
-        <AdminLabel>Biographie / Parcours</AdminLabel>
+        <AdminLabel>Description / Bio</AdminLabel>
         <textarea
           name="bio"
           rows={5}
@@ -76,7 +76,9 @@ export function PastorForm({ action, pastor, submitLabel }: PastorFormProps) {
       </label>
 
       <fieldset className="space-y-3 border border-slate-200 bg-slate-50 p-4 sm:col-span-2">
-        <legend className="px-1 font-heading text-sm font-bold text-slate-900">Photo</legend>
+        <legend className="px-1 font-heading text-sm font-bold text-slate-900">
+          Photo d’illustration
+        </legend>
         <p className="font-sans text-xs text-slate-600">
           Téléversement local vers <code className="font-mono">/uploads/</code>.
         </p>

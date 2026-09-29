@@ -28,3 +28,28 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
 }
+
+/* Barre de défilement fine et personnalisée */
+::-webkit-scrollbar {
+  height: 5px;
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(241, 245, 249, 0.5);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #6d28d9;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #5b21b6;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #6d28d9 transparent;
+}

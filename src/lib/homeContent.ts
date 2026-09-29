@@ -1,8 +1,9 @@
 import { siteConfig } from "@/config/site";
 import { homeWelcomeHeader, homeWelcomeQuote } from "@/datas/home";
+import { pageHeroFromDraft } from "@/lib/homeHero";
 import { homeEditorialFallbacks, readSetting } from "@/lib/settings";
-import { extractYoutubeId } from "@/lib/youtube";
 import type {
+  HomeHeroDraft,
   InfoTileData,
   PageHeroData,
   PublicRecurringGathering,
@@ -12,32 +13,66 @@ import type {
   SectionHeaderData,
 } from "@/types";
 
+export { pageHeroFromDraft } from "@/lib/homeHero";
+
+export function homeHeroFallbacks(
+  identity: PublicSiteIdentity,
+  contact: PublicSiteContact,
+): Omit<HomeHeroDraft, "featured_youtube_url"> {
+  return {
+    hero_badge: identity.sundayLabel,
+    hero_title: `Bienvenue à ${identity.churchName}`,
+    hero_description: `${identity.tagline}. Venez adorer avec nous — ${identity.sundayTime}. ${contact.location.address}.`,
+    hero_primary_cta_text: "Rejoindre le culte",
+    hero_primary_cta_link: "#infos-pratiques",
+    hero_secondary_cta_text: "Découvrir VOF",
+    hero_secondary_cta_link: "/a-propos",
+  };
+}
+
+export function homeHeroDraftFromSettings(
+  identity: PublicSiteIdentity,
+  contact: PublicSiteContact,
+  settings: Record<string, string> = {},
+): HomeHeroDraft {
+  const fallbacks = homeHeroFallbacks(identity, contact);
+  return {
+    hero_badge: readSetting(settings, "hero_badge", fallbacks.hero_badge),
+    hero_title: readSetting(settings, "hero_title", fallbacks.hero_title),
+    hero_description: readSetting(settings, "hero_description", fallbacks.hero_description),
+    hero_primary_cta_text: readSetting(
+      settings,
+      "hero_primary_cta_text",
+      fallbacks.hero_primary_cta_text,
+    ),
+    hero_primary_cta_link: readSetting(
+      settings,
+      "hero_primary_cta_link",
+      fallbacks.hero_primary_cta_link,
+    ),
+    hero_secondary_cta_text: readSetting(
+      settings,
+      "hero_secondary_cta_text",
+      fallbacks.hero_secondary_cta_text,
+    ),
+    hero_secondary_cta_link: readSetting(
+      settings,
+      "hero_secondary_cta_link",
+      fallbacks.hero_secondary_cta_link,
+    ),
+    featured_youtube_url: readSetting(settings, "featured_youtube_url"),
+  };
+}
+
 export function buildHomeHero(
   identity: PublicSiteIdentity,
   contact: PublicSiteContact,
-  featuredYoutubeUrl?: string | null,
+  settings: Record<string, string> = {},
 ): PageHeroData {
-  return {
-    badge: identity.sundayLabel,
-    title: `Bienvenue à ${identity.churchName}`,
-    description: `${identity.tagline}. Venez adorer avec nous — ${identity.sundayTime}. ${contact.location.address}.`,
-    glow: "sky",
-    actions: [
-      { href: "#infos-pratiques", label: "Rejoindre le culte", variant: "accent" },
-      { href: "/a-propos", label: "Découvrir VOF", variant: "outlineLight" },
-    ],
-    media: {
-      videoId:
-        extractYoutubeId(featuredYoutubeUrl) ??
-        extractYoutubeId(siteConfig.media.featuredYoutubeId) ??
-        undefined,
-      videoTitle: siteConfig.media.featuredYoutubeTitle,
-      fallbackDay: siteConfig.worship.sunday.day,
-      fallbackTime: identity.sundayTime,
-      fallbackText:
-        "Le replay du culte sera bientôt disponible ici, en lecture différée pour les connexions 3G/4G.",
-    },
-  };
+  return pageHeroFromDraft(
+    homeHeroDraftFromSettings(identity, contact, settings),
+    identity.sundayTime,
+  );
 }
 
 export function buildHomeInfoTiles(

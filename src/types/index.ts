@@ -209,6 +209,26 @@ export interface NavItem {
   children?: NavItem[];
 }
 
+export interface FooterLink {
+  label: string;
+  url: string;
+}
+
+export interface FooterScheduleItem {
+  label: string;
+  time: string;
+}
+
+export interface PublicFooterContent {
+  description: string;
+  copyright: string;
+  navLinks: FooterLink[];
+  scheduleTitle: string;
+  scheduleItems: FooterScheduleItem[];
+  showContact: boolean;
+  showSocials: boolean;
+}
+
 export type MobileMoneyOperatorId = "amana" | "nita" | "wave";
 
 export interface MobileMoneyAccount {
@@ -351,6 +371,17 @@ export interface PageHeroData {
   width?: PageHeroWidth;
   actions?: PageHeroAction[];
   media?: PageHeroMedia;
+}
+
+export interface HomeHeroDraft {
+  hero_badge: string;
+  hero_title: string;
+  hero_description: string;
+  hero_primary_cta_text: string;
+  hero_primary_cta_link: string;
+  hero_secondary_cta_text: string;
+  hero_secondary_cta_link: string;
+  featured_youtube_url: string;
 }
 
 export interface EventHeadlineData {

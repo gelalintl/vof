@@ -1,96 +1,101 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Pencil, Trash2 } from "lucide-react";
-import {
-  createPastorFromForm,
-  deletePastor,
-  updatePastorFromForm,
-} from "@/app/admin/actions";
+import { deletePastor } from "@/app/admin/actions";
 import type { AdminPastorRecord } from "@/types";
-import { AdminConfirmDialog, AdminDrawer } from "./AdminDrawer";
-import { AdminEmptyState, AdminPanel } from "./AdminPageHeader";
-import { notifyAdminAction, notifyAdminConfirm } from "./notifyAdminAction";
-import { PastorForm } from "./PastorForm";
+import { AdminBadge } from "./AdminBadge";
+import { AdminConfirmDialog } from "./AdminDrawer";
+import { AdminEmptyState } from "./AdminPageHeader";
+import { notifyAdminConfirm } from "./notifyAdminAction";
 
 interface PastorManagerProps {
   pastors: AdminPastorRecord[];
 }
 
+function shortenQuote(value: string | null) {
+  if (!value?.trim()) {
+    return "—";
+  }
+  const text = value.trim();
+  return text.length > 90 ? `${text.slice(0, 90).trim()}…` : text;
+}
+
 export function PastorManager({ pastors }: PastorManagerProps) {
-  const [selected, setSelected] = useState<AdminPastorRecord | null>(null);
   const [pendingDelete, setPendingDelete] = useState<AdminPastorRecord | null>(null);
 
   return (
     <>
       {pastors.length === 0 ? (
-        <AdminEmptyState>Aucun pasteur enregistré pour le moment.</AdminEmptyState>
+        <AdminEmptyState>Aucun membre enregistré pour le moment.</AdminEmptyState>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {pastors.map((pastor) => (
-            <article
-              key={pastor.id}
-              className="overflow-hidden border border-slate-200 bg-white"
-            >
-              <div className="relative aspect-[4/5] overflow-hidden bg-white">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={pastor.image || "/assets/pastors/placeholder.svg"}
-                  alt={pastor.name}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-              <div className="flex items-start justify-between gap-3 p-4">
-                <div className="min-w-0">
-                  <p className="font-heading text-lg font-bold text-slate-900">{pastor.name}</p>
-                  <p className="mt-1 font-sans text-sm text-slate-600">{pastor.role}</p>
-                  <p className="mt-1 font-mono text-[11px] text-slate-400">Ordre {pastor.order}</p>
-                </div>
-                <div className="flex shrink-0 items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => setSelected(pastor)}
-                    className="inline-flex size-9 items-center justify-center border border-slate-200 text-slate-900 hover:bg-[#6d28d9] hover:text-white"
-                    aria-label={`Éditer ${pastor.name}`}
-                  >
-                    <Pencil className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPendingDelete(pastor)}
-                    className="inline-flex size-9 items-center justify-center border border-slate-200 text-slate-900 hover:bg-violet-800 hover:text-white"
-                    aria-label={`Supprimer ${pastor.name}`}
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
-                </div>
-              </div>
-            </article>
-          ))}
+        <div className="overflow-x-auto border border-slate-200 bg-white">
+          <table className="min-w-full text-left text-sm">
+            <thead className="border-b border-slate-100 bg-slate-50 font-heading text-[11px] font-bold uppercase tracking-[0.16em] text-slate-900">
+              <tr>
+                <th className="px-4 py-3">Photo / Nom</th>
+                <th className="px-4 py-3">Rôle</th>
+                <th className="px-4 py-3">Verset / Citation</th>
+                <th className="px-4 py-3">Ordre</th>
+                <th className="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pastors.map((pastor) => (
+                <tr key={pastor.id} className="border-b border-slate-100 last:border-0">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="size-12 shrink-0 overflow-hidden border border-slate-200 bg-slate-50">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={pastor.image || "/assets/pastors/placeholder.svg"}
+                          alt={pastor.name}
+                          className="size-full object-cover"
+                        />
+                      </div>
+                      <p className="font-heading font-bold text-slate-900">{pastor.name}</p>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <AdminBadge className="border-[#6d28d9]/20 bg-[#6d28d9]/10 text-[#6d28d9]">
+                      {pastor.role}
+                    </AdminBadge>
+                  </td>
+                  <td className="max-w-xs px-4 py-3 font-serif text-sm italic text-slate-600">
+                    {shortenQuote(pastor.quote)}
+                  </td>
+                  <td className="px-4 py-3 font-mono text-sm text-slate-600">{pastor.order}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <Link
+                        href={`/admin/pasteurs/${pastor.id}/edit`}
+                        className="inline-flex size-9 items-center justify-center border border-slate-200 text-[#6d28d9] transition-colors hover:bg-[#6d28d9] hover:text-white"
+                        aria-label={`Éditer ${pastor.name}`}
+                      >
+                        <Pencil className="size-4" />
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => setPendingDelete(pastor)}
+                        className="inline-flex size-9 items-center justify-center border border-slate-200 text-[#6d28d9] transition-colors hover:bg-red-600 hover:text-white"
+                        aria-label={`Supprimer ${pastor.name}`}
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
-      <AdminDrawer
-        isOpen={Boolean(selected)}
-        title="Éditer le dirigeant"
-        onClose={() => setSelected(null)}
-      >
-        {selected ? (
-          <PastorForm
-            key={selected.id}
-            pastor={selected}
-            action={notifyAdminAction(updatePastorFromForm, "Dirigeant mis à jour.", () =>
-              setSelected(null),
-            )}
-            submitLabel="Enregistrer les modifications"
-          />
-        ) : null}
-      </AdminDrawer>
-
       <AdminConfirmDialog
         isOpen={Boolean(pendingDelete)}
-        title="Supprimer le dirigeant"
-        message={`« ${pendingDelete?.name ?? ""} » sera définitivement retiré.`}
+        title="Supprimer le membre"
+        message={`« ${pendingDelete?.name ?? ""} » sera définitivement retiré de l’équipe pastorale.`}
         onClose={() => setPendingDelete(null)}
         onConfirm={async () => {
           if (!pendingDelete) {
@@ -98,24 +103,10 @@ export function PastorManager({ pastors }: PastorManagerProps) {
           }
           const formData = new FormData();
           formData.set("id", pendingDelete.id);
-          await notifyAdminConfirm(() => deletePastor(formData), "Dirigeant supprimé.");
+          await notifyAdminConfirm(() => deletePastor(formData), "Membre supprimé.");
           setPendingDelete(null);
         }}
       />
     </>
-  );
-}
-
-export function PastorCreatePanel() {
-  return (
-    <AdminPanel>
-      <h2 className="mb-4 font-heading text-lg font-bold text-slate-900">
-        Nouveau membre de l’équipe
-      </h2>
-      <PastorForm
-        action={notifyAdminAction(createPastorFromForm, "Dirigeant ajouté.")}
-        submitLabel="Ajouter à l’équipe"
-      />
-    </AdminPanel>
   );
 }
