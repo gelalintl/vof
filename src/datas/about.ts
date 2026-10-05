@@ -18,7 +18,7 @@ export const aboutVisionHeader: SectionHeaderData = {
 
 export const aboutVerse: QuoteBlockData = {
   quote: "« Verset annuel de l'église »",
-  caption: "Référence biblique du verset annuel de l'église",
+  caption: "...",
 };
 
 export const aboutPillars: FeatureCardData[] = [

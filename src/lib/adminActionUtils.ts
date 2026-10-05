@@ -108,8 +108,11 @@ export function revalidateSettingsContent() {
   revalidateTag(SITE_SETTINGS_CACHE_TAG, "max");
   revalidatePath("/", "layout");
   revalidatePath("/");
+  revalidatePath("/icon");
+  revalidatePath("/apple-icon");
   revalidatePath("/contact");
   revalidatePath("/don");
+  revalidatePath("/a-propos");
   revalidateAdminPath("/admin/parametres");
   revalidatePath("/admin/parametres", "layout");
 }

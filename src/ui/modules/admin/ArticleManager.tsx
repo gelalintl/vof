@@ -7,7 +7,7 @@ import {
   updateArticleFromForm,
 } from "@/app/admin/actions";
 import type { AdminArticleRecord } from "@/types";
-import { formatAdminDateTime } from "@/utils/date/format";
+import { formatPublicationDate } from "@/utils/date/format";
 import { AdminActionBar } from "./AdminActionBar";
 import { AdminBadge } from "./AdminBadge";
 import { AdminConfirmDialog, AdminDrawer } from "./AdminDrawer";
@@ -15,6 +15,7 @@ import { AdminEmptyState, AdminLabel, AdminPanel } from "./AdminPageHeader";
 import { AdminThumb } from "./AdminThumb";
 import { ArticleForm } from "./ArticleForm";
 import { notifyAdminAction, notifyAdminConfirm } from "./notifyAdminAction";
+import { ProseHtml } from "@/ui/components/content";
 
 interface ArticleManagerProps {
   articles: AdminArticleRecord[];
@@ -80,7 +81,7 @@ export function ArticleManager({ articles }: ArticleManagerProps) {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-slate-600">
-                    {formatAdminDateTime(article.createdAt)}
+                    {formatPublicationDate(article.publishedAt)}
                   </td>
                   <td className="px-4 py-3">
                     <AdminActionBar
@@ -121,7 +122,8 @@ export function ArticleManager({ articles }: ArticleManagerProps) {
             <Detail label="Auteur" value={selected.author} />
             <Detail label="Slug" value={selected.slug} />
             <Detail label="Statut" value={selected.isPublished ? "Publié" : "Brouillon"} />
-            <Detail label="Créé le" value={formatAdminDateTime(selected.createdAt)} />
+            <Detail label="Date de publication" value={formatPublicationDate(selected.publishedAt)} />
+            <Detail label="Créé le" value={formatPublicationDate(selected.createdAt)} />
             {selected.galleryImages.length > 0 ? (
               <div>
                 <AdminLabel>Galerie</AdminLabel>
@@ -140,9 +142,7 @@ export function ArticleManager({ articles }: ArticleManagerProps) {
             ) : null}
             <div>
               <AdminLabel>Contenu</AdminLabel>
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
-                {selected.content}
-              </p>
+              <ProseHtml html={selected.content} className="mt-2 prose-sm" />
             </div>
           </div>
         ) : null}

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getArticleBySlug } from "@/lib/publicContent";
 import { MainLayout } from "@/ui/layouts/MainLayout";
 import { TeachingDetail } from "@/ui/modules/enseignements";
+import { excerpt } from "@/ui/modules/enseignements/excerpt";
 
 interface TeachingDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -20,7 +21,7 @@ export async function generateMetadata({
 
   return {
     title: article.title,
-    description: article.content.slice(0, 160),
+    description: excerpt(article.content, 160),
   };
 }
 

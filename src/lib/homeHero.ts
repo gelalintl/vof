@@ -27,6 +27,7 @@ export function pageHeroFromDraft(
     title: draft.hero_title,
     description: draft.hero_description,
     glow: "sky",
+    backgroundImage: draft.hero_bg_image.trim() || undefined,
     actions,
     media: {
       videoId:

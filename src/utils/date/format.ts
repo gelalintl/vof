@@ -24,7 +24,12 @@ export function formatEventDate(isoOrDate: string | Date): string {
 }
 
 export function formatPublicationDate(isoOrDate: string | Date): string {
-  const date = typeof isoOrDate === "string" ? new Date(isoOrDate) : isoOrDate;
+  const date =
+    typeof isoOrDate === "string"
+      ? isoOrDate.includes("T") || isoOrDate.includes(" ")
+        ? new Date(isoOrDate)
+        : parseIsoDate(isoOrDate)
+      : isoOrDate;
   if (Number.isNaN(date.getTime())) {
     return "";
   }

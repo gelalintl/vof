@@ -1,7 +1,7 @@
 import { ArrowLeft, CalendarDays, UserRound } from "lucide-react";
 import type { PublicArticle } from "@/types";
 import { extractYoutubeId } from "@/lib/youtube";
-import { ProseBlocks } from "@/ui/components/content";
+import { sanitizeRichText, toEditorHtml } from "@/lib/richText";
 import { YoutubeLiteEmbed } from "@/ui/components/media";
 import { formatPublicationDate } from "@/utils/date/format";
 import { Button } from "@/ui/design-system/button";
@@ -55,12 +55,15 @@ export function TeachingDetail({ article }: TeachingDetailProps) {
         </p>
         <p className="mt-1.5 flex items-center gap-2 font-sans text-sm text-slate-600">
           <CalendarDays className="size-4 text-[#6d28d9]" aria-hidden />
-          {formatPublicationDate(article.createdAt)}
+          {formatPublicationDate(article.publishedAt)}
         </p>
 
-        <div className="mt-8 border-t border-slate-200 pt-8 text-slate-800">
-          <ProseBlocks text={article.content} />
-        </div>
+        <div
+          className="prose prose-purple lg:prose-lg mt-8 max-w-none border-t border-slate-200 pt-8 text-justify text-slate-800"
+          dangerouslySetInnerHTML={{
+            __html: sanitizeRichText(toEditorHtml(article.content)),
+          }}
+        />
 
         <EventGallery images={article.galleryImages} />
         <CommentsSection articleId={article.id} initialComments={article.comments} />

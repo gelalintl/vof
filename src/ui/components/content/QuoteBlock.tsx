@@ -7,6 +7,8 @@ export type QuoteBlockProps = QuoteBlockData;
 export function QuoteBlock({
   quote,
   caption,
+  imageSrc,
+  imageAlt,
   attribution,
   note,
   align = "left",
@@ -22,12 +24,23 @@ export function QuoteBlock({
           {caption}
         </Typography>
       ) : null}
+      {imageSrc ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={imageSrc}
+          alt={imageAlt ?? ""}
+          className="mx-auto my-6 max-h-48 w-auto rounded-2xl border border-slate-100 object-cover shadow-md"
+        />
+      ) : null}
       {attribution ? (
         <p
           className={cn(
             attributionVariant === "brand"
-              ? "mt-6 font-heading text-sm font-bold tracking-tight text-violet-700"
-              : "mt-2 font-sans text-sm text-slate-600",
+              ? cn(
+                  "font-heading text-sm font-bold tracking-tight text-violet-700",
+                  imageSrc ? "mt-0" : "mt-6",
+                )
+              : cn("font-sans text-sm text-slate-600", imageSrc ? "mt-0" : "mt-2"),
           )}
         >
           {attribution}

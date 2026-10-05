@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { toEventDetailView } from "@/lib/eventPresentation";
 import { getEventBySlug } from "@/lib/publicContent";
-import { AuthorSignature, EventHeadline, ProseBlocks } from "@/ui/components/content";
+import { excerptRichText } from "@/lib/richText";
+import { AuthorSignature, EventHeadline, ProseHtml } from "@/ui/components/content";
 import { ContentSection } from "@/ui/components/layout";
 import { GalleryGrid, MediaCover, YoutubeLiteEmbed } from "@/ui/components/media";
 import { MainLayout } from "@/ui/layouts/MainLayout";
@@ -24,7 +25,7 @@ export async function generateMetadata({
 
   return {
     title: event.title,
-    description: event.description,
+    description: excerptRichText(event.description, 160),
   };
 }
 
@@ -51,7 +52,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             colorToken={view.cover.colorToken}
           />
         )}
-        <ProseBlocks text={view.body} />
+        <ProseHtml html={view.body} className="mt-8" />
         {view.author ? <AuthorSignature {...view.author} /> : null}
         <CommentSection eventTitle={view.title} comments={view.comments} />
         <GalleryGrid

@@ -18,7 +18,7 @@ export { pageHeroFromDraft } from "@/lib/homeHero";
 export function homeHeroFallbacks(
   identity: PublicSiteIdentity,
   contact: PublicSiteContact,
-): Omit<HomeHeroDraft, "featured_youtube_url"> {
+): Omit<HomeHeroDraft, "featured_youtube_url" | "hero_bg_image"> {
   return {
     hero_badge: identity.sundayLabel,
     hero_title: `Bienvenue à ${identity.churchName}`,
@@ -61,6 +61,7 @@ export function homeHeroDraftFromSettings(
       fallbacks.hero_secondary_cta_link,
     ),
     featured_youtube_url: readSetting(settings, "featured_youtube_url"),
+    hero_bg_image: readSetting(settings, "hero_bg_image"),
   };
 }
 
@@ -148,6 +149,8 @@ export function buildHomeWelcome(settings: Record<string, string>): {
     quote: {
       ...homeWelcomeQuote,
       quote: readSetting(settings, "welcome_content", fallbacks.welcome_content),
+      imageSrc: readSetting(settings, "pastor_welcome_image") || undefined,
+      imageAlt: readSetting(settings, "welcome_author", fallbacks.welcome_author),
       attribution: `— ${readSetting(settings, "welcome_author", fallbacks.welcome_author)}`,
       note: readSetting(settings, "welcome_subtext", fallbacks.welcome_subtext),
     },

@@ -31,6 +31,7 @@ export { WelcomeMessageForm } from "./WelcomeMessageForm";
 export { PaymentSettingsForm } from "./PaymentSettingsForm";
 export { PrintSettingsForm } from "./PrintSettingsForm";
 export { FooterSettingsForm } from "./FooterSettingsForm";
+export { AboutSettingsForm } from "./AboutSettingsForm";
 export { SettingsTabs } from "./SettingsTabs";
 export { SettingsManager, SettingCreatePanel } from "./SettingsManager";
 export { LoginForm } from "./LoginForm";

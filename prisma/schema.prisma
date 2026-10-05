@@ -82,6 +82,7 @@ model Article {
   youtubeUrl    String?
   isPublished   Boolean   @default(false)
   isFeatured    Boolean   @default(false)
+  publishedAt   DateTime  @default(now())
   createdAt     DateTime  @default(now())
   comments      Comment[]
 }

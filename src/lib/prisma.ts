@@ -1,8 +1,11 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
 
+const PRISMA_CLIENT_REV = 2;
+
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
+  prismaRev?: number;
 };
 
 function createPrismaClient() {
@@ -17,13 +20,13 @@ function createPrismaClient() {
 }
 
 function resolvePrismaClient(): PrismaClient {
-  const cached = globalForPrisma.prisma;
-  if (cached?.donationPromise) {
-    return cached;
+  if (globalForPrisma.prisma && globalForPrisma.prismaRev === PRISMA_CLIENT_REV) {
+    return globalForPrisma.prisma;
   }
 
   const client = createPrismaClient();
   globalForPrisma.prisma = client;
+  globalForPrisma.prismaRev = PRISMA_CLIENT_REV;
   return client;
 }
 

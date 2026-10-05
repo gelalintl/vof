@@ -55,7 +55,7 @@ export function FeaturedTeachingSection({ article }: FeaturedTeachingSectionProp
             </p>
             <p className="mt-1.5 flex items-center gap-2 font-sans text-sm text-slate-600">
               <CalendarDays className="size-4 text-[#6d28d9]" aria-hidden />
-              {formatPublicationDate(article.createdAt)}
+              {formatPublicationDate(article.publishedAt)}
             </p>
             <p className="mt-4 font-sans text-sm leading-relaxed text-slate-800">
               {excerpt(article.content)}

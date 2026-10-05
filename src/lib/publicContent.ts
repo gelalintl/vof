@@ -17,7 +17,7 @@ import type {
   PublicProject,
   PublicRecurringGathering,
 } from "@/types";
-import { formatEventTime, toDateKey } from "@/utils/date/format";
+import { formatEventTime, formatPublicationDate, toDateKey } from "@/utils/date/format";
 import { extractYoutubeId } from "@/lib/youtube";
 import { isProjectStatus, projectProgress } from "@/lib/donations";
 
@@ -303,16 +303,28 @@ async function loadFeaturedHomeMedia(): Promise<GalleryImage[]> {
   try {
     const rows = await prisma.media.findMany({
       where: { isFeaturedHome: true },
-      select: { id: true, url: true, title: true },
+      select: {
+        id: true,
+        url: true,
+        title: true,
+        createdAt: true,
+        event: {
+          select: { title: true, startDate: true },
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
 
-    return rows.map((item) => ({
-      id: item.id,
-      src: item.url,
-      alt: item.title,
-      caption: item.title,
-    }));
+    return rows.map((item) => {
+      const title = item.event?.title ?? item.title;
+      const dateLabel = formatPublicationDate(item.event?.startDate ?? item.createdAt);
+      return {
+        id: item.id,
+        src: item.url,
+        alt: title,
+        caption: dateLabel ? `${title} · ${dateLabel}` : title,
+      };
+    });
   } catch {
     return [];
   }
@@ -338,9 +350,10 @@ async function loadPublishedArticles(): Promise<PublicArticle[]> {
         galleryImages: true,
         youtubeUrl: true,
         isFeatured: true,
+        publishedAt: true,
         createdAt: true,
       },
-      orderBy: [{ isFeatured: "desc" }, { createdAt: "desc" }],
+      orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }],
     });
 
     return rows.map((article) => ({
@@ -354,6 +367,7 @@ async function loadPublishedArticles(): Promise<PublicArticle[]> {
       youtubeUrl: article.youtubeUrl ?? null,
       isFeatured: article.isFeatured,
       comments: [],
+      publishedAt: toDateKey(article.publishedAt),
       createdAt: article.createdAt.toISOString(),
     }));
   } catch {
@@ -488,58 +502,68 @@ export const getActivePublicProjects = unstable_cache(
 );
 
 export async function getArticleBySlug(slug: string): Promise<PublicArticle | null> {
-  try {
-    const article = await prisma.article.findFirst({
-      where: { slug, isPublished: true },
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        content: true,
-        author: true,
-        coverImage: true,
-        galleryImages: true,
-        youtubeUrl: true,
-        isFeatured: true,
-        createdAt: true,
-        comments: {
-          where: { isApproved: true },
-          orderBy: { createdAt: "asc" },
-          select: {
-            id: true,
-            authorName: true,
-            content: true,
-            likesCount: true,
-            createdAt: true,
-          },
-        },
-      },
-    });
-
-    if (!article) {
-      return null;
-    }
-
-    return {
-      id: article.id,
-      slug: article.slug,
-      title: article.title,
-      content: article.content,
-      author: article.author,
-      coverImage: article.coverImage,
-      galleryImages: article.galleryImages ?? [],
-      youtubeUrl: article.youtubeUrl ?? null,
-      isFeatured: article.isFeatured,
-      comments: article.comments.map((comment) => ({
-        id: comment.id,
-        authorName: comment.authorName,
-        content: comment.content,
-        likesCount: comment.likesCount ?? 0,
-        createdAt: comment.createdAt.toISOString(),
-      })),
-      createdAt: article.createdAt.toISOString(),
-    };
-  } catch {
+  const normalizedSlug = decodeURIComponent(slug).trim();
+  if (!normalizedSlug) {
     return null;
   }
+
+  const article = await prisma.article.findFirst({
+    where: { slug: normalizedSlug, isPublished: true },
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      content: true,
+      author: true,
+      coverImage: true,
+      galleryImages: true,
+      youtubeUrl: true,
+      isFeatured: true,
+      publishedAt: true,
+      createdAt: true,
+    },
+  });
+
+  if (!article) {
+    return null;
+  }
+
+  let comments: PublicArticle["comments"] = [];
+  try {
+    const rows = await prisma.comment.findMany({
+      where: { articleId: article.id, isApproved: true },
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        authorName: true,
+        content: true,
+        likesCount: true,
+        createdAt: true,
+      },
+    });
+    comments = rows.map((comment) => ({
+      id: comment.id,
+      authorName: comment.authorName,
+      content: comment.content,
+      likesCount: comment.likesCount ?? 0,
+      createdAt: comment.createdAt.toISOString(),
+    }));
+  } catch {
+    comments = [];
+  }
+
+  return {
+    id: article.id,
+    slug: article.slug,
+    title: article.title,
+    content: article.content,
+    author: article.author,
+    coverImage: article.coverImage,
+    galleryImages: article.galleryImages ?? [],
+    youtubeUrl: article.youtubeUrl ?? null,
+    isFeatured: article.isFeatured,
+    comments,
+    publishedAt: toDateKey(article.publishedAt),
+    createdAt: article.createdAt.toISOString(),
+  };
 }

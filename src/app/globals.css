@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 :root {
   --background: #ffffff;
@@ -52,4 +53,45 @@ body {
 * {
   scrollbar-width: thin;
   scrollbar-color: #6d28d9 transparent;
+}
+
+.prose {
+  --tw-prose-body: #1e293b;
+  --tw-prose-headings: #1e293b;
+  --tw-prose-links: #6d28d9;
+  --tw-prose-bold: #1e293b;
+  --tw-prose-quotes: #1e293b;
+  --tw-prose-quote-borders: #6d28d9;
+  --tw-prose-bullets: #6d28d9;
+  --tw-prose-counters: #6d28d9;
+  --tw-prose-hr: #e2e8f0;
+}
+
+.prose :where(h2, h3) {
+  font-family: var(--font-heading);
+  text-align: start;
+}
+
+.prose :where(p, li, blockquote) {
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+}
+
+.prose :where(blockquote) {
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+.vof-rich-text .tiptap {
+  min-height: 12rem;
+  outline: none;
+}
+
+.vof-rich-text .tiptap p.is-editor-empty:first-child::before {
+  color: #94a3b8;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
 }

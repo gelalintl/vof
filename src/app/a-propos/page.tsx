@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import {
-  aboutHero,
-  aboutPillars,
-  aboutVerse,
-  aboutVisionHeader,
-} from "@/datas/about";
+import { aboutHero, aboutVisionHeader } from "@/datas/about";
+import { aboutVisionFromSettings } from "@/lib/aboutContent";
+import { getSiteSettings } from "@/lib/settings";
 import { FeatureCardGrid } from "@/ui/components/cards";
 import { QuoteBlock } from "@/ui/components/content";
 import { ContentSection, PageHero, SectionHeader } from "@/ui/components/layout";
@@ -18,13 +15,16 @@ export const metadata: Metadata = {
 };
 
 export default async function AboutPage() {
+  const settings = await getSiteSettings();
+  const { verse, pillars } = aboutVisionFromSettings(settings);
+
   return (
     <MainLayout>
       <PageHero {...aboutHero} />
       <ContentSection tone="muted">
         <SectionHeader {...aboutVisionHeader} />
-        <QuoteBlock {...aboutVerse} />
-        <FeatureCardGrid cards={aboutPillars} />
+        <QuoteBlock {...verse} />
+        <FeatureCardGrid cards={pillars} />
       </ContentSection>
       <PastorsSection />
     </MainLayout>

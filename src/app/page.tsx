@@ -1,4 +1,5 @@
 import { homeGalleryHeader } from "@/datas/home";
+import { HomeGallery } from "@/ui/modules/home";
 import { buildHomeHero, buildHomeInfoTiles, buildHomeWelcome } from "@/lib/homeContent";
 import {
   getFeaturedHomeMedia,
@@ -11,7 +12,6 @@ import { contactFromSettings, getSiteSettings, identityFromSettings } from "@/li
 import { InfoTileGrid } from "@/ui/components/cards";
 import { QuoteBlock } from "@/ui/components/content";
 import { ContentSection, PageHero, SectionHeader } from "@/ui/components/layout";
-import { GalleryGrid } from "@/ui/components/media";
 import { MainLayout } from "@/ui/layouts/MainLayout";
 import { FeaturedTeachingSection } from "@/ui/modules/enseignements";
 import { EventSlider } from "@/ui/modules/events";
@@ -48,14 +48,7 @@ export default async function HomePage() {
       <FeaturedTeachingSection article={featuredTeaching} />
       <ContentSection tone="muted" labelledBy="galerie-vof">
         <SectionHeader {...homeGalleryHeader} />
-        {gallery.length > 0 ? (
-          <GalleryGrid images={gallery} layout="bento" />
-        ) : (
-          <p className="font-sans text-sm text-slate-600">
-            Les images mises en avant apparaîtront ici dès qu&apos;elles seront
-            publiées depuis l&apos;administration.
-          </p>
-        )}
+        <HomeGallery images={gallery} />
       </ContentSection>
     </MainLayout>
   );

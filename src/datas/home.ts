@@ -1,4 +1,4 @@
-import type { QuoteBlockData, SectionHeaderData } from "@/types";
+import type { GalleryImage, QuoteBlockData, SectionHeaderData } from "@/types";
 import { siteConfig } from "@/config/site";
 
 export const homeWelcomeHeader: SectionHeaderData = {
@@ -23,3 +23,57 @@ export const homeGalleryHeader: SectionHeaderData = {
   description:
     "Un aperçu de nos cultes, prières et temps forts. Touchez une image pour l'afficher en grand.",
 };
+
+export const HOME_GALLERY_MIN_COUNT = 7;
+
+export const homeGalleryFallbacks: GalleryImage[] = [
+  {
+    id: "fallback-culte",
+    src: "/assets/gallery/culte.svg",
+    alt: "Culte dominical à Voice Of Freedom",
+    caption: "Culte dominical",
+  },
+  {
+    id: "fallback-priere",
+    src: "/assets/gallery/priere.svg",
+    alt: "Temps de prière à Voice Of Freedom",
+    caption: "Temps de prière",
+  },
+  {
+    id: "fallback-jeunesse",
+    src: "/assets/gallery/jeunesse.svg",
+    alt: "Culte jeunesse à Voice Of Freedom",
+    caption: "Culte jeunesse",
+  },
+  {
+    id: "fallback-communion",
+    src: "/assets/gallery/communion.svg",
+    alt: "Sainte cène à Voice Of Freedom",
+    caption: "Sainte cène",
+  },
+  {
+    id: "fallback-seminaire",
+    src: "/assets/gallery/seminaire.svg",
+    alt: "Séminaire à Voice Of Freedom",
+    caption: "Séminaire",
+  },
+];
+
+export function fillHomeGallery(images: GalleryImage[]): GalleryImage[] {
+  if (images.length >= HOME_GALLERY_MIN_COUNT) {
+    return images;
+  }
+
+  const filled = [...images];
+  let cursor = 0;
+  while (filled.length < HOME_GALLERY_MIN_COUNT) {
+    const fallback = homeGalleryFallbacks[cursor % homeGalleryFallbacks.length];
+    filled.push({
+      ...fallback,
+      id: `${fallback.id}-${filled.length}`,
+    });
+    cursor += 1;
+  }
+
+  return filled;
+}

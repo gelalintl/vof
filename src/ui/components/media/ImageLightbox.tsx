@@ -69,9 +69,15 @@ export function ImageLightbox({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[90] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/95 p-4 backdrop-blur-md"
           onClick={onClose}
         >
+          {index !== null ? (
+            <p className="absolute top-4 left-1/2 -translate-x-1/2 font-heading text-sm font-bold tracking-tight text-white/90">
+              Photo {index + 1} sur {images.length}
+            </p>
+          ) : null}
+
           <button
             type="button"
             onClick={onClose}

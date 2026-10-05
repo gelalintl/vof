@@ -26,25 +26,39 @@ export async function loginAction(formData: FormData): Promise<{ error: string }
     return { error: INVALID_CREDENTIALS };
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
 
-  const hash = user?.passwordHash ?? DUMMY_HASH;
-  const passwordMatches = await bcrypt.compare(password, hash);
+    const hash = user?.passwordHash ?? DUMMY_HASH;
+    const passwordMatches = await bcrypt.compare(password, hash);
 
-  if (!user || !passwordMatches) {
-    return { error: INVALID_CREDENTIALS };
+    if (!user || !passwordMatches) {
+      return { error: INVALID_CREDENTIALS };
+    }
+
+    const token = await encryptSession({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    const cookieStore = await cookies();
+    cookieStore.set(ADMIN_SESSION_COOKIE, token, sessionCookieOptions());
+  } catch (error) {
+    const code =
+      error && typeof error === "object" && "code" in error
+        ? String(error.code)
+        : "";
+    if (code === "ECONNREFUSED" || code === "P1001") {
+      return {
+        error:
+          "La base de données est inaccessible. Démarrez PostgreSQL (docker compose up -d) puis réessayez.",
+      };
+    }
+    return { error: "Impossible de se connecter pour le moment. Réessayez." };
   }
-
-  const token = await encryptSession({
-    id: user.id,
-    email: user.email,
-    role: user.role,
-  });
-
-  const cookieStore = await cookies();
-  cookieStore.set(ADMIN_SESSION_COOKIE, token, sessionCookieOptions());
 
   redirect("/admin/evenements");
 }

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { PageHeroAction, PageHeroData } from "@/types";
 import { cn } from "@/utils/cn";
 import { Badge } from "@/ui/design-system/badge";
@@ -18,14 +19,33 @@ export function PageHero({
   description,
   glow = "sky",
   width = "default",
+  backgroundImage,
   actions,
   media,
 }: PageHeroProps) {
   const hasMedia = Boolean(media);
+  const hasBackground = Boolean(backgroundImage?.trim());
 
   return (
-    <section className="relative bg-violet-700 text-white">
-      <div className={cn("pointer-events-none absolute inset-0 overflow-hidden", glowClass[glow])} />
+    <section
+      className={cn(
+        "relative overflow-hidden text-white",
+        hasBackground ? "bg-slate-950" : "bg-violet-700",
+      )}
+    >
+      {hasBackground && backgroundImage ? (
+        <>
+          <HeroBackgroundImage src={backgroundImage} />
+          <div
+            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-slate-950/90 via-purple-950/80 to-slate-900/70"
+            aria-hidden
+          />
+        </>
+      ) : (
+        <div
+          className={cn("pointer-events-none absolute inset-0 overflow-hidden", glowClass[glow])}
+        />
+      )}
       <div
         className={cn(
           "relative mx-auto px-4 py-14 sm:px-6",
@@ -33,7 +53,7 @@ export function PageHero({
           hasMedia && "grid items-center gap-10 lg:grid-cols-2 lg:py-20",
         )}
       >
-        <div>
+        <div className={cn(hasBackground && "drop-shadow-sm")}>
           <Badge variant="accent">{badge}</Badge>
           <Typography variant="h1" className="mt-4 text-white">
             {title}
@@ -51,9 +71,40 @@ export function PageHero({
             </div>
           ) : null}
         </div>
-        {media ? <HeroMedia {...media} /> : null}
+        {media ? (
+          <HeroMedia {...media} emphasized={hasBackground} />
+        ) : null}
       </div>
     </section>
+  );
+}
+
+function HeroBackgroundImage({ src }: { src: string }) {
+  const useNativeImg =
+    src.startsWith("blob:") || src.startsWith("data:") || src.startsWith("http");
+
+  if (useNativeImg) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt=""
+        className="absolute inset-0 size-full object-cover"
+        aria-hidden
+      />
+    );
+  }
+
+  return (
+    <Image
+      src={src}
+      alt=""
+      fill
+      priority
+      sizes="100vw"
+      className="object-cover"
+      aria-hidden
+    />
   );
 }
 
@@ -63,9 +114,20 @@ function HeroMedia({
   fallbackDay,
   fallbackTime,
   fallbackText,
-}: NonNullable<PageHeroData["media"]>) {
+  emphasized,
+}: NonNullable<PageHeroData["media"]> & { emphasized?: boolean }) {
+  const frameClass = emphasized
+    ? "ring-2 ring-white/40 shadow-2xl"
+    : undefined;
+
   if (videoId) {
-    return <YoutubeLiteEmbed videoId={videoId} title={videoTitle ?? "Replay"} />;
+    return (
+      <YoutubeLiteEmbed
+        videoId={videoId}
+        title={videoTitle ?? "Replay"}
+        className={frameClass}
+      />
+    );
   }
 
   if (!fallbackDay && !fallbackText) {
@@ -73,7 +135,12 @@ function HeroMedia({
   }
 
   return (
-    <div className="flex aspect-video items-end rounded-2xl bg-sky-600/40 p-6 ring-1 ring-white/20">
+    <div
+      className={cn(
+        "flex aspect-video items-end rounded-2xl bg-sky-600/40 p-6 ring-1 ring-white/20",
+        emphasized && "bg-slate-950/55 ring-2 ring-white/40 shadow-2xl",
+      )}
+    >
       <div>
         {fallbackDay ? (
           <p className="font-heading text-lg font-extrabold tracking-tight">

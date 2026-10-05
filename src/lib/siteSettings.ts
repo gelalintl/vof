@@ -10,8 +10,10 @@ import {
   identityFromSettings,
   homeEditorialFallbacks,
 } from "@/lib/settings";
+import { emptyAboutSettings } from "@/lib/aboutContent";
 import { emptyFooterSettings } from "@/lib/footerContent";
 import {
+  ABOUT_SETTING_KEYS,
   CHURCH_LOGO_KEY,
   emptyManagedSettings,
   jsonToDisplay,
@@ -20,6 +22,7 @@ import {
   PAYMENT_SETTING_KEYS,
   PRINT_SETTING_KEYS,
   emptyPrintSettings,
+  type AboutSettingKey,
   type FooterSettingKey,
   type ManagedSettingKey,
   type PaymentSettingKey,
@@ -31,6 +34,8 @@ export {
   CHURCH_LOGO_KEY,
   FEATURED_YOUTUBE_URL_KEY,
   HOME_ADDRESS_KEY,
+  PASTOR_WELCOME_IMAGE_KEY,
+  HERO_BG_IMAGE_KEY,
   WELCOME_AUTHOR_KEY,
   WELCOME_CONTENT_KEY,
   WELCOME_SUBTEXT_KEY,
@@ -50,12 +55,14 @@ export {
   PAYMENT_SETTING_KEYS,
   PRINT_SETTING_KEYS,
   FOOTER_SETTING_KEYS,
+  ABOUT_SETTING_KEYS,
   SOCIAL_SETTING_KEYS,
   toWhatsAppHref,
   whatsappPrefillHref,
   UPSERTABLE_SETTING_KEYS,
 } from "@/lib/siteSettingsKeys";
 export type {
+  AboutSettingKey,
   FooterSettingKey,
   ManagedSettingKey,
   PaymentOperatorSlug,
@@ -114,6 +121,7 @@ export async function getManagedSettings(): Promise<Record<ManagedSettingKey, st
     hero_primary_cta_link: map.hero_primary_cta_link ?? defaults.hero_primary_cta_link,
     hero_secondary_cta_text: map.hero_secondary_cta_text ?? defaults.hero_secondary_cta_text,
     hero_secondary_cta_link: map.hero_secondary_cta_link ?? defaults.hero_secondary_cta_link,
+    hero_bg_image: map.hero_bg_image ?? defaults.hero_bg_image,
     address: map.address || copy.address,
     whatsapp_number: map.whatsapp_number || copy.whatsapp_number,
     whatsapp_channel_url: map.whatsapp_channel_url || copy.whatsapp_channel_url,
@@ -121,6 +129,7 @@ export async function getManagedSettings(): Promise<Record<ManagedSettingKey, st
     welcome_author: map.welcome_author || copy.welcome_author,
     welcome_content: map.welcome_content || copy.welcome_content,
     welcome_subtext: map.welcome_subtext || copy.welcome_subtext,
+    pastor_welcome_image: map.pastor_welcome_image ?? defaults.pastor_welcome_image,
   };
 }
 
@@ -171,6 +180,25 @@ export async function getFooterSettings(): Promise<Record<FooterSettingKey, stri
   const map = await getSettingsMap(FOOTER_SETTING_KEYS);
   const merged = { ...emptyFooterSettings(), ...map };
   const missing = FOOTER_SETTING_KEYS.filter((key) => !Object.hasOwn(map, key));
+
+  if (missing.length > 0) {
+    try {
+      await prisma.siteSettings.createMany({
+        data: missing.map((key) => ({ key, value: merged[key] })),
+        skipDuplicates: true,
+      });
+    } catch {
+      // La lecture admin ne doit pas échouer si l'écriture des défauts est indisponible.
+    }
+  }
+
+  return merged;
+}
+
+export async function getAboutSettings(): Promise<Record<AboutSettingKey, string>> {
+  const map = await getSettingsMap(ABOUT_SETTING_KEYS);
+  const merged = { ...emptyAboutSettings(), ...map };
+  const missing = ABOUT_SETTING_KEYS.filter((key) => !Object.hasOwn(map, key));
 
   if (missing.length > 0) {
     try {

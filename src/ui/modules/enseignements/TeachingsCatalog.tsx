@@ -72,7 +72,7 @@ export function TeachingsCatalog({ articles }: TeachingsCatalogProps) {
               </p>
               <p className="mt-1.5 flex items-center gap-2 font-sans text-sm text-slate-600">
                 <CalendarDays className="size-4 text-[#6d28d9]" aria-hidden />
-                {formatPublicationDate(featured.createdAt)}
+                {formatPublicationDate(featured.publishedAt)}
               </p>
               <p className="mt-4 font-sans text-sm leading-relaxed text-slate-800">
                 {excerpt(featured.content)}
@@ -112,7 +112,7 @@ export function TeachingsCatalog({ articles }: TeachingsCatalogProps) {
                   </div>
                   <div className="flex flex-1 flex-col px-5 py-5">
                     <p className="font-heading text-[11px] font-bold uppercase tracking-[0.16em] text-[#6d28d9]">
-                      {formatPublicationDate(article.createdAt)}
+                      {formatPublicationDate(article.publishedAt)}
                     </p>
                     <Typography variant="h3" className="mt-2 text-slate-900">
                       {article.title}

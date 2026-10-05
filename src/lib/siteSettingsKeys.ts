@@ -9,6 +9,7 @@ export const WELCOME_TAGLINE_KEY = "welcome_tagline";
 export const WELCOME_AUTHOR_KEY = "welcome_author";
 export const WELCOME_CONTENT_KEY = "welcome_content";
 export const WELCOME_SUBTEXT_KEY = "welcome_subtext";
+export const PASTOR_WELCOME_IMAGE_KEY = "pastor_welcome_image";
 
 export const SOCIAL_SETTING_KEYS = [
   "social_facebook",
@@ -36,6 +37,7 @@ export const HERO_PRIMARY_CTA_TEXT_KEY = "hero_primary_cta_text";
 export const HERO_PRIMARY_CTA_LINK_KEY = "hero_primary_cta_link";
 export const HERO_SECONDARY_CTA_TEXT_KEY = "hero_secondary_cta_text";
 export const HERO_SECONDARY_CTA_LINK_KEY = "hero_secondary_cta_link";
+export const HERO_BG_IMAGE_KEY = "hero_bg_image";
 
 export const HERO_SETTING_KEYS = [
   HERO_BADGE_KEY,
@@ -45,6 +47,7 @@ export const HERO_SETTING_KEYS = [
   HERO_PRIMARY_CTA_LINK_KEY,
   HERO_SECONDARY_CTA_TEXT_KEY,
   HERO_SECONDARY_CTA_LINK_KEY,
+  HERO_BG_IMAGE_KEY,
 ] as const;
 
 export const HOME_INFO_SETTING_KEYS = [
@@ -58,6 +61,7 @@ export const WELCOME_SETTING_KEYS = [
   WELCOME_AUTHOR_KEY,
   WELCOME_CONTENT_KEY,
   WELCOME_SUBTEXT_KEY,
+  PASTOR_WELCOME_IMAGE_KEY,
 ] as const;
 
 export const IDENTITY_SETTING_KEYS = [CHURCH_NAME_KEY, CHURCH_TAGLINE_KEY] as const;
@@ -147,6 +151,28 @@ export const FOOTER_SETTING_KEYS = [
 
 export type FooterSettingKey = (typeof FOOTER_SETTING_KEYS)[number];
 
+export const ABOUT_ANNUAL_VERSE_TEXT_KEY = "about_annual_verse_text";
+export const ABOUT_ANNUAL_VERSE_REF_KEY = "about_annual_verse_ref";
+export const ABOUT_PILLAR_1_TITLE_KEY = "about_pillar_1_title";
+export const ABOUT_PILLAR_1_DESC_KEY = "about_pillar_1_desc";
+export const ABOUT_PILLAR_2_TITLE_KEY = "about_pillar_2_title";
+export const ABOUT_PILLAR_2_DESC_KEY = "about_pillar_2_desc";
+export const ABOUT_PILLAR_3_TITLE_KEY = "about_pillar_3_title";
+export const ABOUT_PILLAR_3_DESC_KEY = "about_pillar_3_desc";
+
+export const ABOUT_SETTING_KEYS = [
+  ABOUT_ANNUAL_VERSE_TEXT_KEY,
+  ABOUT_ANNUAL_VERSE_REF_KEY,
+  ABOUT_PILLAR_1_TITLE_KEY,
+  ABOUT_PILLAR_1_DESC_KEY,
+  ABOUT_PILLAR_2_TITLE_KEY,
+  ABOUT_PILLAR_2_DESC_KEY,
+  ABOUT_PILLAR_3_TITLE_KEY,
+  ABOUT_PILLAR_3_DESC_KEY,
+] as const;
+
+export type AboutSettingKey = (typeof ABOUT_SETTING_KEYS)[number];
+
 export const PAYMENT_QR_KEY_BY_OPERATOR: Record<PaymentOperatorSlug, PaymentQrKey> = {
   amana: "payment_amana_qr",
   nita: "payment_nita_qr",
@@ -158,6 +184,7 @@ export const UPSERTABLE_SETTING_KEYS = [
   ...PAYMENT_SETTING_KEYS,
   ...PRINT_SETTING_KEYS,
   ...FOOTER_SETTING_KEYS,
+  ...ABOUT_SETTING_KEYS,
 ] as const;
 
 export function jsonToDisplay(value: unknown): string {
@@ -232,6 +259,7 @@ export function emptyManagedSettings(): Record<ManagedSettingKey, string> {
     hero_primary_cta_link: "",
     hero_secondary_cta_text: "",
     hero_secondary_cta_link: "",
+    hero_bg_image: "",
     address: "",
     whatsapp_number: "",
     whatsapp_channel_url: "",
@@ -239,6 +267,7 @@ export function emptyManagedSettings(): Record<ManagedSettingKey, string> {
     welcome_author: "",
     welcome_content: "",
     welcome_subtext: "",
+    pastor_welcome_image: "",
   };
 }
 

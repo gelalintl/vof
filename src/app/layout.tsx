@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Lora, Plus_Jakarta_Sans } from "next/font/google";
 import { Toaster } from "sonner";
+import { churchIconCacheId } from "@/lib/churchIcon";
+import { getChurchLogo } from "@/lib/siteSettings";
 import "./globals.css";
 
 const inter = Inter({
@@ -23,14 +25,24 @@ const lora = Lora({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "Église VOF — Voice Of Freedom",
-    template: "%s | Église VOF",
-  },
-  description:
-    "Site officiel de l'Église Voice Of Freedom. Cultes, enseignements et vie communautaire.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const logoSrc = await getChurchLogo();
+  const version = churchIconCacheId(logoSrc);
+
+  return {
+    title: {
+      default: "Église VOF — Voice Of Freedom",
+      template: "%s | Église VOF",
+    },
+    description:
+      "Site officiel de l'Église Voice Of Freedom. Cultes, enseignements et vie communautaire.",
+    icons: {
+      icon: [{ url: `/icon/${version}`, type: "image/png", sizes: "32x32" }],
+      apple: [{ url: `/apple-icon/${version}`, type: "image/png", sizes: "180x180" }],
+      shortcut: `/icon/${version}`,
+    },
+  };
+}
 
 export default function RootLayout({
   children,

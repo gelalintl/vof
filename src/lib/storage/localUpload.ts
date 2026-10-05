@@ -1,9 +1,8 @@
-"use server";
-
 import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
+export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 export async function uploadLocalFile(file: File): Promise<string> {
   if (!file || typeof file.arrayBuffer !== "function") {
@@ -12,6 +11,10 @@ export async function uploadLocalFile(file: File): Promise<string> {
 
   if (file.size === 0) {
     throw new Error("Le fichier est vide.");
+  }
+
+  if (file.size > MAX_UPLOAD_BYTES) {
+    throw new Error("Le fichier dépasse la taille maximale de 10 Mo.");
   }
 
   if (file.type && !file.type.startsWith("image/")) {

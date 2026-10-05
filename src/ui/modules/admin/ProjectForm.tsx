@@ -59,8 +59,8 @@ export function ProjectForm({ action, project, submitLabel }: ProjectFormProps) 
         <input
           name="targetAmount"
           type="number"
-          min={1}
-          step={500}
+          min="20000"
+          step="1"
           required
           defaultValue={project?.targetAmount ?? 1000000}
           className={adminFieldClass}
@@ -72,8 +72,8 @@ export function ProjectForm({ action, project, submitLabel }: ProjectFormProps) 
         <input
           name="currentAmount"
           type="number"
-          min={0}
-          step={500}
+          min="0"
+          step="1"
           defaultValue={project?.currentAmount ?? 0}
           className={adminFieldClass}
         />

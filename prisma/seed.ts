@@ -109,6 +109,7 @@ async function main() {
         author: 'Révérend Nelson',
         coverImage: '/uploads/mock-article-1.webp',
         isPublished: true,
+        publishedAt: new Date("2026-09-25"),
       },
       {
         title: 'La Puissance de la Générosité',
@@ -117,6 +118,7 @@ async function main() {
         author: 'Pasteure Rose',
         coverImage: '/uploads/mock-article-2.webp',
         isPublished: true,
+        publishedAt: new Date("2026-09-25"),
       },
     ],
   })

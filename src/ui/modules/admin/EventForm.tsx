@@ -8,6 +8,7 @@ import { cn } from "@/utils/cn";
 import { AdminLabel } from "./AdminPageHeader";
 import { AdminThumb } from "./AdminThumb";
 import { EVENT_CATEGORY_LABELS } from "./AdminBadge";
+import { RichTextEditor } from "@/ui/components/forms";
 import { AdminSubmitButton } from "./AdminSubmitButton";
 import { adminFieldClass, adminFileClass } from "./adminStyles";
 
@@ -87,6 +88,7 @@ export function EventForm({ action, event, submitLabel }: EventFormProps) {
   const [special, setSpecial] = useState(Boolean(event?.isSpecial));
   const [exclusive, setExclusive] = useState(Boolean(event?.isExclusive));
   const [excludedDates, setExcludedDates] = useState((event?.excludedDates ?? []).join("\n"));
+  const [description, setDescription] = useState(event?.description ?? "");
 
   function toggleDay(day: number) {
     setDaysOfWeek((current) =>
@@ -132,16 +134,16 @@ export function EventForm({ action, event, submitLabel }: EventFormProps) {
         />
       </label>
 
-      <label className="block sm:col-span-2">
+      <div className="sm:col-span-2">
         <AdminLabel>Description</AdminLabel>
-        <textarea
+        <RichTextEditor
           name="description"
+          value={description}
+          onChange={setDescription}
           required
-          rows={4}
-          defaultValue={event?.description}
-          className={adminFieldClass}
+          placeholder="Présentez l’événement : programme, consignes, verset…"
         />
-      </label>
+      </div>
 
       <label className="block">
         <AdminLabel>Lieu</AdminLabel>

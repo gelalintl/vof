@@ -2,6 +2,7 @@ import { unstable_cache } from "next/cache";
 import { siteConfig } from "@/config/site";
 import { prisma } from "@/lib/prisma";
 import { jsonToDisplay, normalizeMapsEmbedUrl } from "@/lib/siteSettingsKeys";
+import { emptyAboutSettings } from "@/lib/aboutContent";
 import { emptyFooterSettings } from "@/lib/footerContent";
 import type { PublicSiteContact, PublicSiteIdentity } from "@/types";
 
@@ -32,6 +33,7 @@ export function siteSettingsFallbacks(): Record<string, string> {
     hero_primary_cta_link: "",
     hero_secondary_cta_text: "",
     hero_secondary_cta_link: "",
+    hero_bg_image: "",
     address: "",
     whatsapp_number: "",
     whatsapp_channel_url: "",
@@ -39,7 +41,9 @@ export function siteSettingsFallbacks(): Record<string, string> {
     welcome_author: "",
     welcome_content: "",
     welcome_subtext: "",
+    pastor_welcome_image: "",
     ...emptyFooterSettings(),
+    ...emptyAboutSettings(),
   };
 }
 

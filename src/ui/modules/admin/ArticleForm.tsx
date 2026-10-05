@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import type { AdminArticleRecord } from "@/types";
 import { AdminLabel } from "./AdminPageHeader";
 import { AdminThumb } from "./AdminThumb";
+import { RichTextEditor } from "@/ui/components/forms";
 import { AdminSubmitButton } from "./AdminSubmitButton";
 import { adminFieldClass, adminFileClass } from "./adminStyles";
 
@@ -21,6 +22,7 @@ interface PendingGalleryFile {
 }
 
 export function ArticleForm({ action, article, submitLabel }: ArticleFormProps) {
+  const [content, setContent] = useState(article?.content ?? "");
   const [coverPreview, setCoverPreview] = useState<string | null>(article?.coverImage ?? null);
   const [keptGallery, setKeptGallery] = useState<string[]>(article?.galleryImages ?? []);
   const [pendingGallery, setPendingGallery] = useState<PendingGalleryFile[]>([]);
@@ -54,6 +56,19 @@ export function ArticleForm({ action, article, submitLabel }: ArticleFormProps) 
       </label>
 
       <label className="block sm:col-span-2">
+        <AdminLabel>Date de publication / l&apos;enseignement</AdminLabel>
+        <input
+          name="publishedAt"
+          type="date"
+          required
+          defaultValue={
+            article?.publishedAt?.slice(0, 10) ?? new Date().toISOString().split("T")[0]
+          }
+          className={adminFieldClass}
+        />
+      </label>
+
+      <label className="block sm:col-span-2">
         <AdminLabel>Lien vidéo de l’enseignement YouTube</AdminLabel>
         <input
           name="youtubeUrl"
@@ -64,23 +79,24 @@ export function ArticleForm({ action, article, submitLabel }: ArticleFormProps) 
         />
       </label>
 
-      <label className="block sm:col-span-2">
+      <div className="sm:col-span-2">
         <AdminLabel>Contenu</AdminLabel>
-        <textarea
+        <RichTextEditor
           name="content"
+          value={content}
+          onChange={setContent}
           required
-          rows={6}
-          defaultValue={article?.content}
-          className={adminFieldClass}
+          placeholder="Rédigez l’enseignement : titres, listes, citations…"
         />
-      </label>
+      </div>
 
       <fieldset className="space-y-3 border border-slate-200 bg-slate-50 p-4 sm:col-span-2">
         <legend className="px-1 font-heading text-sm font-bold text-slate-900">
           Image principale
         </legend>
         <p className="font-sans text-xs text-slate-600">
-          Téléversement local vers <code className="font-mono">/uploads/</code>.
+          Téléversement local vers <code className="font-mono">/uploads/</code> — 10 Mo maximum par
+          fichier.
         </p>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <AdminThumb src={coverPreview} alt={article?.title ?? "Aperçu de couverture"} className="size-20" />
@@ -106,7 +122,7 @@ export function ArticleForm({ action, article, submitLabel }: ArticleFormProps) 
           Galerie de l’événement
         </legend>
         <p className="font-sans text-xs text-slate-600">
-          Ajoutez plusieurs photos. Elles seront enregistrées dans{" "}
+          Ajoutez plusieurs photos (10 Mo maximum par fichier). Elles seront enregistrées dans{" "}
           <code className="font-mono">/uploads/</code> à la sauvegarde.
         </p>
         <label className="block">

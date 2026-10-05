@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building, Columns3, MapPin, Printer, Video, Wallet } from "lucide-react";
+import { Building, Columns3, Heart, MapPin, Printer, Video, Wallet } from "lucide-react";
 import { cn } from "@/utils/cn";
 
 const tabs = [
@@ -10,6 +10,11 @@ const tabs = [
     href: "/admin/parametres/general",
     label: "Général",
     icon: Building,
+  },
+  {
+    href: "/admin/parametres/a-propos",
+    label: "À propos",
+    icon: Heart,
   },
   {
     href: "/admin/parametres/contacts",

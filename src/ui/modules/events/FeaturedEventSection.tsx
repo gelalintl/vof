@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CalendarDays, Clock, MapPin } from "lucide-react";
 import type { Event } from "@/types";
+import { excerptRichText } from "@/lib/richText";
 import { eventKindLabels } from "@/lib/eventPresentation";
 import { formatEventDate, formatEventTime } from "@/utils/date/format";
 import { Badge } from "@/ui/design-system/badge";
@@ -54,7 +55,7 @@ export function FeaturedEventSection({ event }: FeaturedEventSectionProps) {
             </Typography>
             {event.description ? (
               <p className="mt-3 font-sans text-sm leading-relaxed text-slate-800">
-                {event.description}
+                {excerptRichText(event.description, 180)}
               </p>
             ) : null}
             <p className="mt-4 flex items-center gap-2 font-sans text-sm text-slate-600">

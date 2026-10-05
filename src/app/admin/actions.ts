@@ -18,6 +18,8 @@ import {
   getChurchLogo,
   jsonToDisplay,
   parseSettingValue,
+  PASTOR_WELCOME_IMAGE_KEY,
+  HERO_BG_IMAGE_KEY,
   PAYMENT_QR_KEY_BY_OPERATOR,
   PAYMENT_QR_KEYS,
   UPSERTABLE_SETTING_KEYS,
@@ -25,6 +27,7 @@ import {
 } from "@/lib/siteSettings";
 import { logoutAction, requireAdmin } from "@/lib/auth";
 import { deleteLocalFile, uploadLocalFile } from "@/lib/storage/localUpload";
+import { isEmptyRichText, sanitizeRichText } from "@/lib/richText";
 import { normalizeYoutubeUrl } from "@/lib/youtube";
 import type {
   AdminArticleRecord,
@@ -48,6 +51,8 @@ import {
   isProjectStatus,
   projectProgress,
 } from "@/lib/donations";
+import { parseProjectAmounts } from "@/lib/projectSchema";
+import { parseIsoDate, toDateKey } from "@/utils/date/format";
 import { parseExcludedDateList, slugifyEventTitle } from "@/lib/eventRecurrence";
 
 const ADMIN_EVENT_CATEGORIES: AdminEventCategory[] = [
@@ -76,6 +81,14 @@ function toDate(value: string) {
     throw new Error("Date invalide.");
   }
   return date;
+}
+
+function parsePublishedAt(value: string) {
+  const datePart = value.trim().slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+    throw new Error("Date de publication invalide.");
+  }
+  return parseIsoDate(datePart);
 }
 
 const CLOCK_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
@@ -335,10 +348,10 @@ function serializeEvent(event: {
 export async function createEvent(input: CreateAdminEventInput) {
   await requireAdmin();
   const title = input.title.trim();
-  const description = input.description.trim();
+  const description = sanitizeRichText(input.description.trim());
   const location = input.location.trim();
 
-  if (!title || !description || !location) {
+  if (!title || isEmptyRichText(description) || !location) {
     throw new Error("Titre, description et lieu sont obligatoires.");
   }
 
@@ -405,10 +418,10 @@ export async function updateEvent(id: string, input: CreateAdminEventInput) {
   await requireAdmin();
 
   const title = input.title.trim();
-  const description = input.description.trim();
+  const description = sanitizeRichText(input.description.trim());
   const location = input.location.trim();
 
-  if (!title || !description || !location) {
+  if (!title || isEmptyRichText(description) || !location) {
     throw new Error("Titre, description et lieu sont obligatoires.");
   }
 
@@ -598,10 +611,10 @@ export async function createArticleFromForm(formData: FormData) {
   await requireAdmin();
   const title = readString(formData, "title");
   const slug = readString(formData, "slug");
-  const content = readString(formData, "content");
+  const content = sanitizeRichText(readString(formData, "content"));
   const author = readString(formData, "author");
 
-  if (!title || !slug || !content || !author) {
+  if (!title || !slug || isEmptyRichText(content) || !author) {
     throw new Error("Titre, slug, contenu et auteur sont obligatoires.");
   }
 
@@ -611,6 +624,7 @@ export async function createArticleFromForm(formData: FormData) {
     ...(await uploadedUrlsFromForm(formData, "galleryFiles")),
   ];
   const isFeatured = formData.get("isFeatured") === "on";
+  const publishedAt = parsePublishedAt(readString(formData, "publishedAt"));
 
   if (isFeatured) {
     await exclusiveArticleFeatured();
@@ -627,6 +641,7 @@ export async function createArticleFromForm(formData: FormData) {
       youtubeUrl: normalizeYoutubeUrl(readString(formData, "youtubeUrl")),
       isPublished: formData.get("isPublished") === "on",
       isFeatured,
+      publishedAt,
     },
   });
 
@@ -654,6 +669,13 @@ export async function updateArticleFromForm(formData: FormData) {
     await exclusiveArticleFeatured(id);
   }
 
+  const content = sanitizeRichText(readString(formData, "content"));
+  if (isEmptyRichText(content) || !readString(formData, "title") || !readString(formData, "slug") || !readString(formData, "author")) {
+    throw new Error("Titre, slug, contenu et auteur sont obligatoires.");
+  }
+
+  const publishedAt = parsePublishedAt(readString(formData, "publishedAt"));
+
   await runPrismaWrite(
     () =>
       prisma.article.update({
@@ -661,12 +683,13 @@ export async function updateArticleFromForm(formData: FormData) {
         data: {
           title: readString(formData, "title"),
           slug: readString(formData, "slug"),
-          content: readString(formData, "content"),
+          content,
           author: readString(formData, "author"),
           coverImage: nextCover,
           youtubeUrl: normalizeYoutubeUrl(readString(formData, "youtubeUrl")),
           isPublished: formData.get("isPublished") === "on",
           isFeatured,
+          publishedAt,
         },
       }),
     "Article introuvable.",
@@ -796,7 +819,7 @@ export async function deleteSiteSetting(formData: FormData) {
 
   const current = await prisma.siteSettings.findUnique({ where: { id } });
   const qrKeys = new Set<string>(PAYMENT_QR_KEYS);
-  if (current && (current.key === CHURCH_LOGO_KEY || qrKeys.has(current.key))) {
+  if (current && (current.key === CHURCH_LOGO_KEY || current.key === PASTOR_WELCOME_IMAGE_KEY || current.key === HERO_BG_IMAGE_KEY || qrKeys.has(current.key))) {
     await deleteLocalFile(jsonToDisplay(current.value));
   }
 
@@ -897,6 +920,76 @@ export async function deleteChurchLogo() {
   revalidateSettingsContent();
 }
 
+export async function uploadPastorWelcomeImage(formData: FormData) {
+  await requireAdmin();
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    throw new Error("Aucune image fournie.");
+  }
+
+  const current = await prisma.siteSettings.findUnique({
+    where: { key: PASTOR_WELCOME_IMAGE_KEY },
+  });
+  const previous = jsonToDisplay(current?.value);
+  const url = await uploadLocalFile(file);
+
+  await updateSiteSettings({ [PASTOR_WELCOME_IMAGE_KEY]: url });
+
+  if (previous && previous !== url) {
+    await deleteLocalFile(previous);
+  }
+}
+
+export async function deletePastorWelcomeImage() {
+  await requireAdmin();
+  const current = await prisma.siteSettings.findUnique({
+    where: { key: PASTOR_WELCOME_IMAGE_KEY },
+  });
+  const previous = jsonToDisplay(current?.value);
+
+  await updateSiteSettings({ [PASTOR_WELCOME_IMAGE_KEY]: "" });
+
+  if (previous) {
+    await deleteLocalFile(previous);
+  }
+}
+
+export async function uploadHeroBgImage(formData: FormData) {
+  await requireAdmin();
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    throw new Error("Aucune image fournie.");
+  }
+
+  const current = await prisma.siteSettings.findUnique({
+    where: { key: HERO_BG_IMAGE_KEY },
+  });
+  const previous = jsonToDisplay(current?.value);
+  const url = await uploadLocalFile(file);
+
+  await updateSiteSettings({ [HERO_BG_IMAGE_KEY]: url });
+
+  if (previous && previous !== url) {
+    await deleteLocalFile(previous);
+  }
+
+  return url;
+}
+
+export async function deleteHeroBgImage() {
+  await requireAdmin();
+  const current = await prisma.siteSettings.findUnique({
+    where: { key: HERO_BG_IMAGE_KEY },
+  });
+  const previous = jsonToDisplay(current?.value);
+
+  await updateSiteSettings({ [HERO_BG_IMAGE_KEY]: "" });
+
+  if (previous) {
+    await deleteLocalFile(previous);
+  }
+}
+
 export async function getEvents(): Promise<AdminEventRecord[]> {
   await requireAdmin();
   const events = await prisma.event.findMany({
@@ -937,7 +1030,7 @@ export async function getMedia(): Promise<AdminMediaRecord[]> {
 export async function getArticles(): Promise<AdminArticleRecord[]> {
   await requireAdmin();
   const articles = await prisma.article.findMany({
-    orderBy: { createdAt: "desc" },
+    orderBy: { publishedAt: "desc" },
   });
 
   return articles.map((article) => ({
@@ -951,6 +1044,7 @@ export async function getArticles(): Promise<AdminArticleRecord[]> {
     youtubeUrl: article.youtubeUrl ?? null,
     isPublished: article.isPublished,
     isFeatured: article.isFeatured,
+    publishedAt: toDateKey(article.publishedAt),
     createdAt: article.createdAt.toISOString(),
   }));
 }
@@ -1313,14 +1407,6 @@ export async function getSettings(): Promise<AdminSettingRecord[]> {
   }));
 }
 
-function parseFcfaAmount(value: string, label: string, allowZero = false) {
-  const parsed = Number(String(value).replace(/\s/g, "").replace(",", "."));
-  if (!Number.isFinite(parsed) || parsed < 0 || (!allowZero && parsed <= 0)) {
-    throw new Error(`${label} invalide.`);
-  }
-  return parsed;
-}
-
 function serializeProject(project: {
   id: string;
   title: string;
@@ -1406,18 +1492,19 @@ export async function createProject(formData: FormData) {
     await exclusiveProjectFeatured();
   }
 
+  const amounts = parseProjectAmounts(
+    readString(formData, "targetAmount"),
+    readString(formData, "currentAmount") || "0",
+  );
+
   const project = await prisma.project.create({
     data: {
       title,
       slug: await uniqueProjectSlug(requestedSlug || title),
       description,
       category: readString(formData, "category") || null,
-      targetAmount: parseFcfaAmount(readString(formData, "targetAmount"), "Objectif financier"),
-      currentAmount: parseFcfaAmount(
-        readString(formData, "currentAmount") || "0",
-        "Montant actuel",
-        true,
-      ),
+      targetAmount: amounts.targetAmount,
+      currentAmount: amounts.currentAmount,
       image: uploaded || readString(formData, "image") || null,
       status,
       isFeatured,
@@ -1463,6 +1550,11 @@ export async function updateProject(id: string, formData: FormData) {
         ? await uniqueProjectSlug(title, projectId)
         : current.slug;
 
+  const amounts = parseProjectAmounts(
+    readString(formData, "targetAmount") || String(current.targetAmount),
+    readString(formData, "currentAmount") || String(current.currentAmount),
+  );
+
   const project = await runPrismaWrite(
     () =>
       prisma.project.update({
@@ -1472,15 +1564,8 @@ export async function updateProject(id: string, formData: FormData) {
           slug,
           description,
           category: readString(formData, "category") || null,
-          targetAmount: parseFcfaAmount(
-            readString(formData, "targetAmount") || String(current.targetAmount),
-            "Objectif financier",
-          ),
-          currentAmount: parseFcfaAmount(
-            readString(formData, "currentAmount") || String(current.currentAmount),
-            "Montant actuel",
-            true,
-          ),
+          targetAmount: amounts.targetAmount,
+          currentAmount: amounts.currentAmount,
           image: nextImage,
           status,
           isFeatured,

@@ -308,6 +308,8 @@ export type ContentSectionGap = "md" | "lg";
 export interface QuoteBlockData {
   quote: string;
   caption?: string;
+  imageSrc?: string;
+  imageAlt?: string;
   attribution?: string;
   note?: string;
   align?: "left" | "center";
@@ -369,6 +371,7 @@ export interface PageHeroData {
   description: string;
   glow?: PageHeroGlow;
   width?: PageHeroWidth;
+  backgroundImage?: string;
   actions?: PageHeroAction[];
   media?: PageHeroMedia;
 }
@@ -382,6 +385,7 @@ export interface HomeHeroDraft {
   hero_secondary_cta_text: string;
   hero_secondary_cta_link: string;
   featured_youtube_url: string;
+  hero_bg_image: string;
 }
 
 export interface EventHeadlineData {
@@ -486,6 +490,7 @@ export interface AdminArticleRecord {
   youtubeUrl: string | null;
   isPublished: boolean;
   isFeatured: boolean;
+  publishedAt: string;
   createdAt: string;
 }
 
@@ -607,5 +612,6 @@ export interface PublicArticle {
   youtubeUrl: string | null;
   isFeatured: boolean;
   comments: PublicArticleComment[];
+  publishedAt: string;
   createdAt: string;
 }
