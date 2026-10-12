@@ -29,7 +29,8 @@ async function main() {
     data: {
       email: 'admin@voiceoffreedom.org',
       passwordHash: hashedPassword,
-      role: UserRole.ADMIN,
+      name: 'Super administrateur',
+      role: UserRole.SUPERADMIN,
     },
   })
   console.log(`✅ Administrateur créé : ${admin.email}`)

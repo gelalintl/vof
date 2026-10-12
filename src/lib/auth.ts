@@ -18,18 +18,33 @@ import type { AdminSessionUser } from "@/types";
 const INVALID_CREDENTIALS = "Identifiants invalides.";
 const DUMMY_HASH = "$2b$10$u33r75MtGavTTadPbKWkOeaE85ZhkZoYGFG6V7z/xBeIHgW7N2wNW";
 
+/**
+ * Un identifiant contenant « @ » est une adresse e-mail ; sinon c'est un nom (insensible à la casse).
+ * Si plusieurs comptes portaient le même nom (données anciennes), on refuse plutôt que de deviner.
+ */
+async function findUserByIdentifier(identifier: string) {
+  if (identifier.includes("@")) {
+    return prisma.user.findUnique({ where: { email: identifier.toLowerCase() } });
+  }
+
+  const matches = await prisma.user.findMany({
+    where: { name: { equals: identifier, mode: "insensitive" } },
+    take: 2,
+  });
+  return matches.length === 1 ? matches[0] : null;
+}
+
 export async function loginAction(formData: FormData): Promise<{ error: string } | void> {
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  // L'identifiant peut être l'adresse e-mail OU le nom du compte.
+  const identifier = String(formData.get("identifier") ?? formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
-  if (!email || !password) {
+  if (!identifier || !password) {
     return { error: INVALID_CREDENTIALS };
   }
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+    const user = await findUserByIdentifier(identifier);
 
     const hash = user?.passwordHash ?? DUMMY_HASH;
     const passwordMatches = await bcrypt.compare(password, hash);

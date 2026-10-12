@@ -3,6 +3,7 @@ import type { PublicArticle } from "@/types";
 import { extractYoutubeId } from "@/lib/youtube";
 import { sanitizeRichText, toEditorHtml } from "@/lib/richText";
 import { YoutubeLiteEmbed } from "@/ui/components/media";
+import { CallToTestify } from "@/ui/components/testimonials";
 import { formatPublicationDate } from "@/utils/date/format";
 import { Button } from "@/ui/design-system/button";
 import { Typography } from "@/ui/design-system/typography";
@@ -67,6 +68,7 @@ export function TeachingDetail({ article }: TeachingDetailProps) {
 
         <EventGallery images={article.galleryImages} />
         <CommentsSection articleId={article.id} initialComments={article.comments} />
+        <CallToTestify className="mt-12" />
       </div>
     </article>
   );

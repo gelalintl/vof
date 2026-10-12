@@ -1,18 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { fillHomeGallery } from "@/datas/home";
+import { HOME_GALLERY_MAX_COUNT } from "@/datas/home";
 import type { GalleryImage } from "@/types";
 import { ImageLightbox } from "@/ui/components/media/ImageLightbox";
+import { cn } from "@/utils/cn";
 
 interface HomeGalleryProps {
   images: GalleryImage[];
 }
 
 export function HomeGallery({ images }: HomeGalleryProps) {
-  const gallery = fillHomeGallery(images);
+  // Uniquement les images réelles issues de la base de données (aucun placeholder).
+  const gallery = images.slice(0, HOME_GALLERY_MAX_COUNT);
   const featured = gallery[0];
-  const thumbnails = gallery.slice(1, 7);
+  const thumbnails = gallery.slice(1);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   if (!featured) {
@@ -22,7 +24,12 @@ export function HomeGallery({ images }: HomeGalleryProps) {
   return (
     <>
       <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-12">
-        <div className="relative min-h-[380px] lg:col-span-5">
+        <div
+          className={cn(
+            "relative min-h-[380px]",
+            thumbnails.length > 0 ? "lg:col-span-5" : "lg:col-span-12",
+          )}
+        >
           <button
             type="button"
             onClick={() => setLightboxIndex(0)}
@@ -44,28 +51,30 @@ export function HomeGallery({ images }: HomeGalleryProps) {
           </button>
         </div>
 
-        <div className="grid h-full grid-cols-2 gap-4 sm:grid-cols-3 lg:col-span-7">
-          {thumbnails.map((image, thumbnailIndex) => {
-            const galleryIndex = thumbnailIndex + 1;
-            return (
-              <button
-                key={image.id}
-                type="button"
-                onClick={() => setLightboxIndex(galleryIndex)}
-                aria-haspopup="dialog"
-                aria-label={image.caption ?? image.alt}
-                className="cursor-pointer overflow-hidden rounded-xl border border-slate-100 shadow-sm transition-transform duration-200 hover:scale-[1.03]"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={image.src}
-                  alt={image.alt}
-                  className="aspect-square w-full cursor-pointer object-cover"
-                />
-              </button>
-            );
-          })}
-        </div>
+        {thumbnails.length > 0 ? (
+          <div className="grid h-full grid-cols-2 gap-4 sm:grid-cols-3 lg:col-span-7">
+            {thumbnails.map((image, thumbnailIndex) => {
+              const galleryIndex = thumbnailIndex + 1;
+              return (
+                <button
+                  key={image.id}
+                  type="button"
+                  onClick={() => setLightboxIndex(galleryIndex)}
+                  aria-haspopup="dialog"
+                  aria-label={image.caption ?? image.alt}
+                  className="cursor-pointer overflow-hidden rounded-xl border border-slate-100 shadow-sm transition-transform duration-200 hover:scale-[1.03]"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={image.src}
+                    alt={image.alt}
+                    className="aspect-square w-full cursor-pointer object-cover"
+                  />
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
       </div>
 
       <ImageLightbox

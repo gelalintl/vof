@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { loginAction } from "@/lib/auth";
 import { AdminLabel } from "./AdminPageHeader";
+import { PasswordInput } from "./PasswordInput";
 import { adminFieldClass, adminPrimaryButtonClass } from "./adminStyles";
 
 export function LoginForm() {
@@ -31,26 +32,22 @@ export function LoginForm() {
       ) : null}
 
       <label className="block">
-        <AdminLabel>Email</AdminLabel>
+        <AdminLabel>Nom ou adresse e-mail</AdminLabel>
         <input
-          name="email"
-          type="email"
+          name="identifier"
+          type="text"
           autoComplete="username"
+          autoCapitalize="none"
+          spellCheck={false}
           required
-          placeholder="admin@voiceoffreedom.org"
+          placeholder="Votre nom ou admin@voiceoffreedom.org"
           className={adminFieldClass}
         />
       </label>
 
       <label className="block">
         <AdminLabel>Mot de passe</AdminLabel>
-        <input
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          required
-          className={adminFieldClass}
-        />
+        <PasswordInput name="password" autoComplete="current-password" required />
       </label>
 
       <button type="submit" disabled={pending} className={`${adminPrimaryButtonClass} w-full`}>

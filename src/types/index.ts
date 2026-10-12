@@ -275,6 +275,7 @@ export type ContactSubject =
   | "visite"
   | "don"
   | "departement"
+  | "temoignage"
   | "autre";
 
 export type GalleryLayout = "bento" | "grid";
@@ -330,6 +331,8 @@ export interface InfoTileData {
   description?: string;
   href?: string;
   items?: InfoTileItem[];
+  /** Lien discret affiché sous le contenu (ne rend pas toute la tuile cliquable). */
+  link?: { href: string; label: string };
 }
 
 export interface SectionHeaderData {
@@ -396,7 +399,7 @@ export interface EventHeadlineData {
   colorToken?: EventColorToken;
 }
 
-export type AdminUserRole = "ADMIN" | "EDITOR";
+export type AdminUserRole = "SUPERADMIN" | "ADMIN" | "EDITOR";
 
 export interface AdminSessionUser {
   id: string;
@@ -525,6 +528,46 @@ export interface AdminDepartmentRecord {
   contact: string | null;
   image: string | null;
   order: number;
+  createdAt: string;
+}
+
+/** Compte d'administration exposé au client — ne contient jamais le hash du mot de passe. */
+export interface AdminUserRecord {
+  id: string;
+  name: string | null;
+  email: string;
+  role: AdminUserRole;
+  createdAt: string;
+  /** Vrai pour le compte actuellement connecté (suppression interdite). */
+  isCurrent: boolean;
+}
+
+export interface CreateAdminUserInput {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface UpdateAdminUserInput {
+  name: string;
+  email: string;
+}
+
+export interface AdminTestimonialRecord {
+  id: string;
+  authorName: string;
+  content: string;
+  imagePath: string | null;
+  contactInfo: string | null;
+  isPublished: boolean;
+  createdAt: string;
+}
+
+export interface PublicTestimonial {
+  id: string;
+  authorName: string;
+  content: string;
+  imagePath: string | null;
   createdAt: string;
 }
 

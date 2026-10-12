@@ -6,7 +6,6 @@ import type {
   HomeHeroDraft,
   InfoTileData,
   PageHeroData,
-  PublicRecurringGathering,
   PublicSiteContact,
   PublicSiteIdentity,
   QuoteBlockData,
@@ -17,25 +16,23 @@ export { pageHeroFromDraft } from "@/lib/homeHero";
 
 export function homeHeroFallbacks(
   identity: PublicSiteIdentity,
-  contact: PublicSiteContact,
 ): Omit<HomeHeroDraft, "featured_youtube_url" | "hero_bg_image"> {
   return {
     hero_badge: identity.sundayLabel,
     hero_title: `Bienvenue à ${identity.churchName}`,
-    hero_description: `${identity.tagline}. Venez adorer avec nous — ${identity.sundayTime}. ${contact.location.address}.`,
-    hero_primary_cta_text: "Rejoindre le culte",
-    hero_primary_cta_link: "#infos-pratiques",
-    hero_secondary_cta_text: "Découvrir VOF",
-    hero_secondary_cta_link: "/a-propos",
+    hero_description: identity.tagline,
+    hero_primary_cta_text: "Découvrir VOF",
+    hero_primary_cta_link: "/a-propos",
+    hero_secondary_cta_text: "",
+    hero_secondary_cta_link: "",
   };
 }
 
 export function homeHeroDraftFromSettings(
   identity: PublicSiteIdentity,
-  contact: PublicSiteContact,
   settings: Record<string, string> = {},
 ): HomeHeroDraft {
-  const fallbacks = homeHeroFallbacks(identity, contact);
+  const fallbacks = homeHeroFallbacks(identity);
   return {
     hero_badge: readSetting(settings, "hero_badge", fallbacks.hero_badge),
     hero_title: readSetting(settings, "hero_title", fallbacks.hero_title),
@@ -67,11 +64,10 @@ export function homeHeroDraftFromSettings(
 
 export function buildHomeHero(
   identity: PublicSiteIdentity,
-  contact: PublicSiteContact,
   settings: Record<string, string> = {},
 ): PageHeroData {
   return pageHeroFromDraft(
-    homeHeroDraftFromSettings(identity, contact, settings),
+    homeHeroDraftFromSettings(identity, settings),
     identity.sundayTime,
   );
 }
@@ -79,7 +75,6 @@ export function buildHomeHero(
 export function buildHomeInfoTiles(
   identity: PublicSiteIdentity,
   contact: PublicSiteContact,
-  gatherings: PublicRecurringGathering[] = [],
   settings: Record<string, string> = {},
 ): InfoTileData[] {
   const fallbacks = homeEditorialFallbacks();
@@ -103,18 +98,13 @@ export function buildHomeInfoTiles(
       id: "horaires",
       title: "Horaires",
       icon: "clock",
-      items:
-        gatherings.length > 0
-          ? gatherings.map((gathering) => ({
-              title: gathering.title,
-              detail: `${gathering.scheduleLabel} · ${gathering.timeLabel}`,
-            }))
-          : [
-              {
-                title: identity.sundayLabel,
-                detail: identity.sundayTime,
-              },
-            ],
+      items: [
+        {
+          title: identity.sundayLabel,
+          detail: identity.sundayTime,
+        },
+      ],
+      link: { href: "/vie-de-leglise", label: "Voir le programme complet" },
     },
     {
       id: "adresse",

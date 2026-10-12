@@ -4,7 +4,7 @@ import { siteConfig } from "@/config/site";
 export const contactHero: PageHeroData = {
   badge: "Nous rejoindre",
   title: "Contact",
-  description: `${siteConfig.location.address}, ${siteConfig.location.country}. Une colonne, de la carte au message.`,
+  description: `${siteConfig.location.address}, ${siteConfig.location.country}.`,
   width: "narrow",
 };
 
@@ -12,7 +12,7 @@ export const donateHero: PageHeroData = {
   badge: "Partenaires",
   title: "Soutenir VOF",
   description:
-    "Tous les montants sont en FCFA. Même parcours que la modale Soutenir : montant, récurrence, puis Mobile Money, carte ou RIB.",
+    "Tous les montants sont en FCFA. Soutenez nous par Mobile Money, carte ou RIB.",
   glow: "amber",
   width: "narrow",
 };
@@ -43,4 +43,11 @@ export const churchLifeHero: PageHeroData = {
   title: "La vie de l'église",
   description:
     "Une famille qui prie, célèbre et grandit ensemble. Découvrez les rassemblements de la semaine, le prochain événement à la une et l’agenda mensuel de Voice of Freedom — tout au même endroit.",
+};
+
+export const testimonialsHero: PageHeroData = {
+  badge: "Vies transformées",
+  title: "Témoignages",
+  description:
+    "Découvrez ce que Dieu accomplit dans la vie des membres de la famille Voice Of Freedom — des récits de grâce, de guérison et de liberté pour édifier la foi de tous.",
 };

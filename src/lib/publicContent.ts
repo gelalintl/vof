@@ -16,6 +16,7 @@ import type {
   PublicPastor,
   PublicProject,
   PublicRecurringGathering,
+  PublicTestimonial,
 } from "@/types";
 import { formatEventTime, formatPublicationDate, toDateKey } from "@/utils/date/format";
 import { extractYoutubeId } from "@/lib/youtube";
@@ -27,6 +28,7 @@ export const PUBLIC_ARTICLES_CACHE_TAG = "public-articles";
 export const PUBLIC_PASTORS_CACHE_TAG = "public-pastors";
 export const PUBLIC_DEPARTMENTS_CACHE_TAG = "public-departments";
 export const PUBLIC_PROJECTS_CACHE_TAG = "public-projects";
+export const PUBLIC_TESTIMONIALS_CACHE_TAG = "public-testimonials";
 
 const PUBLIC_EVENT_SELECT = {
   id: true,
@@ -336,6 +338,42 @@ export const getFeaturedHomeMedia = unstable_cache(
   { tags: [PUBLIC_MEDIA_CACHE_TAG], revalidate: 60 },
 );
 
+async function loadAllGalleryMedia(): Promise<GalleryImage[]> {
+  try {
+    const rows = await prisma.media.findMany({
+      select: {
+        id: true,
+        url: true,
+        title: true,
+        createdAt: true,
+        event: {
+          select: { title: true, startDate: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return rows.map((item) => {
+      const title = item.event?.title ?? item.title;
+      const dateLabel = formatPublicationDate(item.event?.startDate ?? item.createdAt);
+      return {
+        id: item.id,
+        src: item.url,
+        alt: title,
+        caption: dateLabel ? `${title} · ${dateLabel}` : title,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
+export const getAllGalleryMedia = unstable_cache(
+  loadAllGalleryMedia,
+  ["all-gallery-media"],
+  { tags: [PUBLIC_MEDIA_CACHE_TAG], revalidate: 60 },
+);
+
 async function loadPublishedArticles(): Promise<PublicArticle[]> {
   try {
     const rows = await prisma.article.findMany({
@@ -448,6 +486,33 @@ export const getPublicDepartments = unstable_cache(
   loadPublicDepartments,
   ["public-departments"],
   { tags: [PUBLIC_DEPARTMENTS_CACHE_TAG], revalidate: 60 },
+);
+
+async function loadPublishedTestimonials(limit?: number): Promise<PublicTestimonial[]> {
+  try {
+    const rows = await prisma.testimonial.findMany({
+      where: { isPublished: true },
+      orderBy: { createdAt: "desc" },
+      ...(limit ? { take: limit } : {}),
+    });
+
+    return rows.map((row) => ({
+      id: row.id,
+      authorName: row.authorName,
+      content: row.content,
+      imagePath: row.imagePath,
+      createdAt: row.createdAt.toISOString(),
+    }));
+  } catch {
+    // Table absente tant que `npx prisma db push` n'a pas été exécuté.
+    return [];
+  }
+}
+
+export const getPublishedTestimonials = unstable_cache(
+  loadPublishedTestimonials,
+  ["public-testimonials"],
+  { tags: [PUBLIC_TESTIMONIALS_CACHE_TAG], revalidate: 60 },
 );
 
 function toPublicProject(row: {

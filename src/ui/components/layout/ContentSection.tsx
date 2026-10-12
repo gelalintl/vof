@@ -34,7 +34,7 @@ const widthClass: Record<ContentSectionWidth, string> = {
 };
 
 const paddingClass: Record<ContentSectionPadding, string> = {
-  default: "py-14",
+  default: "py-16",
   compact: "py-8 sm:py-10",
 };
 

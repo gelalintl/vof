@@ -29,5 +29,6 @@ export const contactSubjects: { value: ContactSubject; label: string }[] = [
   { value: "visite", label: "Je visiterai un culte" },
   { value: "don", label: "Dons & partenariat" },
   { value: "departement", label: "Rejoindre un département" },
+  { value: "temoignage", label: "Partager un témoignage" },
   { value: "autre", label: "Autre" },
 ];

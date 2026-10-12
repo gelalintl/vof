@@ -13,6 +13,7 @@ import {
   HandHeart,
   LayoutDashboard,
   LogOut,
+  MessageSquareQuote,
   Settings,
   Users,
 } from "lucide-react";
@@ -28,8 +29,10 @@ const icons = {
   "/admin/departements": Building2,
   "/admin/medias": ImageIcon,
   "/admin/enseignements": BookOpen,
+  "/admin/temoignages": MessageSquareQuote,
   "/admin/projets": FolderHeart,
   "/admin/dons": HandHeart,
+  "/admin/utilisateurs": Users,
   "/admin/parametres": Settings,
 } as const;
 

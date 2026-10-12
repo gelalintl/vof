@@ -1,4 +1,5 @@
-import { Clock, MapPin, MessageCircle } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Clock, MapPin, MessageCircle } from "lucide-react";
 import type { InfoTileData, InfoTileIcon } from "@/types";
 import { cn } from "@/utils/cn";
 import { interactiveCardClass } from "@/utils/theme/interactiveCard";
@@ -28,6 +29,7 @@ export function InfoTile({ tile }: InfoTileProps) {
         {tile.description ? (
           <Typography
             variant="h4"
+            as="p"
             className="mx-auto mt-1 max-w-prose text-center text-base leading-relaxed sm:max-w-xl sm:text-lg"
           >
             {tile.description}
@@ -44,6 +46,15 @@ export function InfoTile({ tile }: InfoTileProps) {
               </li>
             ))}
           </ul>
+        ) : null}
+        {tile.link && !tile.href ? (
+          <Link
+            href={tile.link.href}
+            className="mt-3 inline-flex items-center gap-1 font-sans text-xs font-semibold text-sky-600 hover:text-sky-700 hover:underline"
+          >
+            {tile.link.label}
+            <ArrowRight className="size-3.5" aria-hidden />
+          </Link>
         ) : null}
       </span>
     </>

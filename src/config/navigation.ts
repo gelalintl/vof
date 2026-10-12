@@ -7,8 +7,10 @@ export const adminNavigation: NavItem[] = [
   { label: "Départements", href: "/admin/departements" },
   { label: "Médias", href: "/admin/medias" },
   { label: "Enseignements", href: "/admin/enseignements" },
+  { label: "Témoignages", href: "/admin/temoignages" },
   { label: "Projets", href: "/admin/projets" },
   { label: "Suivi des Dons", href: "/admin/dons" },
+  { label: "Administrateurs", href: "/admin/utilisateurs" },
   { label: "Paramètres", href: "/admin/parametres" },
 ];
 

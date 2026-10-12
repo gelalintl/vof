@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { Event } from "@/types";
+import type { ContentSectionTone, Event } from "@/types";
+import { ContentSection } from "@/ui/components/layout/ContentSection";
+import { SectionHeader } from "@/ui/components/layout/SectionHeader";
 import { eventKindLabels } from "@/lib/eventPresentation";
 import { cn } from "@/utils/cn";
 import { formatEventDate, formatEventTime } from "@/utils/date/format";
@@ -13,9 +15,10 @@ import { MediaCover } from "@/ui/components/media/MediaCover";
 
 interface EventSliderProps {
   events: Event[];
+  tone?: ContentSectionTone;
 }
 
-export function EventSlider({ events }: EventSliderProps) {
+export function EventSlider({ events, tone = "muted" }: EventSliderProps) {
   const [index, setIndex] = useState(0);
   const slides = events.length > 0 ? events : [];
   const current = slides[index];
@@ -30,8 +33,14 @@ export function EventSlider({ events }: EventSliderProps) {
   };
 
   return (
-    <section className="bg-slate-50" aria-roledescription="carousel" aria-label="Annonces principales">
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <ContentSection tone={tone} labelledBy="evenements-a-venir">
+      <SectionHeader
+        titleId="evenements-a-venir"
+        badge="Agenda"
+        title="À venir"
+        description="Les prochains rendez-vous de la famille Voice Of Freedom."
+      />
+      <div aria-roledescription="carousel" aria-label="Annonces principales">
         <div className="relative overflow-hidden rounded-3xl bg-slate-900 shadow-lg">
           <div
             className="flex transition-transform duration-300 ease-out"
@@ -50,9 +59,9 @@ export function EventSlider({ events }: EventSliderProps) {
                   <Badge variant={eventColorStyles[event.colorToken].badge}>
                     {eventKindLabels[event.kind]}
                   </Badge>
-                  <h2 className="mt-3 max-w-xl font-heading text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+                  <h3 className="mt-3 max-w-xl font-heading text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
                     {event.title}
-                  </h2>
+                  </h3>
                   <p className="mt-2 max-w-xl font-sans text-sm text-white/85 sm:text-base">
                     {formatEventDate(event.startsAt)}
                     {formatEventTime(event.startsAt)
@@ -112,6 +121,6 @@ export function EventSlider({ events }: EventSliderProps) {
           ))}
         </div>
       </div>
-    </section>
+    </ContentSection>
   );
 }

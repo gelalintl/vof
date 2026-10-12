@@ -59,7 +59,7 @@ export function Footer({ logoSrc, contact, identity, content }: FooterProps) {
         </div>
 
         <div>
-          <Typography variant="h4" className="text-violet-700">
+          <Typography variant="h4" as="h2" className="text-violet-700">
             Navigation
           </Typography>
           <ul className="mt-4 space-y-2">
@@ -72,7 +72,7 @@ export function Footer({ logoSrc, contact, identity, content }: FooterProps) {
         </div>
 
         <div>
-          <Typography variant="h4" className="text-violet-700">
+          <Typography variant="h4" as="h2" className="text-violet-700">
             {content.scheduleTitle}
           </Typography>
           <ul className="mt-4 space-y-2 font-sans text-sm text-slate-600">
@@ -85,7 +85,7 @@ export function Footer({ logoSrc, contact, identity, content }: FooterProps) {
         </div>
 
         <div>
-          <Typography variant="h4" className="text-violet-700">
+          <Typography variant="h4" as="h2" className="text-violet-700">
             Contact
           </Typography>
           {content.showContact ? (

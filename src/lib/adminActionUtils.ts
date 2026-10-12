@@ -6,6 +6,7 @@ import {
   PUBLIC_PROJECTS_CACHE_TAG,
   PUBLIC_MEDIA_CACHE_TAG,
   PUBLIC_PASTORS_CACHE_TAG,
+  PUBLIC_TESTIMONIALS_CACHE_TAG,
 } from "@/lib/publicContent";
 import { SITE_SETTINGS_CACHE_TAG } from "@/lib/settings";
 
@@ -84,6 +85,13 @@ export function revalidateDepartmentContent() {
   revalidateTag(PUBLIC_DEPARTMENTS_CACHE_TAG, "max");
   revalidatePath("/departements");
   revalidateAdminPath("/admin/departements");
+}
+
+export function revalidateTestimonialContent() {
+  revalidateTag(PUBLIC_TESTIMONIALS_CACHE_TAG, "max");
+  revalidatePath("/");
+  revalidatePath("/temoignages");
+  revalidateAdminPath("/admin/temoignages");
 }
 
 export function revalidateProjectContent() {
