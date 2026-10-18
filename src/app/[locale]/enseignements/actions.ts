@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidateTag } from "next/cache";
+import { revalidatePublicPath } from "@/lib/adminActionUtils";
 import { prisma } from "@/lib/prisma";
 import { PUBLIC_ARTICLES_CACHE_TAG } from "@/lib/publicContent";
 import type { PublicArticleComment } from "@/types";
@@ -63,8 +64,8 @@ export async function addComment(
     });
 
     revalidateTag(PUBLIC_ARTICLES_CACHE_TAG, "max");
-    revalidatePath("/enseignements");
-    revalidatePath(`/enseignements/${article.slug}`);
+    revalidatePublicPath("/enseignements");
+    revalidatePublicPath(`/enseignements/${article.slug}`);
 
     return {
       ok: true,
@@ -98,7 +99,7 @@ export async function likeComment(
 
     revalidateTag(PUBLIC_ARTICLES_CACHE_TAG, "max");
     if (comment.article?.slug) {
-      revalidatePath(`/enseignements/${comment.article.slug}`);
+      revalidatePublicPath(`/enseignements/${comment.article.slug}`);
     }
 
     return { ok: true, likesCount: comment.likesCount };

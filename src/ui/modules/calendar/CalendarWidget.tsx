@@ -3,8 +3,15 @@
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Clock, MapPin } from "lucide-react";
 import { loadCalendarMonth } from "@/app/calendar-actions";
-import { eventKindLabels } from "@/lib/eventPresentation";
-import type { CalendarEventPayload, EventColorToken, MonthlyGeneratedEvent } from "@/types";
+import type { Locale } from "@/i18n/config";
+import { formatMessage } from "@/i18n/getDictionary";
+import type {
+  CalendarEventPayload,
+  EventColorToken,
+  EventKind,
+  MonthlyEventType,
+  MonthlyGeneratedEvent,
+} from "@/types";
 import { cn } from "@/utils/cn";
 import { formatEventDate, toDateKey } from "@/utils/date/format";
 import {
@@ -13,14 +20,11 @@ import {
   formatMonthTitle,
   getCalendarMonthCells,
   hydrateCalendarEvents,
-  monthlyEventTypeLabels,
   shiftCalendarMonth,
 } from "@/utils/date/getMonthlyEvents";
 import { Badge } from "@/ui/design-system/badge";
 import { Typography } from "@/ui/design-system/typography";
 import { interactiveCardClass } from "@/utils/theme/interactiveCard";
-
-const WEEKDAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
 const tokenSoft: Record<EventColorToken, string> = {
   brand: "border-l-violet-700",
@@ -40,12 +44,36 @@ interface CalendarWidgetProps {
   initialYear: number;
   initialMonth: number;
   initialEvents: CalendarEventPayload[];
+  locale?: Locale;
+  weekdays: readonly string[];
+  labels: {
+    badge: string;
+    title: string;
+    description: string;
+    previousMonth: string;
+    nextMonth: string;
+    dayAppointments: string;
+    upcomingTitle: string;
+    dayCount: string;
+    loading: string;
+    emptyDay: string;
+    emptyPeriod: string;
+    fastingPostponed: string;
+    fastingRange: string;
+  };
+  typeLabels: Record<MonthlyEventType, string>;
+  kindLabels: Record<EventKind, string>;
 }
 
 export function CalendarWidget({
   initialYear,
   initialMonth,
   initialEvents,
+  locale = "fr",
+  weekdays,
+  labels,
+  typeLabels,
+  kindLabels,
 }: CalendarWidgetProps) {
   const todayKey = toDateKey(new Date());
   const [year, setYear] = useState(initialYear);
@@ -67,7 +95,7 @@ export function CalendarWidget({
   );
 
   const cells = useMemo(() => getCalendarMonthCells(year, month), [year, month]);
-  const monthLabel = formatMonthTitle(year, month);
+  const monthLabel = formatMonthTitle(year, month, locale);
 
   const eventsByDay = useMemo(() => {
     const map = new Map<string, MonthlyGeneratedEvent[]>();
@@ -86,7 +114,7 @@ export function CalendarWidget({
     return map;
   }, [allEvents]);
 
-  const fastingCaption = fastingCaptionFromEvents(allEvents);
+  const fastingCaption = fastingCaptionFromEvents(allEvents, labels);
   const selectedEvents = selectedKey ? (eventsByDay.get(selectedKey) ?? []) : [];
   const upcoming = allEvents
     .filter((event) => toDateKey(event.date) >= todayKey)
@@ -107,7 +135,7 @@ export function CalendarWidget({
     });
     setLoading(true);
     try {
-      const nextEvents = await loadCalendarMonth(next.year, next.month);
+      const nextEvents = await loadCalendarMonth(next.year, next.month, locale);
       setPayloads(nextEvents);
     } finally {
       setLoading(false);
@@ -121,12 +149,12 @@ export function CalendarWidget({
     <section className="bg-slate-50" aria-labelledby="agenda-vof">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-14 sm:px-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div>
-          <Badge variant="secondary">Agenda</Badge>
+          <Badge variant="secondary">{labels.badge}</Badge>
           <Typography id="agenda-vof" variant="h2" className="mt-3">
-            Calendrier &amp; agenda mensuel
+            {labels.title}
           </Typography>
           <Typography variant="body" className="mt-3 text-slate-600">
-            Sélectionnez un jour pour voir tous les rendez-vous, dans l’ordre horaire.
+            {labels.description}
           </Typography>
 
           <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
@@ -135,7 +163,7 @@ export function CalendarWidget({
                 type="button"
                 onClick={() => goToMonth(-1)}
                 className="rounded-full p-2 text-violet-700 hover:bg-violet-50"
-                aria-label="Mois précédent"
+                aria-label={labels.previousMonth}
               >
                 <ChevronLeft className="size-5" />
               </button>
@@ -146,7 +174,7 @@ export function CalendarWidget({
                 type="button"
                 onClick={() => goToMonth(1)}
                 className="rounded-full p-2 text-violet-700 hover:bg-violet-50"
-                aria-label="Mois suivant"
+                aria-label={labels.nextMonth}
               >
                 <ChevronRight className="size-5" />
               </button>
@@ -158,7 +186,7 @@ export function CalendarWidget({
             ) : null}
 
             <div className="mx-auto grid w-full max-w-sm grid-cols-7 place-items-center gap-1 sm:max-w-md sm:gap-1.5">
-              {WEEKDAYS.map((day) => (
+              {weekdays.map((day) => (
                 <span
                   key={day}
                   className="py-1 font-heading text-[11px] font-bold uppercase tracking-wide text-sky-600"
@@ -186,7 +214,10 @@ export function CalendarWidget({
                     onClick={() => setSelectedKey(cell.dateKey)}
                     aria-label={
                       dayEvents.length > 0
-                        ? `${cell.day} : ${dayEvents.length} rendez-vous`
+                        ? formatMessage(labels.dayAppointments, {
+                            day: String(cell.day),
+                            count: String(dayEvents.length),
+                          })
                         : `${cell.day}`
                     }
                     className={cn(
@@ -221,22 +252,20 @@ export function CalendarWidget({
         <div className="space-y-4 overflow-visible">
           <Typography variant="h3">
             {listingADay && selectedKey
-              ? formatEventDate(selectedKey)
-              : "Prochains rendez-vous"}
+              ? formatEventDate(selectedKey, locale)
+              : labels.upcomingTitle}
           </Typography>
           {listingADay && selectedEvents.length > 1 ? (
             <p className="font-sans text-sm text-slate-500">
-              {selectedEvents.length} rendez-vous ce jour, par ordre horaire
+              {formatMessage(labels.dayCount, { count: String(selectedEvents.length) })}
             </p>
           ) : null}
 
           {loading ? (
-            <p className="font-sans text-sm text-slate-500">Chargement de l&apos;agenda…</p>
+            <p className="font-sans text-sm text-slate-500">{labels.loading}</p>
           ) : listedEvents.length === 0 ? (
             <p className="font-sans text-sm text-slate-500">
-              {listingADay
-                ? "Aucun rendez-vous enregistré pour cette journée."
-                : "Aucun rendez-vous enregistré pour cette période."}
+              {listingADay ? labels.emptyDay : labels.emptyPeriod}
             </p>
           ) : (
             listedEvents.map((event) => {
@@ -261,15 +290,15 @@ export function CalendarWidget({
                   <div className="p-4">
                     <Badge variant={badgeVariant[accent]} size="sm">
                       {event.type === "special" && event.kind
-                        ? eventKindLabels[event.kind]
-                        : monthlyEventTypeLabels[event.type]}
+                        ? kindLabels[event.kind]
+                        : typeLabels[event.type]}
                     </Badge>
                     <Typography variant="h4" className="mt-2">
                       {event.title}
                     </Typography>
                     <p className="mt-1 flex items-center gap-2 font-sans text-sm text-slate-600">
                       <Clock className="size-4 text-sky-600" />
-                      {formatEventDate(event.date)}
+                      {formatEventDate(event.date, locale)}
                       {` · ${event.time}`}
                       {event.timeEnd ? ` – ${event.timeEnd}` : ""}
                     </p>
@@ -288,7 +317,10 @@ export function CalendarWidget({
   );
 }
 
-function fastingCaptionFromEvents(events: MonthlyGeneratedEvent[]) {
+function fastingCaptionFromEvents(
+  events: MonthlyGeneratedEvent[],
+  labels: CalendarWidgetProps["labels"],
+) {
   const fasting = events.filter((event) => event.type === "fasting");
   if (fasting.length === 0) {
     return null;
@@ -296,7 +328,7 @@ function fastingCaptionFromEvents(events: MonthlyGeneratedEvent[]) {
   const days = fasting.map((event) => event.date.getDate());
   const postponed = days[0] !== 1;
   const range = days.join(", ");
-  return postponed
-    ? `Jeûne reporté au mardi : ${range}`
-    : `Jeûne et prière : ${range}`;
+  return formatMessage(postponed ? labels.fastingPostponed : labels.fastingRange, {
+    days: range,
+  });
 }

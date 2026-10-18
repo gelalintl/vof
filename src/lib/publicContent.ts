@@ -1,4 +1,6 @@
 import { unstable_cache } from "next/cache";
+import type { Locale } from "@/i18n/config";
+import { getRequestLocale, localizedText } from "@/i18n/localized";
 import { prisma } from "@/lib/prisma";
 import {
   categoryToColor,
@@ -34,10 +36,13 @@ const PUBLIC_EVENT_SELECT = {
   id: true,
   slug: true,
   title: true,
+  titleEn: true,
   description: true,
+  descriptionEn: true,
   startDate: true,
   endDate: true,
   location: true,
+  locationEn: true,
   category: true,
   isSpecial: true,
   isFeatured: true,
@@ -49,10 +54,13 @@ interface EventRow {
   id: string;
   slug?: string | null;
   title: string;
+  titleEn: string | null;
   description: string;
+  descriptionEn: string | null;
   startDate: Date;
   endDate: Date | null;
   location: string;
+  locationEn: string | null;
   category: AdminEventCategory;
   isSpecial: boolean;
   isFeatured: boolean;
@@ -65,16 +73,29 @@ function toPublicEvent(row: EventRow): Event {
     id: row.id,
     slug: row.slug || row.id,
     title: row.title,
+    titleEn: row.titleEn,
     description: row.description,
+    descriptionEn: row.descriptionEn,
     body: row.description,
     startsAt: row.startDate.toISOString(),
     endsAt: row.endDate?.toISOString(),
     location: row.location,
+    locationEn: row.locationEn,
     kind: categoryToKind(row.category, row.isSpecial),
     colorToken: categoryToColor(row.category, row.isSpecial),
     imageUrl: row.image ?? undefined,
     youtubeId: extractYoutubeId(row.youtubeUrl) ?? undefined,
     isFeatured: row.isFeatured,
+  };
+}
+
+function localizeEvent(event: Event, locale: Locale): Event {
+  return {
+    ...event,
+    title: localizedText(locale, event.title, event.titleEn),
+    description: localizedText(locale, event.description, event.descriptionEn),
+    body: localizedText(locale, event.body ?? event.description, event.descriptionEn),
+    location: localizedText(locale, event.location, event.locationEn),
   };
 }
 
@@ -103,14 +124,16 @@ export async function getUpcomingEvents(limit = 6): Promise<Event[]> {
     (event) => new Date(event.startsAt) >= now && event.id !== featured?.id,
   );
   const list = featured ? [featured, ...upcoming] : upcoming;
-  return list.slice(0, limit);
+  const locale = await getRequestLocale();
+  return list.slice(0, limit).map((event) => localizeEvent(event, locale));
 }
 
 export async function getSpotlightEvent(): Promise<Event | null> {
   const events = await getPublicEvents();
+  const locale = await getRequestLocale();
   const featured = events.find((event) => event.isFeatured);
   if (featured) {
-    return featured;
+    return localizeEvent(featured, locale);
   }
 
   const now = new Date();
@@ -119,11 +142,11 @@ export async function getSpotlightEvent(): Promise<Event | null> {
     return null;
   }
 
-  return (
+  const spotlight =
     upcoming.find((event) => event.kind === "special") ??
     upcoming.find((event) => event.colorToken === "secondary" || event.colorToken === "impact") ??
-    upcoming[0]
-  );
+    upcoming[0];
+  return localizeEvent(spotlight, locale);
 }
 
 export async function getEventBySlug(slug: string): Promise<Event | null> {
@@ -132,7 +155,10 @@ export async function getEventBySlug(slug: string): Promise<Event | null> {
       where: { OR: [{ slug }, { id: slug }] },
       select: PUBLIC_EVENT_SELECT,
     });
-    return row ? toPublicEvent(row) : null;
+    if (!row) {
+      return null;
+    }
+    return localizeEvent(toPublicEvent(row), await getRequestLocale());
   } catch {
     return null;
   }
@@ -167,9 +193,31 @@ function recurrenceRank(type: AdminRecurrenceType) {
   return RECURRENCE_SORT_RANK[type];
 }
 
-function formatTimeRange(startDate: Date, endDate: Date | null) {
-  const startLabel = formatEventTime(startDate.toISOString());
-  const endLabel = endDate ? formatEventTime(endDate.toISOString()) : "";
+export type RecurrenceCopy = {
+  weekdaysLong: readonly string[];
+  weekly: string;
+  daily: string;
+  monthly: string;
+  first3Days: string;
+  secondAndLastFriday: string;
+};
+
+const FRENCH_RECURRENCE: RecurrenceCopy = {
+  weekdaysLong: WEEKDAY_LABELS_FR,
+  weekly: "Hebdomadaire",
+  daily: "Tous les jours",
+  monthly: "Mensuel",
+  first3Days: "1er, 2e et 3e du mois",
+  secondAndLastFriday: "2e et dernier vendredi du mois",
+};
+
+export function formatTimeRange(
+  startIso: string,
+  endIso: string | null,
+  locale: Locale = "fr",
+) {
+  const startLabel = formatEventTime(startIso, locale);
+  const endLabel = endIso ? formatEventTime(endIso, locale) : "";
   if (startLabel && endLabel && endLabel !== startLabel) {
     return `${startLabel} – ${endLabel}`;
   }
@@ -180,6 +228,7 @@ export function formatRecurrenceLabel(
   recurrenceType: AdminRecurrenceType,
   daysOfWeek: number[] = [],
   startDate?: Date,
+  copy: RecurrenceCopy = FRENCH_RECURRENCE,
 ) {
   if (recurrenceType === "WEEKLY") {
     const days = (
@@ -188,21 +237,21 @@ export function formatRecurrenceLabel(
       .slice()
       .sort((left, right) => mondayFirst(left) - mondayFirst(right));
     if (days.length === 0) {
-      return "Hebdomadaire";
+      return copy.weekly;
     }
-    return days.map((day) => WEEKDAY_LABELS_FR[day]).join(", ");
+    return days.map((day) => copy.weekdaysLong[day] ?? "").join(", ");
   }
   if (recurrenceType === "FIRST_3_DAYS_MONTH") {
-    return "1er, 2e et 3e du mois";
+    return copy.first3Days;
   }
   if (recurrenceType === "SECOND_AND_LAST_FRIDAY") {
-    return "2e et dernier vendredi du mois";
+    return copy.secondAndLastFriday;
   }
   if (recurrenceType === "DAILY") {
-    return "Tous les jours";
+    return copy.daily;
   }
   if (recurrenceType === "MONTHLY") {
-    return "Mensuel";
+    return copy.monthly;
   }
   return "";
 }
@@ -232,6 +281,7 @@ async function loadRecurringGatherings(): Promise<PublicRecurringGathering[]> {
       select: {
         id: true,
         title: true,
+        titleEn: true,
         startDate: true,
         endDate: true,
         recurrenceType: true,
@@ -244,14 +294,11 @@ async function loadRecurringGatherings(): Promise<PublicRecurringGathering[]> {
       .map((row) => ({
         id: row.id,
         title: row.title,
-        scheduleLabel: formatRecurrenceLabel(
-          row.recurrenceType,
-          row.daysOfWeek,
-          row.startDate,
-        ),
-        timeLabel: formatTimeRange(row.startDate, row.endDate),
+        titleEn: row.titleEn,
         recurrenceType: row.recurrenceType,
         daysOfWeek: row.daysOfWeek,
+        startIso: row.startDate.toISOString(),
+        endIso: row.endDate ? row.endDate.toISOString() : null,
         startDate: row.startDate,
       }))
       .sort((left, right) => {
@@ -271,26 +318,40 @@ async function loadRecurringGatherings(): Promise<PublicRecurringGathering[]> {
   }
 }
 
-export const getRecurringGatherings = unstable_cache(
+const getRecurringGatheringsCached = unstable_cache(
   loadRecurringGatherings,
-  ["recurring-gatherings"],
+  ["recurring-gatherings-raw"],
   { tags: [PUBLIC_EVENTS_CACHE_TAG], revalidate: 60 },
 );
+
+export async function getRecurringGatherings() {
+  const [gatherings, locale] = await Promise.all([
+    getRecurringGatheringsCached(),
+    getRequestLocale(),
+  ]);
+  return gatherings.map((gathering) => ({
+    ...gathering,
+    title: localizedText(locale, gathering.title, gathering.titleEn),
+  }));
+}
 
 export async function getMonthlyEvents(
   year: number,
   month: number,
+  localeOverride?: Locale,
 ): Promise<CalendarEventPayload[]> {
-  const projected = await getProjectedMonthlyEvents(year, month);
+  const locale = localeOverride ?? (await getRequestLocale());
+  const projected = await getProjectedMonthlyEvents(year, month, locale);
+  const fallbackTime = locale === "en" ? "09:00" : "09h00";
 
   return projected.map((event) => {
     return {
       id: event.id,
       title: event.title,
       dateKey: toDateKey(event.startDate),
-      time: formatEventTime(event.startDate.toISOString()) || "09h00",
+      time: formatEventTime(event.startDate.toISOString(), locale) || fallbackTime,
       timeEnd: event.endDate
-        ? formatEventTime(event.endDate.toISOString())
+        ? formatEventTime(event.endDate.toISOString(), locale) || undefined
         : undefined,
       type: categoryToMonthlyType(event.category, event.isSpecial),
       colorToken: categoryToColor(event.category, event.isSpecial),
@@ -301,7 +362,30 @@ export async function getMonthlyEvents(
   });
 }
 
-async function loadFeaturedHomeMedia(): Promise<GalleryImage[]> {
+interface GallerySource {
+  id: string;
+  src: string;
+  mediaTitle: string;
+  eventTitle: string | null;
+  eventTitleEn: string | null;
+  dateIso: string;
+}
+
+function toGalleryImage(item: GallerySource, locale: Locale): GalleryImage {
+  const eventTitle = item.eventTitle
+    ? localizedText(locale, item.eventTitle, item.eventTitleEn)
+    : null;
+  const title = eventTitle || item.mediaTitle;
+  const dateLabel = formatPublicationDate(item.dateIso, locale);
+  return {
+    id: item.id,
+    src: item.src,
+    alt: title,
+    caption: dateLabel ? `${title} · ${dateLabel}` : title,
+  };
+}
+
+async function loadFeaturedHomeMedia(): Promise<GallerySource[]> {
   try {
     const rows = await prisma.media.findMany({
       where: { isFeaturedHome: true },
@@ -311,34 +395,40 @@ async function loadFeaturedHomeMedia(): Promise<GalleryImage[]> {
         title: true,
         createdAt: true,
         event: {
-          select: { title: true, startDate: true },
+          select: { title: true, titleEn: true, startDate: true },
         },
       },
       orderBy: { createdAt: "desc" },
     });
 
-    return rows.map((item) => {
-      const title = item.event?.title ?? item.title;
-      const dateLabel = formatPublicationDate(item.event?.startDate ?? item.createdAt);
-      return {
-        id: item.id,
-        src: item.url,
-        alt: title,
-        caption: dateLabel ? `${title} · ${dateLabel}` : title,
-      };
-    });
+    return rows.map((item) => ({
+      id: item.id,
+      src: item.url,
+      mediaTitle: item.title,
+      eventTitle: item.event?.title ?? null,
+      eventTitleEn: item.event?.titleEn ?? null,
+      dateIso: (item.event?.startDate ?? item.createdAt).toISOString(),
+    }));
   } catch {
     return [];
   }
 }
 
-export const getFeaturedHomeMedia = unstable_cache(
+const getFeaturedHomeMediaCached = unstable_cache(
   loadFeaturedHomeMedia,
   ["featured-home-media"],
   { tags: [PUBLIC_MEDIA_CACHE_TAG], revalidate: 60 },
 );
 
-async function loadAllGalleryMedia(): Promise<GalleryImage[]> {
+export async function getFeaturedHomeMedia() {
+  const [items, locale] = await Promise.all([
+    getFeaturedHomeMediaCached(),
+    getRequestLocale(),
+  ]);
+  return items.map((item) => toGalleryImage(item, locale));
+}
+
+async function loadAllGalleryMedia(): Promise<GallerySource[]> {
   try {
     const rows = await prisma.media.findMany({
       select: {
@@ -347,32 +437,38 @@ async function loadAllGalleryMedia(): Promise<GalleryImage[]> {
         title: true,
         createdAt: true,
         event: {
-          select: { title: true, startDate: true },
+          select: { title: true, titleEn: true, startDate: true },
         },
       },
       orderBy: { createdAt: "desc" },
     });
 
-    return rows.map((item) => {
-      const title = item.event?.title ?? item.title;
-      const dateLabel = formatPublicationDate(item.event?.startDate ?? item.createdAt);
-      return {
-        id: item.id,
-        src: item.url,
-        alt: title,
-        caption: dateLabel ? `${title} · ${dateLabel}` : title,
-      };
-    });
+    return rows.map((item) => ({
+      id: item.id,
+      src: item.url,
+      mediaTitle: item.title,
+      eventTitle: item.event?.title ?? null,
+      eventTitleEn: item.event?.titleEn ?? null,
+      dateIso: (item.event?.startDate ?? item.createdAt).toISOString(),
+    }));
   } catch {
     return [];
   }
 }
 
-export const getAllGalleryMedia = unstable_cache(
+const getAllGalleryMediaCached = unstable_cache(
   loadAllGalleryMedia,
   ["all-gallery-media"],
   { tags: [PUBLIC_MEDIA_CACHE_TAG], revalidate: 60 },
 );
+
+export async function getAllGalleryMedia() {
+  const [items, locale] = await Promise.all([
+    getAllGalleryMediaCached(),
+    getRequestLocale(),
+  ]);
+  return items.map((item) => toGalleryImage(item, locale));
+}
 
 async function loadPublishedArticles(): Promise<PublicArticle[]> {
   try {
@@ -382,7 +478,9 @@ async function loadPublishedArticles(): Promise<PublicArticle[]> {
         id: true,
         slug: true,
         title: true,
+        titleEn: true,
         content: true,
+        contentEn: true,
         author: true,
         coverImage: true,
         galleryImages: true,
@@ -398,7 +496,9 @@ async function loadPublishedArticles(): Promise<PublicArticle[]> {
       id: article.id,
       slug: article.slug,
       title: article.title,
+      titleEn: article.titleEn,
       content: article.content,
+      contentEn: article.contentEn,
       author: article.author,
       coverImage: article.coverImage,
       galleryImages: article.galleryImages ?? [],
@@ -413,11 +513,30 @@ async function loadPublishedArticles(): Promise<PublicArticle[]> {
   }
 }
 
-export const getPublishedArticles = unstable_cache(
+const getPublishedArticlesCached = unstable_cache(
   loadPublishedArticles,
   ["published-articles"],
   { tags: [PUBLIC_ARTICLES_CACHE_TAG], revalidate: 60 },
 );
+
+function localizeArticle<T extends { title: string; titleEn?: string | null; content: string; contentEn?: string | null }>(
+  article: T,
+  locale: Locale,
+): T {
+  return {
+    ...article,
+    title: localizedText(locale, article.title, article.titleEn),
+    content: localizedText(locale, article.content, article.contentEn),
+  };
+}
+
+export async function getPublishedArticles() {
+  const [articles, locale] = await Promise.all([
+    getPublishedArticlesCached(),
+    getRequestLocale(),
+  ]);
+  return articles.map((article) => localizeArticle(article, locale));
+}
 
 async function loadPublicPastors(): Promise<PublicPastor[]> {
   try {
@@ -426,8 +545,11 @@ async function loadPublicPastors(): Promise<PublicPastor[]> {
         id: true,
         name: true,
         role: true,
+        roleEn: true,
         bio: true,
+        bioEn: true,
         quote: true,
+        quoteEn: true,
         image: true,
         order: true,
       },
@@ -438,8 +560,11 @@ async function loadPublicPastors(): Promise<PublicPastor[]> {
       id: pastor.id,
       name: pastor.name,
       role: pastor.role,
+      roleEn: pastor.roleEn,
       bio: pastor.bio,
+      bioEn: pastor.bioEn,
       quote: pastor.quote,
+      quoteEn: pastor.quoteEn,
       image: pastor.image,
       order: pastor.order,
     }));
@@ -448,10 +573,14 @@ async function loadPublicPastors(): Promise<PublicPastor[]> {
   }
 }
 
-export const getPublicPastors = unstable_cache(loadPublicPastors, ["public-pastors"], {
+const getPublicPastorsCached = unstable_cache(loadPublicPastors, ["public-pastors-bio-en"], {
   tags: [PUBLIC_PASTORS_CACHE_TAG],
   revalidate: 60,
 });
+
+export async function getPublicPastors() {
+  return getPublicPastorsCached();
+}
 
 async function loadPublicDepartments(): Promise<Department[]> {
   try {
@@ -460,7 +589,9 @@ async function loadPublicDepartments(): Promise<Department[]> {
         id: true,
         slug: true,
         name: true,
+        nameEn: true,
         description: true,
+        descriptionEn: true,
         responsible: true,
         contact: true,
         image: true,
@@ -472,7 +603,9 @@ async function loadPublicDepartments(): Promise<Department[]> {
       id: department.id,
       slug: department.slug,
       name: department.name,
+      nameEn: department.nameEn,
       description: department.description,
+      descriptionEn: department.descriptionEn,
       leader: department.responsible ?? undefined,
       contact: department.contact ?? undefined,
       image: department.image ?? undefined,
@@ -482,11 +615,23 @@ async function loadPublicDepartments(): Promise<Department[]> {
   }
 }
 
-export const getPublicDepartments = unstable_cache(
+const getPublicDepartmentsCached = unstable_cache(
   loadPublicDepartments,
   ["public-departments"],
   { tags: [PUBLIC_DEPARTMENTS_CACHE_TAG], revalidate: 60 },
 );
+
+export async function getPublicDepartments() {
+  const [departments, locale] = await Promise.all([
+    getPublicDepartmentsCached(),
+    getRequestLocale(),
+  ]);
+  return departments.map((department) => ({
+    ...department,
+    name: localizedText(locale, department.name, department.nameEn),
+    description: localizedText(locale, department.description, department.descriptionEn),
+  }));
+}
 
 async function loadPublishedTestimonials(limit?: number): Promise<PublicTestimonial[]> {
   try {
@@ -500,6 +645,7 @@ async function loadPublishedTestimonials(limit?: number): Promise<PublicTestimon
       id: row.id,
       authorName: row.authorName,
       content: row.content,
+      contentEn: row.contentEn,
       imagePath: row.imagePath,
       createdAt: row.createdAt.toISOString(),
     }));
@@ -509,18 +655,32 @@ async function loadPublishedTestimonials(limit?: number): Promise<PublicTestimon
   }
 }
 
-export const getPublishedTestimonials = unstable_cache(
+const getPublishedTestimonialsCached = unstable_cache(
   loadPublishedTestimonials,
   ["public-testimonials"],
   { tags: [PUBLIC_TESTIMONIALS_CACHE_TAG], revalidate: 60 },
 );
 
+export async function getPublishedTestimonials(limit?: number) {
+  const [testimonials, locale] = await Promise.all([
+    getPublishedTestimonialsCached(limit),
+    getRequestLocale(),
+  ]);
+  return testimonials.map((testimonial) => ({
+    ...testimonial,
+    content: localizedText(locale, testimonial.content, testimonial.contentEn),
+  }));
+}
+
 function toPublicProject(row: {
   id: string;
   title: string;
+  titleEn: string | null;
   slug: string;
   description: string;
+  descriptionEn: string | null;
   category: string | null;
+  categoryEn: string | null;
   targetAmount: number;
   currentAmount: number;
   image: string | null;
@@ -530,9 +690,12 @@ function toPublicProject(row: {
   return {
     id: row.id,
     title: row.title,
+    titleEn: row.titleEn,
     slug: row.slug,
     description: row.description,
+    descriptionEn: row.descriptionEn,
     category: row.category,
+    categoryEn: row.categoryEn,
     targetAmount: row.targetAmount,
     currentAmount: row.currentAmount,
     image: row.image,
@@ -554,19 +717,77 @@ async function loadPublicProjects(activeOnly = false): Promise<PublicProject[]> 
   }
 }
 
-export const getPublicProjects = unstable_cache(
+const getPublicProjectsCached = unstable_cache(
   () => loadPublicProjects(false),
   ["public-projects"],
   { tags: [PUBLIC_PROJECTS_CACHE_TAG], revalidate: 60 },
 );
 
-export const getActivePublicProjects = unstable_cache(
+const getActivePublicProjectsCached = unstable_cache(
   () => loadPublicProjects(true),
   ["public-projects-active"],
   { tags: [PUBLIC_PROJECTS_CACHE_TAG], revalidate: 60 },
 );
 
-export async function getArticleBySlug(slug: string): Promise<PublicArticle | null> {
+function localizeProject<T extends {
+  title: string;
+  titleEn?: string | null;
+  description: string;
+  descriptionEn?: string | null;
+  category: string | null;
+  categoryEn?: string | null;
+}>(project: T, locale: Locale): T {
+  return {
+    ...project,
+    title: localizedText(locale, project.title, project.titleEn),
+    description: localizedText(locale, project.description, project.descriptionEn),
+    category: project.category
+      ? localizedText(locale, project.category, project.categoryEn)
+      : project.category,
+  };
+}
+
+export async function getPublicProjects() {
+  const [projects, locale] = await Promise.all([
+    getPublicProjectsCached(),
+    getRequestLocale(),
+  ]);
+  return projects.map((project) => localizeProject(project, locale));
+}
+
+export async function getActivePublicProjects() {
+  const [projects, locale] = await Promise.all([
+    getActivePublicProjectsCached(),
+    getRequestLocale(),
+  ]);
+  return projects.map((project) => localizeProject(project, locale));
+}
+
+export async function getPublicProjectBySlug(
+  slug: string,
+  localeOverride?: Locale,
+): Promise<PublicProject | null> {
+  const normalized = decodeURIComponent(slug).trim();
+  if (!normalized) {
+    return null;
+  }
+
+  try {
+    const row = await prisma.project.findUnique({ where: { slug: normalized } });
+    if (!row) {
+      return null;
+    }
+    const locale = localeOverride ?? (await getRequestLocale());
+    return localizeProject(toPublicProject(row), locale);
+  } catch {
+    return null;
+  }
+}
+
+export async function getArticleBySlug(
+  slug: string,
+  localeOverride?: Locale,
+): Promise<PublicArticle | null> {
   const normalizedSlug = decodeURIComponent(slug).trim();
   if (!normalizedSlug) {
     return null;
@@ -578,7 +799,9 @@ export async function getArticleBySlug(slug: string): Promise<PublicArticle | nu
       id: true,
       slug: true,
       title: true,
+      titleEn: true,
       content: true,
+      contentEn: true,
       author: true,
       coverImage: true,
       galleryImages: true,
@@ -617,18 +840,23 @@ export async function getArticleBySlug(slug: string): Promise<PublicArticle | nu
     comments = [];
   }
 
-  return {
-    id: article.id,
-    slug: article.slug,
-    title: article.title,
-    content: article.content,
-    author: article.author,
-    coverImage: article.coverImage,
-    galleryImages: article.galleryImages ?? [],
-    youtubeUrl: article.youtubeUrl ?? null,
-    isFeatured: article.isFeatured,
-    comments,
-    publishedAt: toDateKey(article.publishedAt),
-    createdAt: article.createdAt.toISOString(),
-  };
+  return localizeArticle(
+    {
+      id: article.id,
+      slug: article.slug,
+      title: article.title,
+      titleEn: article.titleEn,
+      content: article.content,
+      contentEn: article.contentEn,
+      author: article.author,
+      coverImage: article.coverImage,
+      galleryImages: article.galleryImages ?? [],
+      youtubeUrl: article.youtubeUrl ?? null,
+      isFeatured: article.isFeatured,
+      comments,
+      publishedAt: toDateKey(article.publishedAt),
+      createdAt: article.createdAt.toISOString(),
+    },
+    localeOverride ?? (await getRequestLocale()),
+  );
 }

@@ -6,6 +6,7 @@ import type { AdminArticleRecord } from "@/types";
 import { AdminLabel } from "./AdminPageHeader";
 import { AdminThumb } from "./AdminThumb";
 import { RichTextEditor } from "@/ui/components/forms";
+import { AdminEnglishSection } from "./AdminEnglishSection";
 import { AdminSubmitButton } from "./AdminSubmitButton";
 import { adminFieldClass, adminFileClass } from "./adminStyles";
 
@@ -23,6 +24,7 @@ interface PendingGalleryFile {
 
 export function ArticleForm({ action, article, submitLabel }: ArticleFormProps) {
   const [content, setContent] = useState(article?.content ?? "");
+  const [contentEn, setContentEn] = useState(article?.contentEn ?? "");
   const [coverPreview, setCoverPreview] = useState<string | null>(article?.coverImage ?? null);
   const [keptGallery, setKeptGallery] = useState<string[]>(article?.galleryImages ?? []);
   const [pendingGallery, setPendingGallery] = useState<PendingGalleryFile[]>([]);
@@ -216,6 +218,22 @@ export function ArticleForm({ action, article, submitLabel }: ArticleFormProps) 
           </span>
         </span>
       </label>
+
+      <AdminEnglishSection>
+        <label className="block">
+          <AdminLabel>Titre (EN)</AdminLabel>
+          <input name="titleEn" defaultValue={article?.titleEn ?? ""} className={adminFieldClass} />
+        </label>
+        <div>
+          <AdminLabel>Contenu (EN)</AdminLabel>
+          <RichTextEditor
+            name="contentEn"
+            value={contentEn}
+            onChange={setContentEn}
+            placeholder="English version of the teaching…"
+          />
+        </div>
+      </AdminEnglishSection>
 
       <div className="sm:col-span-2">
         <AdminSubmitButton>{submitLabel}</AdminSubmitButton>

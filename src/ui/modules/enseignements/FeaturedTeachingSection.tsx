@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CalendarDays, UserRound } from "lucide-react";
+import type { Locale } from "@/i18n/config";
 import type { ContentSectionTone, PublicArticle } from "@/types";
 import { ContentSection, SectionHeader } from "@/ui/components/layout";
 import { excerpt } from "@/ui/modules/enseignements/excerpt";
@@ -13,11 +14,20 @@ const PLACEHOLDER_SRC = "/assets/pastors/placeholder.svg";
 interface FeaturedTeachingSectionProps {
   article: PublicArticle | null;
   tone?: ContentSectionTone;
+  locale?: Locale;
+  labels: {
+    badge: string;
+    title: string;
+    description: string;
+    readMore: string;
+  };
 }
 
 export function FeaturedTeachingSection({
   article,
   tone = "white",
+  locale = "fr",
+  labels,
 }: FeaturedTeachingSectionProps) {
   if (!article) {
     return null;
@@ -27,9 +37,9 @@ export function FeaturedTeachingSection({
     <ContentSection tone={tone} labelledBy="enseignement-a-la-une">
       <SectionHeader
         titleId="enseignement-a-la-une"
-        badge="À la une"
-        title="Dernier enseignement à la une"
-        description="La prédication mise en avant par l’équipe pastorale."
+        badge={labels.badge}
+        title={labels.title}
+        description={labels.description}
       />
       <Link
         href={`/enseignements/${article.slug}`}
@@ -56,13 +66,13 @@ export function FeaturedTeachingSection({
           </p>
           <p className="mt-1.5 flex items-center gap-2 font-sans text-sm text-slate-600">
             <CalendarDays className="size-4 text-[#6d28d9]" aria-hidden />
-            {formatPublicationDate(article.publishedAt)}
+            {formatPublicationDate(article.publishedAt, locale)}
           </p>
           <p className="mt-4 font-sans text-sm leading-relaxed text-slate-800">
             {excerpt(article.content)}
           </p>
           <span className="mt-6 inline-flex h-9 w-fit items-center rounded-full bg-[#6d28d9] px-3 font-heading text-sm font-bold tracking-tight text-white">
-            Lire la suite
+            {labels.readMore}
           </span>
         </div>
       </Link>

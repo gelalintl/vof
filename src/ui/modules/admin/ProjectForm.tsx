@@ -5,6 +5,7 @@ import type { AdminProjectRecord } from "@/types";
 import { PROJECT_CATEGORIES, PROJECT_STATUSES, projectStatusLabels } from "@/lib/donations";
 import { AdminLabel } from "./AdminPageHeader";
 import { AdminThumb } from "./AdminThumb";
+import { AdminEnglishSection } from "./AdminEnglishSection";
 import { AdminSubmitButton } from "./AdminSubmitButton";
 import { adminFieldClass, adminFileClass } from "./adminStyles";
 
@@ -156,6 +157,26 @@ export function ProjectForm({ action, project, submitLabel }: ProjectFormProps) 
         </div>
         <input type="hidden" name="image" defaultValue={project?.image ?? ""} />
       </fieldset>
+
+      <AdminEnglishSection>
+        <label className="block">
+          <AdminLabel>Titre (EN)</AdminLabel>
+          <input name="titleEn" defaultValue={project?.titleEn ?? ""} className={adminFieldClass} />
+        </label>
+        <label className="block">
+          <AdminLabel>Catégorie (EN)</AdminLabel>
+          <input name="categoryEn" defaultValue={project?.categoryEn ?? ""} className={adminFieldClass} />
+        </label>
+        <label className="block">
+          <AdminLabel>Description (EN)</AdminLabel>
+          <textarea
+            name="descriptionEn"
+            rows={4}
+            defaultValue={project?.descriptionEn ?? ""}
+            className={adminFieldClass}
+          />
+        </label>
+      </AdminEnglishSection>
 
       <div className="sm:col-span-2">
         <AdminSubmitButton>{submitLabel}</AdminSubmitButton>

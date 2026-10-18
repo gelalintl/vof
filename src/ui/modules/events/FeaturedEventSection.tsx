@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { CalendarDays, Clock, MapPin } from "lucide-react";
-import type { Event } from "@/types";
+import type { Locale } from "@/i18n/config";
+import type { Event, EventKind } from "@/types";
 import { excerptRichText } from "@/lib/richText";
-import { eventKindLabels } from "@/lib/eventPresentation";
 import { formatEventDate, formatEventTime } from "@/utils/date/format";
 import { Badge } from "@/ui/design-system/badge";
 import { Typography } from "@/ui/design-system/typography";
@@ -11,24 +11,37 @@ import { interactiveCardClass } from "@/utils/theme/interactiveCard";
 
 interface FeaturedEventSectionProps {
   event: Event | null;
+  locale?: Locale;
+  labels: {
+    badge: string;
+    title: string;
+    description: string;
+    seeAnnouncement: string;
+  };
+  kindLabels: Record<EventKind, string>;
 }
 
-export function FeaturedEventSection({ event }: FeaturedEventSectionProps) {
+export function FeaturedEventSection({
+  event,
+  locale = "fr",
+  labels,
+  kindLabels,
+}: FeaturedEventSectionProps) {
   if (!event) {
     return null;
   }
 
-  const time = formatEventTime(event.startsAt);
+  const time = formatEventTime(event.startsAt, locale);
 
   return (
     <section className="bg-white" aria-labelledby="a-la-une">
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-        <Badge variant="accent">À la une</Badge>
+        <Badge variant="accent">{labels.badge}</Badge>
         <Typography id="a-la-une" variant="h2" className="mt-3">
-          Prochain événement à la une
+          {labels.title}
         </Typography>
         <Typography variant="body" className="mt-3 max-w-2xl text-slate-600">
-          Le grand rendez-vous à venir : culte, veillée ou temps fort de Voice of Freedom.
+          {labels.description}
         </Typography>
 
         <Link
@@ -48,7 +61,7 @@ export function FeaturedEventSection({ event }: FeaturedEventSectionProps) {
           </div>
           <div className="flex flex-col justify-center bg-white px-6 py-8 sm:px-8">
             <Badge variant="brand" size="sm">
-              {eventKindLabels[event.kind]}
+              {kindLabels[event.kind]}
             </Badge>
             <Typography variant="h3" className="mt-3 text-slate-900">
               {event.title}
@@ -60,13 +73,13 @@ export function FeaturedEventSection({ event }: FeaturedEventSectionProps) {
             ) : null}
             <p className="mt-4 flex items-center gap-2 font-sans text-sm text-slate-600">
               <CalendarDays className="size-4 text-[#6d28d9]" />
-              {formatEventDate(event.startsAt)}
+              {formatEventDate(event.startsAt, locale)}
             </p>
             {time ? (
               <p className="mt-1.5 flex items-center gap-2 font-sans text-sm text-slate-600">
                 <Clock className="size-4 text-[#6d28d9]" />
                 {time}
-                {event.endsAt ? ` – ${formatEventTime(event.endsAt)}` : ""}
+                {event.endsAt ? ` – ${formatEventTime(event.endsAt, locale)}` : ""}
               </p>
             ) : null}
             <p className="mt-1.5 flex items-center gap-2 font-sans text-sm text-slate-600">
@@ -74,7 +87,7 @@ export function FeaturedEventSection({ event }: FeaturedEventSectionProps) {
               {event.location}
             </p>
             <span className="mt-6 inline-flex h-9 w-fit items-center rounded-full bg-amber-500 px-3 font-heading text-sm font-bold tracking-tight text-slate-900">
-              Voir l&apos;annonce
+              {labels.seeAnnouncement}
             </span>
           </div>
         </Link>

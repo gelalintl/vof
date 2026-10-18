@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { AdminPastorRecord } from "@/types";
+import { AdminEnglishSection } from "./AdminEnglishSection";
 import { AdminLabel } from "./AdminPageHeader";
 import { AdminThumb } from "./AdminThumb";
 import { AdminSubmitButton } from "./AdminSubmitButton";
@@ -64,6 +65,37 @@ export function PastorForm({ action, pastor, submitLabel }: PastorFormProps) {
           className={adminFieldClass}
         />
       </label>
+
+      <AdminEnglishSection>
+        <label className="block">
+          <AdminLabel>Rôle (EN)</AdminLabel>
+          <input
+            name="roleEn"
+            defaultValue={pastor?.roleEn ?? ""}
+            placeholder="Senior Pastor"
+            className={adminFieldClass}
+          />
+        </label>
+        <label className="block">
+          <AdminLabel>Description / Bio (EN)</AdminLabel>
+          <textarea
+            name="bioEn"
+            rows={5}
+            defaultValue={pastor?.bioEn ?? ""}
+            className={adminFieldClass}
+          />
+        </label>
+        <label className="block">
+          <AdminLabel>Verset biblique / Citation (EN)</AdminLabel>
+          <textarea
+            name="quoteEn"
+            rows={2}
+            defaultValue={pastor?.quoteEn ?? ""}
+            placeholder="“For I know the plans I have for you…” — Jeremiah 29:11"
+            className={adminFieldClass}
+          />
+        </label>
+      </AdminEnglishSection>
 
       <label className="block sm:col-span-2">
         <AdminLabel>Description / Bio</AdminLabel>

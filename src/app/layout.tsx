@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Inter, Lora, Plus_Jakarta_Sans } from "next/font/google";
+import { isLocale, LOCALE_HEADER } from "@/i18n/config";
 import { Toaster } from "sonner";
 import { churchIconCacheId } from "@/lib/churchIcon";
 import { getChurchLogo } from "@/lib/siteSettings";
@@ -44,14 +46,17 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const localeHeader = (await headers()).get(LOCALE_HEADER);
+  const lang = isLocale(localeHeader) ? localeHeader : "fr";
+
   return (
     <html
-      lang="fr"
+      lang={lang}
       className={`${inter.variable} ${plusJakarta.variable} ${lora.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-white font-sans text-slate-800">

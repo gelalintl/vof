@@ -5,8 +5,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HeartHandshake, Menu, X } from "lucide-react";
 import { mainNavigation } from "@/config/navigation";
+import { getDictionary } from "@/i18n/getDictionary";
+import { localeFromPathname, withLocale } from "@/i18n/routing";
 import { cn } from "@/utils/cn";
 import { Button } from "@/ui/design-system/button";
+import { LanguageSwitcher } from "@/ui/components/layout/LanguageSwitcher";
 import { Logo } from "@/ui/design-system/logo";
 import type { PublicPaymentConfig, PublicProject } from "@/types";
 import { DonateModal } from "@/ui/components/modals";
@@ -25,6 +28,17 @@ export function Navbar({
   whatsappHref?: string;
 }) {
   const pathname = usePathname();
+  const locale = localeFromPathname(pathname) ?? "fr";
+  const dictionary = getDictionary(locale);
+  const labels: Record<string, string> = {
+    "/": dictionary.nav.home,
+    "/a-propos": dictionary.nav.about,
+    "/vie-de-leglise": dictionary.nav.churchLife,
+    "/enseignements": dictionary.nav.teachings,
+    "/departements": dictionary.nav.departments,
+    "/projets": dictionary.nav.projects,
+    "/contact": dictionary.nav.contact,
+  };
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDonateOpen, setIsDonateOpen] = useState(false);
 
@@ -33,21 +47,19 @@ export function Navbar({
   return (
     <header className="sticky top-0 z-50 border-b border-sky-100/50 bg-white/75 shadow-lg shadow-black/5 backdrop-blur-xl backdrop-saturate-150">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-        <Link href="/" className="shrink-0" onClick={closeDrawer}>
+        <Link href={`/${locale}`} className="shrink-0" onClick={closeDrawer}>
           <Logo imageSrc={logoSrc} wordmark={churchName} />
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Navigation principale">
           {mainNavigation.map((item) => {
-            const isActive =
-              item.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href);
+            const href = withLocale(locale, item.href);
+            const isActive = item.href === "/" ? pathname === href : pathname.startsWith(href);
 
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={href}
                 className={cn(
                   "rounded-full px-3 py-2 font-heading text-sm font-bold tracking-tight transition-colors",
                   isActive
@@ -55,13 +67,14 @@ export function Navbar({
                     : "text-slate-800 hover:bg-white/70 hover:text-violet-700",
                 )}
               >
-                {item.label}
+                {labels[item.href] ?? item.label}
               </Link>
             );
           })}
         </nav>
 
         <div className="flex items-center gap-2">
+          <LanguageSwitcher className="hidden sm:inline-flex" />
           <Button
             variant="accent"
             size="sm"
@@ -69,7 +82,7 @@ export function Navbar({
             onClick={() => setIsDonateOpen(true)}
           >
             <HeartHandshake className="size-4" />
-            Soutenir
+            {dictionary.nav.support}
           </Button>
           <button
             type="button"
@@ -100,14 +113,15 @@ export function Navbar({
               {mainNavigation.map((item) => (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={withLocale(locale, item.href)}
                   onClick={closeDrawer}
                   className="rounded-xl px-3 py-3 font-heading text-base font-bold tracking-tight text-slate-800 hover:bg-violet-50 hover:text-violet-700"
                 >
-                  {item.label}
+                  {labels[item.href] ?? item.label}
                 </Link>
               ))}
             </nav>
+            <LanguageSwitcher className="mt-4" />
             <Button
               variant="accent"
               className="mt-4 w-full"
@@ -117,7 +131,7 @@ export function Navbar({
               }}
             >
               <HeartHandshake className="size-4" />
-              Soutenir
+              {dictionary.nav.support}
             </Button>
           </div>
         </div>

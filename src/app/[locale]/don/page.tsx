@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { donateHero, donateQuote } from "@/datas/pageCopy";
-import { getActivePublicProjects } from "@/lib/publicContent";
-import { contactFromSettings, getSiteSettings } from "@/lib/settings";
+import { metadataLocale, staticPageMetadata } from "@/i18n/metadata";
+import { excerptRichText } from "@/lib/richText";
+import { getActivePublicProjects, getPublicProjectBySlug } from "@/lib/publicContent";
+import { contactFromSettings, getLocalizedSiteSettings } from "@/lib/settings";
 import { getPublicPaymentConfig } from "@/lib/siteSettings";
 import { toWhatsAppHref } from "@/lib/siteSettingsKeys";
 import { QuoteBlock } from "@/ui/components/content";
@@ -9,14 +11,32 @@ import { DonateFlow } from "@/ui/components/forms";
 import { ContentSection, PageHero, SoftPanel } from "@/ui/components/layout";
 import { MainLayout } from "@/ui/layouts/MainLayout";
 
-export const metadata: Metadata = {
-  title: "Soutenir",
-  description:
-    "Soutenez l'œuvre Voice Of Freedom en FCFA : don unique ou récurrent, Mobile Money, carte bancaire ou virement RIB.",
-};
-
 interface DonatePageProps {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ projet?: string }>;
+}
+
+export async function generateMetadata({
+  params,
+  searchParams,
+}: DonatePageProps): Promise<Metadata> {
+  const [{ locale }, { projet }] = await Promise.all([params, searchParams]);
+  const fallback = staticPageMetadata(locale, "donate");
+  const slug = projet?.trim();
+  if (!slug) {
+    return fallback;
+  }
+
+  const project = await getPublicProjectBySlug(slug, metadataLocale(locale));
+  if (!project) {
+    return fallback;
+  }
+
+  const description = excerptRichText(project.description, 160);
+  return {
+    title: project.title,
+    description: description || fallback.description,
+  };
 }
 
 export default async function DonatePage({ searchParams }: DonatePageProps) {
@@ -24,7 +44,7 @@ export default async function DonatePage({ searchParams }: DonatePageProps) {
     searchParams,
     getPublicPaymentConfig(),
     getActivePublicProjects(),
-    getSiteSettings(),
+    getLocalizedSiteSettings(),
   ]);
   const contact = contactFromSettings(settings);
   const initialProjectId =

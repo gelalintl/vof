@@ -1,8 +1,12 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { siteConfig } from "@/config/site";
+import { getDictionary, type Dictionary } from "@/i18n/getDictionary";
+import { isLocale, LOCALE_HEADER } from "@/i18n/config";
+import { stripLocale, withLocale } from "@/i18n/routing";
 import { toWhatsAppHref } from "@/lib/siteSettingsKeys";
-import type { FooterLink, PublicFooterContent, PublicSiteContact, PublicSiteIdentity } from "@/types";
+import type { FooterLink, FooterScheduleItem, PublicFooterContent, PublicSiteContact, PublicSiteIdentity } from "@/types";
 import {
   FacebookMark,
   InstagramMark,
@@ -19,7 +23,7 @@ interface FooterProps {
   content: PublicFooterContent;
 }
 
-export function Footer({ logoSrc, contact, identity, content }: FooterProps) {
+export async function Footer({ logoSrc, contact, identity, content }: FooterProps) {
   const address = contact?.location.address ?? siteConfig.location.address;
   const city = contact?.location.city ?? siteConfig.location.country;
   const email = contact?.location.email ?? siteConfig.contacts.email;
@@ -27,6 +31,9 @@ export function Footer({ logoSrc, contact, identity, content }: FooterProps) {
   const locationLine = [address, city].filter(Boolean).join(", ");
   const social = contact?.social;
   const churchName = identity?.churchName ?? siteConfig.legalName;
+  const headerLocale = (await headers()).get(LOCALE_HEADER);
+  const locale = isLocale(headerLocale) ? headerLocale : "fr";
+  const dictionary = getDictionary(locale);
 
   const socialLinks = content.showSocials
     ? [
@@ -60,12 +67,15 @@ export function Footer({ logoSrc, contact, identity, content }: FooterProps) {
 
         <div>
           <Typography variant="h4" as="h2" className="text-violet-700">
-            Navigation
+            {dictionary.footer.navigation}
           </Typography>
           <ul className="mt-4 space-y-2">
             {content.navLinks.map((link) => (
               <li key={`${link.url}-${link.label}`}>
-                <FooterNavLink link={link} />
+                <FooterNavLink
+                  link={{ ...link, label: translateNavLabel(link, dictionary) }}
+                  locale={locale}
+                />
               </li>
             ))}
           </ul>
@@ -76,17 +86,20 @@ export function Footer({ logoSrc, contact, identity, content }: FooterProps) {
             {content.scheduleTitle}
           </Typography>
           <ul className="mt-4 space-y-2 font-sans text-sm text-slate-600">
-            {content.scheduleItems.map((item) => (
-              <li key={`${item.label}-${item.time}`}>
-                {item.label} · {item.time}
-              </li>
-            ))}
+            {content.scheduleItems.map((item) => {
+              const translated = translateScheduleItem(item, dictionary);
+              return (
+                <li key={`${item.label}-${item.time}`}>
+                  {translated.label} · {translated.time}
+                </li>
+              );
+            })}
           </ul>
         </div>
 
         <div>
           <Typography variant="h4" as="h2" className="text-violet-700">
-            Contact
+            {dictionary.footer.contact}
           </Typography>
           {content.showContact ? (
             <ul className="mt-4 space-y-3 font-sans text-sm text-slate-800">
@@ -135,7 +148,7 @@ export function Footer({ logoSrc, contact, identity, content }: FooterProps) {
   );
 }
 
-function FooterNavLink({ link }: { link: FooterLink }) {
+function FooterNavLink({ link, locale }: { link: FooterLink; locale: "fr" | "en" }) {
   const className = "font-sans text-sm text-slate-800 hover:text-sky-600";
   const isExternal = /^https?:\/\//i.test(link.url);
 
@@ -148,7 +161,7 @@ function FooterNavLink({ link }: { link: FooterLink }) {
   }
 
   return (
-    <Link href={link.url} className={className}>
+    <Link href={withLocale(locale, link.url)} className={className}>
       {link.label}
     </Link>
   );
@@ -174,4 +187,32 @@ function SocialLink({
       {children}
     </a>
   );
+}
+
+const NAV_BY_PATH: Record<string, keyof Dictionary["nav"]> = {
+  "/": "home",
+  "/a-propos": "about",
+  "/vie-de-leglise": "churchLife",
+  "/enseignements": "teachings",
+  "/departements": "departments",
+  "/projets": "projects",
+  "/contact": "contact",
+  "/galerie": "gallery",
+  "/temoignages": "testimonials",
+  "/don": "donate",
+};
+
+function translateNavLabel(link: FooterLink, dictionary: Dictionary) {
+  const path = stripLocale(link.url).replace(/\/$/, "") || "/";
+  const key = NAV_BY_PATH[path];
+  return key ? dictionary.nav[key] : link.label;
+}
+
+function translateScheduleItem(item: FooterScheduleItem, dictionary: Dictionary) {
+  const labels = dictionary.footer.scheduleLabels as Record<string, string>;
+  const times = dictionary.footer.scheduleTimes as Record<string, string>;
+  return {
+    label: labels[item.label] ?? item.label,
+    time: times[item.time] ?? item.time,
+  };
 }

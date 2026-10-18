@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { AdminDepartmentRecord } from "@/types";
 import { AdminLabel } from "./AdminPageHeader";
 import { AdminThumb } from "./AdminThumb";
+import { AdminEnglishSection } from "./AdminEnglishSection";
 import { AdminSubmitButton } from "./AdminSubmitButton";
 import { adminFieldClass, adminFileClass } from "./adminStyles";
 
@@ -103,6 +104,22 @@ export function DepartmentForm({ action, department, submitLabel }: DepartmentFo
         </div>
         <input type="hidden" name="image" defaultValue={department?.image ?? ""} />
       </fieldset>
+
+      <AdminEnglishSection>
+        <label className="block">
+          <AdminLabel>Nom (EN)</AdminLabel>
+          <input name="nameEn" defaultValue={department?.nameEn ?? ""} className={adminFieldClass} />
+        </label>
+        <label className="block">
+          <AdminLabel>Description (EN)</AdminLabel>
+          <textarea
+            name="descriptionEn"
+            rows={4}
+            defaultValue={department?.descriptionEn ?? ""}
+            className={adminFieldClass}
+          />
+        </label>
+      </AdminEnglishSection>
 
       <div className="sm:col-span-2">
         <AdminSubmitButton>{submitLabel}</AdminSubmitButton>

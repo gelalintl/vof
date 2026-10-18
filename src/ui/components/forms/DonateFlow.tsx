@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Building2, CheckCircle2, CreditCard, Smartphone } from "lucide-react";
 import { toast } from "sonner";
-import { submitDonationPromise } from "@/app/don/actions";
+import { submitDonationPromise } from "@/app/[locale]/don/actions";
 import { donationRecurrenceLabels, donationTypeLabels, donationTypes } from "@/config/forms";
 import { donationOptions } from "@/config/site";
 import {

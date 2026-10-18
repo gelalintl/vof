@@ -1,4 +1,5 @@
 import { ArrowLeft, CalendarDays, UserRound } from "lucide-react";
+import type { Locale } from "@/i18n/config";
 import type { PublicArticle } from "@/types";
 import { extractYoutubeId } from "@/lib/youtube";
 import { sanitizeRichText, toEditorHtml } from "@/lib/richText";
@@ -14,9 +15,30 @@ const PLACEHOLDER_SRC = "/assets/pastors/placeholder.svg";
 
 interface TeachingDetailProps {
   article: PublicArticle;
+  locale?: Locale;
+  labels: {
+    back: string;
+    commentsTitle: string;
+    noComments: string;
+    oneComment: string;
+    manyComments: string;
+    beFirst: string;
+    leaveComment: string;
+    fullName: string;
+    email: string;
+    optional: string;
+    message: string;
+    publishing: string;
+    publish: string;
+    thanks: string;
+    like: string;
+    callAria: string;
+    callQuote: string;
+    shareTestimony: string;
+  };
 }
 
-export function TeachingDetail({ article }: TeachingDetailProps) {
+export function TeachingDetail({ article, locale = "fr", labels }: TeachingDetailProps) {
   const youtubeId = extractYoutubeId(article.youtubeUrl);
 
   return (
@@ -29,7 +51,7 @@ export function TeachingDetail({ article }: TeachingDetailProps) {
           className="w-fit px-0 text-[#6d28d9] hover:bg-transparent hover:text-violet-800"
         >
           <ArrowLeft className="size-4" aria-hidden />
-          Retour aux enseignements
+          {labels.back}
         </Button>
 
         <div className="mt-8">
@@ -56,7 +78,7 @@ export function TeachingDetail({ article }: TeachingDetailProps) {
         </p>
         <p className="mt-1.5 flex items-center gap-2 font-sans text-sm text-slate-600">
           <CalendarDays className="size-4 text-[#6d28d9]" aria-hidden />
-          {formatPublicationDate(article.publishedAt)}
+          {formatPublicationDate(article.publishedAt, locale)}
         </p>
 
         <div
@@ -67,8 +89,35 @@ export function TeachingDetail({ article }: TeachingDetailProps) {
         />
 
         <EventGallery images={article.galleryImages} />
-        <CommentsSection articleId={article.id} initialComments={article.comments} />
-        <CallToTestify className="mt-12" />
+        <CommentsSection
+          articleId={article.id}
+          initialComments={article.comments}
+          locale={locale}
+          labels={{
+            title: labels.commentsTitle,
+            noComments: labels.noComments,
+            oneComment: labels.oneComment,
+            manyComments: labels.manyComments,
+            beFirst: labels.beFirst,
+            leaveComment: labels.leaveComment,
+            fullName: labels.fullName,
+            email: labels.email,
+            optional: labels.optional,
+            message: labels.message,
+            publishing: labels.publishing,
+            publish: labels.publish,
+            thanks: labels.thanks,
+            like: labels.like,
+          }}
+        />
+        <CallToTestify
+          className="mt-12"
+          labels={{
+            aria: labels.callAria,
+            quote: labels.callQuote,
+            action: labels.shareTestimony,
+          }}
+        />
       </div>
     </article>
   );

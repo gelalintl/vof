@@ -17,21 +17,24 @@ import {
   HERO_SECONDARY_CTA_LINK_KEY,
   HERO_SECONDARY_CTA_TEXT_KEY,
   HERO_TITLE_KEY,
+  englishSettingKey,
 } from "@/lib/siteSettingsKeys";
 import { normalizeYoutubeUrl } from "@/lib/youtube";
 import type { HomeHeroDraft } from "@/types";
 import { PageHero } from "@/ui/components/layout/PageHero";
 import { AdminSubmitButton } from "./AdminSubmitButton";
+import { AdminEnglishSection } from "./AdminEnglishSection";
 import { AdminLabel } from "./AdminPageHeader";
 import { adminFieldClass, adminFileClass, adminGhostButtonClass } from "./adminStyles";
 import { notifyAdminAction } from "./notifyAdminAction";
 
 interface HeroVisualEditorProps {
   values: HomeHeroDraft;
+  catalog: Record<string, string>;
   fallbackTime?: string;
 }
 
-export function HeroVisualEditor({ values, fallbackTime }: HeroVisualEditorProps) {
+export function HeroVisualEditor({ values, catalog, fallbackTime }: HeroVisualEditorProps) {
   const [draft, setDraft] = useState<HomeHeroDraft>(values);
   const savedBgImage = draft.hero_bg_image.startsWith("/uploads/")
     ? draft.hero_bg_image
@@ -66,6 +69,21 @@ export function HeroVisualEditor({ values, fallbackTime }: HeroVisualEditorProps
       [HERO_PRIMARY_CTA_LINK_KEY]: String(formData.get(HERO_PRIMARY_CTA_LINK_KEY) ?? ""),
       [HERO_SECONDARY_CTA_TEXT_KEY]: String(formData.get(HERO_SECONDARY_CTA_TEXT_KEY) ?? ""),
       [HERO_SECONDARY_CTA_LINK_KEY]: String(formData.get(HERO_SECONDARY_CTA_LINK_KEY) ?? ""),
+      [englishSettingKey(HERO_BADGE_KEY)]: String(
+        formData.get(englishSettingKey(HERO_BADGE_KEY)) ?? "",
+      ),
+      [englishSettingKey(HERO_TITLE_KEY)]: String(
+        formData.get(englishSettingKey(HERO_TITLE_KEY)) ?? "",
+      ),
+      [englishSettingKey(HERO_DESCRIPTION_KEY)]: String(
+        formData.get(englishSettingKey(HERO_DESCRIPTION_KEY)) ?? "",
+      ),
+      [englishSettingKey(HERO_PRIMARY_CTA_TEXT_KEY)]: String(
+        formData.get(englishSettingKey(HERO_PRIMARY_CTA_TEXT_KEY)) ?? "",
+      ),
+      [englishSettingKey(HERO_SECONDARY_CTA_TEXT_KEY)]: String(
+        formData.get(englishSettingKey(HERO_SECONDARY_CTA_TEXT_KEY)) ?? "",
+      ),
       [FEATURED_YOUTUBE_URL_KEY]: rawYoutube.trim()
         ? (normalizeYoutubeUrl(rawYoutube) ?? "")
         : "",
@@ -266,6 +284,50 @@ export function HeroVisualEditor({ values, fallbackTime }: HeroVisualEditorProps
                 />
               </label>
             </div>
+
+            <AdminEnglishSection>
+              <label className="block">
+                <AdminLabel>Badge (EN)</AdminLabel>
+                <input
+                  name={englishSettingKey(HERO_BADGE_KEY)}
+                  defaultValue={catalog[englishSettingKey(HERO_BADGE_KEY)] ?? ""}
+                  className={adminFieldClass}
+                />
+              </label>
+              <label className="block">
+                <AdminLabel>Titre (EN)</AdminLabel>
+                <input
+                  name={englishSettingKey(HERO_TITLE_KEY)}
+                  defaultValue={catalog[englishSettingKey(HERO_TITLE_KEY)] ?? ""}
+                  className={adminFieldClass}
+                />
+              </label>
+              <label className="block">
+                <AdminLabel>Description (EN)</AdminLabel>
+                <textarea
+                  name={englishSettingKey(HERO_DESCRIPTION_KEY)}
+                  rows={4}
+                  defaultValue={catalog[englishSettingKey(HERO_DESCRIPTION_KEY)] ?? ""}
+                  className={adminFieldClass}
+                />
+              </label>
+              <label className="block">
+                <AdminLabel>Bouton principal — texte (EN)</AdminLabel>
+                <input
+                  name={englishSettingKey(HERO_PRIMARY_CTA_TEXT_KEY)}
+                  defaultValue={catalog[englishSettingKey(HERO_PRIMARY_CTA_TEXT_KEY)] ?? ""}
+                  className={adminFieldClass}
+                />
+              </label>
+              <label className="block">
+                <AdminLabel>Bouton secondaire — texte (EN)</AdminLabel>
+                <input
+                  name={englishSettingKey(HERO_SECONDARY_CTA_TEXT_KEY)}
+                  defaultValue={catalog[englishSettingKey(HERO_SECONDARY_CTA_TEXT_KEY)] ?? ""}
+                  className={adminFieldClass}
+                />
+              </label>
+            </AdminEnglishSection>
 
             <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-6">
               <AdminSubmitButton className="w-full sm:w-auto">

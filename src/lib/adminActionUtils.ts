@@ -1,4 +1,5 @@
 import { revalidatePath, revalidateTag } from "next/cache";
+import { locales } from "@/i18n/config";
 import {
   PUBLIC_ARTICLES_CACHE_TAG,
   PUBLIC_DEPARTMENTS_CACHE_TAG,
@@ -47,12 +48,20 @@ function revalidateAdminPath(path: string) {
   revalidatePath("/admin", "layout");
 }
 
+/** Rafraîchit une page publique dans les deux langues (/fr/... et /en/...). */
+export function revalidatePublicPath(path: string, type?: "layout" | "page") {
+  for (const locale of locales) {
+    const localized = path === "/" ? `/${locale}` : `/${locale}${path}`;
+    revalidatePath(localized, type);
+  }
+}
+
 export function revalidateEventContent(slug?: string) {
   revalidateTag(PUBLIC_EVENTS_CACHE_TAG, "max");
-  revalidatePath("/");
-  revalidatePath("/vie-de-leglise");
+  revalidatePublicPath("/");
+  revalidatePublicPath("/vie-de-leglise");
   if (slug) {
-    revalidatePath(`/vie-de-leglise/${slug}`);
+    revalidatePublicPath(`/vie-de-leglise/${slug}`);
   }
   revalidateAdminPath("/admin/evenements");
   revalidatePath("/admin/evenements", "layout");
@@ -60,67 +69,68 @@ export function revalidateEventContent(slug?: string) {
 
 export function revalidateArticleContent(slug?: string) {
   revalidateTag(PUBLIC_ARTICLES_CACHE_TAG, "max");
-  revalidatePath("/enseignements");
+  revalidatePublicPath("/enseignements");
   if (slug) {
-    revalidatePath(`/enseignements/${slug}`);
+    revalidatePublicPath(`/enseignements/${slug}`);
   }
   revalidateAdminPath("/admin/enseignements");
 }
 
 export function revalidateMediaContent() {
   revalidateTag(PUBLIC_MEDIA_CACHE_TAG, "max");
-  revalidatePath("/");
+  revalidatePublicPath("/");
+  revalidatePublicPath("/galerie");
   revalidateAdminPath("/admin/medias");
   revalidatePath("/admin/medias", "layout");
 }
 
 export function revalidatePastorContent() {
   revalidateTag(PUBLIC_PASTORS_CACHE_TAG, "max");
-  revalidatePath("/a-propos");
+  revalidatePublicPath("/a-propos");
   revalidateAdminPath("/admin/pasteurs");
   revalidatePath("/admin/pasteurs", "layout");
 }
 
 export function revalidateDepartmentContent() {
   revalidateTag(PUBLIC_DEPARTMENTS_CACHE_TAG, "max");
-  revalidatePath("/departements");
+  revalidatePublicPath("/departements");
   revalidateAdminPath("/admin/departements");
 }
 
 export function revalidateTestimonialContent() {
   revalidateTag(PUBLIC_TESTIMONIALS_CACHE_TAG, "max");
-  revalidatePath("/");
-  revalidatePath("/temoignages");
+  revalidatePublicPath("/");
+  revalidatePublicPath("/temoignages");
   revalidateAdminPath("/admin/temoignages");
 }
 
 export function revalidateProjectContent() {
   revalidateTag(PUBLIC_PROJECTS_CACHE_TAG, "max");
-  revalidatePath("/");
-  revalidatePath("/projets");
-  revalidatePath("/don");
+  revalidatePublicPath("/");
+  revalidatePublicPath("/projets");
+  revalidatePublicPath("/don");
   revalidateAdminPath("/admin/projets");
   revalidateAdminPath("/admin/dons");
 }
 
 export function revalidateDonationContent() {
   revalidateTag(PUBLIC_PROJECTS_CACHE_TAG, "max");
-  revalidatePath("/");
-  revalidatePath("/projets");
-  revalidatePath("/don");
+  revalidatePublicPath("/");
+  revalidatePublicPath("/projets");
+  revalidatePublicPath("/don");
   revalidateAdminPath("/admin/dons");
   revalidateAdminPath("/admin/projets");
 }
 
 export function revalidateSettingsContent() {
   revalidateTag(SITE_SETTINGS_CACHE_TAG, "max");
-  revalidatePath("/", "layout");
-  revalidatePath("/");
+  revalidatePublicPath("/", "layout");
+  revalidatePublicPath("/");
   revalidatePath("/icon");
   revalidatePath("/apple-icon");
-  revalidatePath("/contact");
-  revalidatePath("/don");
-  revalidatePath("/a-propos");
+  revalidatePublicPath("/contact");
+  revalidatePublicPath("/don");
+  revalidatePublicPath("/a-propos");
   revalidateAdminPath("/admin/parametres");
   revalidatePath("/admin/parametres", "layout");
 }

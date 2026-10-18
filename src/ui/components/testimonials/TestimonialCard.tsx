@@ -1,13 +1,15 @@
 import { Quote } from "lucide-react";
+import type { Locale } from "@/i18n/config";
 import type { PublicTestimonial } from "@/types";
 import { cn } from "@/utils/cn";
 import { formatPublicationDate } from "@/utils/date/format";
 
 interface TestimonialCardProps {
   testimonial: PublicTestimonial;
+  locale?: Locale;
 }
 
-export function TestimonialCard({ testimonial }: TestimonialCardProps) {
+export function TestimonialCard({ testimonial, locale = "fr" }: TestimonialCardProps) {
   return (
     <figure className="flex h-full flex-col border border-slate-200 bg-white p-6 shadow-sm">
       <Quote className="size-7 text-amber-500" aria-hidden />
@@ -35,7 +37,7 @@ export function TestimonialCard({ testimonial }: TestimonialCardProps) {
             {testimonial.authorName}
           </p>
           <p className="font-sans text-xs text-slate-500">
-            {formatPublicationDate(testimonial.createdAt)}
+            {formatPublicationDate(testimonial.createdAt, locale)}
           </p>
         </div>
       </figcaption>
@@ -43,11 +45,17 @@ export function TestimonialCard({ testimonial }: TestimonialCardProps) {
   );
 }
 
-export function TestimonialGrid({ testimonials }: { testimonials: PublicTestimonial[] }) {
+export function TestimonialGrid({
+  testimonials,
+  locale = "fr",
+}: {
+  testimonials: PublicTestimonial[];
+  locale?: Locale;
+}) {
   if (testimonials.length === 1) {
     return (
       <div className="mx-auto w-full max-w-2xl">
-        <TestimonialCard testimonial={testimonials[0]} />
+        <TestimonialCard testimonial={testimonials[0]} locale={locale} />
       </div>
     );
   }
@@ -60,7 +68,7 @@ export function TestimonialGrid({ testimonials }: { testimonials: PublicTestimon
       )}
     >
       {testimonials.map((testimonial) => (
-        <TestimonialCard key={testimonial.id} testimonial={testimonial} />
+        <TestimonialCard key={testimonial.id} testimonial={testimonial} locale={locale} />
       ))}
     </div>
   );

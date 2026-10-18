@@ -5,9 +5,10 @@ import { FacebookMark, InstagramMark, YoutubeMark } from "@/ui/components/media/
 
 interface QuickAccessProps {
   social: PublicSocialLinks;
+  title: string;
 }
 
-export function QuickAccess({ social }: QuickAccessProps) {
+export function QuickAccess({ social, title }: QuickAccessProps) {
   const whatsappHref = toWhatsAppHref(social.whatsapp);
   const links = [
     whatsappHref
@@ -54,7 +55,7 @@ export function QuickAccess({ social }: QuickAccessProps) {
         id="acces-rapide"
         className="font-heading text-lg font-bold tracking-tight text-violet-700"
       >
-        Accès rapide
+        {title}
       </h2>
       <div className="mt-4 flex flex-col gap-3">
         {links.map((link) => (

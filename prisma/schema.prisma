@@ -42,12 +42,15 @@ model User {
 model Event {
   id                String         @id @default(cuid())
   title             String
+  titleEn           String?
   slug              String?
   description       String
+  descriptionEn     String?        @db.Text
   startDate         DateTime
   endDate           DateTime?
   durationDays      Int            @default(1)
   location          String
+  locationEn        String?
   category          EventCategory
   isSpecial         Boolean        @default(false)
   isExclusive       Boolean        @default(false)
@@ -76,8 +79,10 @@ model Media {
 model Article {
   id            String    @id @default(cuid())
   title         String
+  titleEn       String?
   slug          String    @unique
   content       String
+  contentEn     String?   @db.Text
   author        String
   coverImage    String?
   galleryImages String[]  @default([])
@@ -101,6 +106,7 @@ model Comment {
   createdAt   DateTime @default(now())
 }
 
+// Textes anglais facultatifs : clés parallèles `address_en` et `location_address_en`.
 model SiteSettings {
   id        String   @id @default(cuid())
   key       String   @unique
@@ -112,8 +118,11 @@ model Pastor {
   id        String   @id @default(cuid())
   name      String
   role      String
+  roleEn    String?
   bio       String?  @db.Text
+  bioEn     String?  @db.Text
   quote     String?  @db.Text
+  quoteEn   String?  @db.Text
   image     String?
   order     Int      @default(0)
   createdAt DateTime @default(now())
@@ -121,16 +130,18 @@ model Pastor {
 }
 
 model Department {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  description String   @db.Text
-  responsible String?
-  contact     String?
-  image       String?
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(cuid())
+  name          String
+  nameEn        String?
+  slug          String   @unique
+  description   String   @db.Text
+  descriptionEn String?  @db.Text
+  responsible   String?
+  contact       String?
+  image         String?
+  order         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 // Témoignages de la communauté (modération : isPublished = false par défaut).
@@ -139,6 +150,7 @@ model Testimonial {
   id          String   @id @default(cuid())
   authorName  String
   content     String   @db.Text
+  contentEn   String?  @db.Text
   imagePath   String?
   // E-mail ou téléphone laissé par l'auteur (privé, jamais affiché publiquement).
   contactInfo String?
@@ -152,9 +164,12 @@ model Testimonial {
 model Project {
   id            String            @id @default(cuid())
   title         String
+  titleEn       String?
   slug          String            @unique
   description   String            @db.Text
+  descriptionEn String?           @db.Text
   category      String?
+  categoryEn    String?
   targetAmount  Float
   currentAmount Float             @default(0)
   image         String?

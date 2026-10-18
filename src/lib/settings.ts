@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import { getRequestLocale, localizeSettings } from "@/i18n/localized";
 import { siteConfig } from "@/config/site";
 import { prisma } from "@/lib/prisma";
 import { jsonToDisplay, normalizeMapsEmbedUrl } from "@/lib/siteSettingsKeys";
@@ -78,6 +79,12 @@ export const getSiteSettings = unstable_cache(loadSiteSettings, ["site-settings"
   tags: [SITE_SETTINGS_CACHE_TAG],
   revalidate: 120,
 });
+
+/** Réglages publics déjà basculés dans la langue de la requête. */
+export async function getLocalizedSiteSettings() {
+  const [settings, locale] = await Promise.all([getSiteSettings(), getRequestLocale()]);
+  return localizeSettings(settings, locale);
+}
 
 export function readSetting(
   settings: Record<string, string>,

@@ -1,4 +1,6 @@
 import { Clock } from "lucide-react";
+import type { Locale } from "@/i18n/config";
+import { formatRecurrenceLabel, formatTimeRange, type RecurrenceCopy } from "@/lib/publicContent";
 import type { PublicRecurringGathering } from "@/types";
 import { SectionHeader } from "@/ui/components/layout";
 import { Typography } from "@/ui/design-system/typography";
@@ -7,9 +9,22 @@ import { interactiveCardClass } from "@/utils/theme/interactiveCard";
 
 interface RegularGatheringsSectionProps {
   gatherings: PublicRecurringGathering[];
+  locale?: Locale;
+  labels: {
+    badge: string;
+    title: string;
+    description: string;
+    empty: string;
+  };
+  recurrence: RecurrenceCopy;
 }
 
-export function RegularGatheringsSection({ gatherings }: RegularGatheringsSectionProps) {
+export function RegularGatheringsSection({
+  gatherings,
+  locale = "fr",
+  labels,
+  recurrence,
+}: RegularGatheringsSectionProps) {
   return (
     <section
       id="rassemblements"
@@ -18,10 +33,10 @@ export function RegularGatheringsSection({ gatherings }: RegularGatheringsSectio
     >
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <SectionHeader
-          badge="Rendez-vous réguliers"
-          title="Les rassemblements de la semaine"
+          badge={labels.badge}
+          title={labels.title}
           titleId="rassemblements-title"
-          description="Cultes dominicaux, études bibliques, veillées et temps de jeûne : les créneaux qui rythment la vie communautaire de Voice of Freedom."
+          description={labels.description}
         />
 
         {gatherings.length > 0 ? (
@@ -35,22 +50,24 @@ export function RegularGatheringsSection({ gatherings }: RegularGatheringsSectio
                   <Clock className="size-4" aria-hidden />
                 </span>
                 <p className="mt-4 font-heading text-[11px] font-bold uppercase tracking-[0.16em] text-[#6d28d9]">
-                  {gathering.scheduleLabel}
+                  {formatRecurrenceLabel(
+                    gathering.recurrenceType,
+                    gathering.daysOfWeek,
+                    new Date(gathering.startIso),
+                    recurrence,
+                  )}
                 </p>
                 <Typography variant="h3" className="mt-1.5 text-slate-900">
                   {gathering.title}
                 </Typography>
                 <p className="mt-3 font-sans text-sm text-slate-600">
-                  {gathering.timeLabel}
+                  {formatTimeRange(gathering.startIso, gathering.endIso, locale)}
                 </p>
               </article>
             ))}
           </div>
         ) : (
-          <p className="mt-10 font-sans text-sm text-slate-600">
-            Les rassemblements récurrents apparaîtront ici dès qu&apos;ils seront
-            publiés depuis l&apos;administration.
-          </p>
+          <p className="mt-10 font-sans text-sm text-slate-600">{labels.empty}</p>
         )}
       </div>
     </section>

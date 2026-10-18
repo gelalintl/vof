@@ -11,18 +11,21 @@ import {
   WELCOME_CONTENT_KEY,
   WELCOME_SUBTEXT_KEY,
   WELCOME_TAGLINE_KEY,
+  englishSettingKey,
   type ManagedSettingKey,
 } from "@/lib/siteSettingsKeys";
 import { AdminSubmitButton } from "./AdminSubmitButton";
+import { AdminEnglishSection } from "./AdminEnglishSection";
 import { AdminLabel, AdminPanel } from "./AdminPageHeader";
 import { adminFieldClass, adminFileClass, adminGhostButtonClass } from "./adminStyles";
 import { notifyAdminAction } from "./notifyAdminAction";
 
 interface WelcomeMessageFormProps {
   values: Record<ManagedSettingKey, string>;
+  catalog: Record<string, string>;
 }
 
-export function WelcomeMessageForm({ values }: WelcomeMessageFormProps) {
+export function WelcomeMessageForm({ values, catalog }: WelcomeMessageFormProps) {
   const imageSrc = values[PASTOR_WELCOME_IMAGE_KEY]?.trim() || null;
 
   const handleSubmit = notifyAdminAction(async (formData) => {
@@ -31,6 +34,15 @@ export function WelcomeMessageForm({ values }: WelcomeMessageFormProps) {
       [WELCOME_AUTHOR_KEY]: String(formData.get(WELCOME_AUTHOR_KEY) ?? ""),
       [WELCOME_CONTENT_KEY]: String(formData.get(WELCOME_CONTENT_KEY) ?? ""),
       [WELCOME_SUBTEXT_KEY]: String(formData.get(WELCOME_SUBTEXT_KEY) ?? ""),
+      [englishSettingKey(WELCOME_TAGLINE_KEY)]: String(
+        formData.get(englishSettingKey(WELCOME_TAGLINE_KEY)) ?? "",
+      ),
+      [englishSettingKey(WELCOME_CONTENT_KEY)]: String(
+        formData.get(englishSettingKey(WELCOME_CONTENT_KEY)) ?? "",
+      ),
+      [englishSettingKey(WELCOME_SUBTEXT_KEY)]: String(
+        formData.get(englishSettingKey(WELCOME_SUBTEXT_KEY)) ?? "",
+      ),
     });
   }, "Mot de bienvenue enregistré.");
 
@@ -139,6 +151,35 @@ export function WelcomeMessageForm({ values }: WelcomeMessageFormProps) {
             className={adminFieldClass}
           />
         </label>
+
+        <AdminEnglishSection>
+          <label className="block">
+            <AdminLabel>Surtitre (EN)</AdminLabel>
+            <input
+              name={englishSettingKey(WELCOME_TAGLINE_KEY)}
+              defaultValue={catalog[englishSettingKey(WELCOME_TAGLINE_KEY)] ?? ""}
+              className={adminFieldClass}
+            />
+          </label>
+          <label className="block">
+            <AdminLabel>Citation / Message (EN)</AdminLabel>
+            <textarea
+              name={englishSettingKey(WELCOME_CONTENT_KEY)}
+              rows={5}
+              defaultValue={catalog[englishSettingKey(WELCOME_CONTENT_KEY)] ?? ""}
+              className={adminFieldClass}
+            />
+          </label>
+          <label className="block">
+            <AdminLabel>Sous-titre (EN)</AdminLabel>
+            <textarea
+              name={englishSettingKey(WELCOME_SUBTEXT_KEY)}
+              rows={2}
+              defaultValue={catalog[englishSettingKey(WELCOME_SUBTEXT_KEY)] ?? ""}
+              className={adminFieldClass}
+            />
+          </label>
+        </AdminEnglishSection>
 
         <div>
           <AdminSubmitButton>Enregistrer les modifications</AdminSubmitButton>

@@ -78,11 +78,14 @@ export interface Event {
   id: string;
   slug: string;
   title: string;
+  titleEn?: string | null;
   description: string;
+  descriptionEn?: string | null;
   body?: string;
   startsAt: string;
   endsAt?: string;
   location: string;
+  locationEn?: string | null;
   kind: EventKind;
   colorToken: EventColorToken;
   imageUrl?: string;
@@ -99,7 +102,9 @@ export interface Department {
   id: string;
   slug: string;
   name: string;
+  nameEn?: string | null;
   description: string;
+  descriptionEn?: string | null;
   leader?: string;
   meetingSchedule?: string;
   contact?: string;
@@ -156,9 +161,12 @@ export type DonationPromiseStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
 export interface PublicProject {
   id: string;
   title: string;
+  titleEn?: string | null;
   slug: string;
   description: string;
+  descriptionEn?: string | null;
   category: string | null;
+  categoryEn?: string | null;
   targetAmount: number;
   currentAmount: number;
   image: string | null;
@@ -419,14 +427,17 @@ export type AdminRecurrenceType =
 
 export interface CreateAdminEventInput {
   title: string;
+  titleEn?: string | null;
   slug?: string | null;
   description: string;
+  descriptionEn?: string | null;
   startDate: string;
   endDate?: string | null;
   startTime?: string | null;
   endTime?: string | null;
   durationDays?: number;
   location: string;
+  locationEn?: string | null;
   category: AdminEventCategory;
   isSpecial?: boolean;
   isExclusive?: boolean;
@@ -443,21 +454,25 @@ export interface CreateAdminEventInput {
 export interface PublicRecurringGathering {
   id: string;
   title: string;
-  scheduleLabel: string;
-  timeLabel: string;
+  titleEn?: string | null;
   recurrenceType: AdminRecurrenceType;
   daysOfWeek: number[];
+  startIso: string;
+  endIso: string | null;
 }
 
 export interface AdminEventRecord {
   id: string;
   title: string;
+  titleEn: string | null;
   slug: string | null;
   description: string;
+  descriptionEn: string | null;
   startDate: string;
   endDate: string | null;
   durationDays: number;
   location: string;
+  locationEn: string | null;
   category: AdminEventCategory;
   isSpecial: boolean;
   isExclusive: boolean;
@@ -485,8 +500,10 @@ export interface AdminMediaRecord {
 export interface AdminArticleRecord {
   id: string;
   title: string;
+  titleEn: string | null;
   slug: string;
   content: string;
+  contentEn: string | null;
   author: string;
   coverImage: string | null;
   galleryImages: string[];
@@ -513,8 +530,11 @@ export interface AdminCommentRecord {
 export interface CreateAdminPastorInput {
   name: string;
   role: string;
+  roleEn?: string | null;
   bio?: string | null;
+  bioEn?: string | null;
   quote?: string | null;
+  quoteEn?: string | null;
   image?: string | null;
   order?: number;
 }
@@ -522,8 +542,10 @@ export interface CreateAdminPastorInput {
 export interface AdminDepartmentRecord {
   id: string;
   name: string;
+  nameEn: string | null;
   slug: string;
   description: string;
+  descriptionEn: string | null;
   responsible: string | null;
   contact: string | null;
   image: string | null;
@@ -557,6 +579,7 @@ export interface AdminTestimonialRecord {
   id: string;
   authorName: string;
   content: string;
+  contentEn: string | null;
   imagePath: string | null;
   contactInfo: string | null;
   isPublished: boolean;
@@ -567,6 +590,7 @@ export interface PublicTestimonial {
   id: string;
   authorName: string;
   content: string;
+  contentEn?: string | null;
   imagePath: string | null;
   createdAt: string;
 }
@@ -575,8 +599,11 @@ export interface AdminPastorRecord {
   id: string;
   name: string;
   role: string;
+  roleEn: string | null;
   bio: string | null;
+  bioEn: string | null;
   quote: string | null;
+  quoteEn: string | null;
   image: string | null;
   order: number;
   createdAt: string;
@@ -586,8 +613,11 @@ export interface PublicPastor {
   id: string;
   name: string;
   role: string;
+  roleEn?: string | null;
   bio: string | null;
+  bioEn?: string | null;
   quote: string | null;
+  quoteEn?: string | null;
   image: string | null;
   order: number;
 }
@@ -648,7 +678,9 @@ export interface PublicArticle {
   id: string;
   slug: string;
   title: string;
+  titleEn?: string | null;
   content: string;
+  contentEn?: string | null;
   author: string;
   coverImage: string | null;
   galleryImages: string[];

@@ -21,11 +21,13 @@ import {
   FOOTER_SHOW_CONTACT_KEY,
   FOOTER_SHOW_SOCIALS_KEY,
   isSettingEnabled,
+  englishSettingKey,
   type FooterSettingKey,
 } from "@/lib/siteSettingsKeys";
 import type { FooterLink, FooterScheduleItem } from "@/types";
 import { cn } from "@/utils/cn";
 import { AdminSubmitButton } from "./AdminSubmitButton";
+import { AdminEnglishSection } from "./AdminEnglishSection";
 import { AdminLabel, AdminPanel } from "./AdminPageHeader";
 import { adminFieldClass, adminGhostButtonClass } from "./adminStyles";
 import { notifyAdminAction } from "./notifyAdminAction";
@@ -40,6 +42,7 @@ interface FooterScheduleDraft extends FooterScheduleItem {
 
 interface FooterSettingsFormProps {
   values: Record<FooterSettingKey, string>;
+  catalog: Record<string, string>;
 }
 
 function toLinkDrafts(links: FooterLink[]): FooterLinkDraft[] {
@@ -69,7 +72,7 @@ function scheduleFromValue(
   return toScheduleDrafts(raw.trim() === "" ? fallback : parseFooterScheduleItems(raw));
 }
 
-export function FooterSettingsForm({ values }: FooterSettingsFormProps) {
+export function FooterSettingsForm({ values, catalog }: FooterSettingsFormProps) {
   const [showContact, setShowContact] = useState(
     isSettingEnabled(values.footer_show_contact, true),
   );
@@ -115,6 +118,15 @@ export function FooterSettingsForm({ values }: FooterSettingsFormProps) {
       [FOOTER_NAV_LINKS_KEY]: serializeFooterLinks(navLinks),
       [FOOTER_SCHEDULE_TITLE_KEY]: String(formData.get(FOOTER_SCHEDULE_TITLE_KEY) ?? ""),
       [FOOTER_SCHEDULE_ITEMS_KEY]: serializeFooterScheduleItems(scheduleItems),
+      [englishSettingKey(FOOTER_DESCRIPTION_KEY)]: String(
+        formData.get(englishSettingKey(FOOTER_DESCRIPTION_KEY)) ?? "",
+      ),
+      [englishSettingKey(FOOTER_COPYRIGHT_KEY)]: String(
+        formData.get(englishSettingKey(FOOTER_COPYRIGHT_KEY)) ?? "",
+      ),
+      [englishSettingKey(FOOTER_SCHEDULE_TITLE_KEY)]: String(
+        formData.get(englishSettingKey(FOOTER_SCHEDULE_TITLE_KEY)) ?? "",
+      ),
       [FOOTER_SHOW_CONTACT_KEY]: showContact ? "true" : "false",
       [FOOTER_SHOW_SOCIALS_KEY]: showSocials ? "true" : "false",
     });
@@ -149,6 +161,25 @@ export function FooterSettingsForm({ values }: FooterSettingsFormProps) {
               className={adminFieldClass}
             />
           </label>
+          <AdminEnglishSection>
+            <label className="block">
+              <AdminLabel>Description sous le logo (EN)</AdminLabel>
+              <textarea
+                name={englishSettingKey(FOOTER_DESCRIPTION_KEY)}
+                rows={3}
+                defaultValue={catalog[englishSettingKey(FOOTER_DESCRIPTION_KEY)] ?? ""}
+                className={adminFieldClass}
+              />
+            </label>
+            <label className="block">
+              <AdminLabel>Texte de copyright (EN)</AdminLabel>
+              <input
+                name={englishSettingKey(FOOTER_COPYRIGHT_KEY)}
+                defaultValue={catalog[englishSettingKey(FOOTER_COPYRIGHT_KEY)] ?? ""}
+                className={adminFieldClass}
+              />
+            </label>
+          </AdminEnglishSection>
         </div>
       </AdminPanel>
 
@@ -241,6 +272,15 @@ export function FooterSettingsForm({ values }: FooterSettingsFormProps) {
             name={FOOTER_SCHEDULE_TITLE_KEY}
             defaultValue={values.footer_schedule_title || FOOTER_SCHEDULE_TITLE_FALLBACK}
             placeholder="Horaires des cultes"
+            className={adminFieldClass}
+          />
+        </label>
+        <label className="mt-4 block">
+          <AdminLabel>Titre de la section (EN)</AdminLabel>
+          <input
+            name={englishSettingKey(FOOTER_SCHEDULE_TITLE_KEY)}
+            defaultValue={catalog[englishSettingKey(FOOTER_SCHEDULE_TITLE_KEY)] ?? ""}
+            placeholder="Service times"
             className={adminFieldClass}
           />
         </label>

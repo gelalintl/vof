@@ -1,20 +1,4 @@
-import type {
-  FeatureCardData,
-  PageHeroData,
-  QuoteBlockData,
-  SectionHeaderData,
-} from "@/types";
-import { siteConfig } from "@/config/site";
-
-export const aboutHero: PageHeroData = {
-  badge: "À propos",
-  title: "La vision Voice Of Freedom",
-  description: `${siteConfig.tagline}. Nous bâtissons une église familiale où l'adoration, la Parole et le service libèrent une génération.`,
-};
-
-export const aboutVisionHeader: SectionHeaderData = {
-  title: "Ce qui nous anime",
-};
+import type { FeatureCardData, QuoteBlockData } from "@/types";
 
 export const aboutVerse: QuoteBlockData = {
   quote: "« Verset annuel de l'église »",

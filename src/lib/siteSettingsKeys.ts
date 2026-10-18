@@ -179,12 +179,46 @@ export const PAYMENT_QR_KEY_BY_OPERATOR: Record<PaymentOperatorSlug, PaymentQrKe
   wave: "payment_wave_qr",
 };
 
+/** Clés dont le texte public a une traduction anglaise facultative (`clé_en`). */
+export const BILINGUAL_SETTING_KEYS = [
+  "church_tagline",
+  "hero_badge",
+  "hero_title",
+  "hero_description",
+  "hero_primary_cta_text",
+  "hero_secondary_cta_text",
+  "welcome_tagline",
+  "welcome_content",
+  "welcome_subtext",
+  "footer_description",
+  "footer_copyright",
+  "footer_schedule_title",
+  "address",
+  "location_address",
+  "about_annual_verse_text",
+  "about_pillar_1_title",
+  "about_pillar_1_desc",
+  "about_pillar_2_title",
+  "about_pillar_2_desc",
+  "about_pillar_3_title",
+  "about_pillar_3_desc",
+] as const;
+
+export const BILINGUAL_SETTING_EN_KEYS = BILINGUAL_SETTING_KEYS.map(
+  (key) => `${key}_en` as const,
+);
+
+export function englishSettingKey(key: string) {
+  return `${key}_en`;
+}
+
 export const UPSERTABLE_SETTING_KEYS = [
   ...MANAGED_SETTING_KEYS,
   ...PAYMENT_SETTING_KEYS,
   ...PRINT_SETTING_KEYS,
   ...FOOTER_SETTING_KEYS,
   ...ABOUT_SETTING_KEYS,
+  ...BILINGUAL_SETTING_EN_KEYS,
 ] as const;
 
 export function jsonToDisplay(value: unknown): string {

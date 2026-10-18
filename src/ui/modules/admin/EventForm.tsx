@@ -9,6 +9,7 @@ import { AdminLabel } from "./AdminPageHeader";
 import { AdminThumb } from "./AdminThumb";
 import { EVENT_CATEGORY_LABELS } from "./AdminBadge";
 import { RichTextEditor } from "@/ui/components/forms";
+import { AdminEnglishSection } from "./AdminEnglishSection";
 import { AdminSubmitButton } from "./AdminSubmitButton";
 import { adminFieldClass, adminFileClass } from "./adminStyles";
 
@@ -89,6 +90,7 @@ export function EventForm({ action, event, submitLabel }: EventFormProps) {
   const [exclusive, setExclusive] = useState(Boolean(event?.isExclusive));
   const [excludedDates, setExcludedDates] = useState((event?.excludedDates ?? []).join("\n"));
   const [description, setDescription] = useState(event?.description ?? "");
+  const [descriptionEn, setDescriptionEn] = useState(event?.descriptionEn ?? "");
 
   function toggleDay(day: number) {
     setDaysOfWeek((current) =>
@@ -399,6 +401,26 @@ export function EventForm({ action, event, submitLabel }: EventFormProps) {
           onChange={setExclusive}
         />
       </fieldset>
+
+      <AdminEnglishSection>
+        <label className="block">
+          <AdminLabel>Titre (EN)</AdminLabel>
+          <input name="titleEn" defaultValue={event?.titleEn ?? ""} className={adminFieldClass} />
+        </label>
+        <div>
+          <AdminLabel>Description (EN)</AdminLabel>
+          <RichTextEditor
+            name="descriptionEn"
+            value={descriptionEn}
+            onChange={setDescriptionEn}
+            placeholder="English description…"
+          />
+        </div>
+        <label className="block">
+          <AdminLabel>Lieu (EN)</AdminLabel>
+          <input name="locationEn" defaultValue={event?.locationEn ?? ""} className={adminFieldClass} />
+        </label>
+      </AdminEnglishSection>
 
       <div className="sm:col-span-2">
         <AdminSubmitButton>{submitLabel}</AdminSubmitButton>

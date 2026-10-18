@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { AdminTestimonialRecord } from "@/types";
 import { AdminLabel } from "./AdminPageHeader";
+import { AdminEnglishSection } from "./AdminEnglishSection";
 import { AdminSubmitButton } from "./AdminSubmitButton";
 import { AdminThumb } from "./AdminThumb";
 import { adminFieldClass, adminFileClass } from "./adminStyles";
@@ -96,6 +97,20 @@ export function TestimonialForm({ action, testimonial, submitLabel }: Testimonia
           {testimonial ? "Publié sur le site" : "Publier immédiatement"}
         </span>
       </label>
+
+      <AdminEnglishSection>
+        <label className="block">
+          <AdminLabel>Témoignage (EN)</AdminLabel>
+          <textarea
+            name="contentEn"
+            rows={6}
+            maxLength={5000}
+            defaultValue={testimonial?.contentEn ?? ""}
+            placeholder="English version of the testimony…"
+            className={adminFieldClass}
+          />
+        </label>
+      </AdminEnglishSection>
 
       <div>
         <AdminSubmitButton>{submitLabel}</AdminSubmitButton>

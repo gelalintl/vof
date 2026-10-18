@@ -1,3 +1,21 @@
+import type { Locale } from "@/i18n/config";
+
+function intlLocale(locale: Locale) {
+  return locale === "en" ? "en-GB" : "fr-FR";
+}
+
+function formatClock(hours: string, minutes: string, locale: Locale) {
+  return locale === "en" ? `${hours}:${minutes}` : `${hours}h${minutes}`;
+}
+
+/** Réécrit les heures « 09h00 » d'un texte libre. L'anglais utilise « 09:00 ». */
+export function formatClockLabel(value: string, locale: Locale = "fr") {
+  if (locale !== "en") {
+    return value;
+  }
+  return value.replace(/(\d{1,2})h(\d{2})/g, "$1:$2");
+}
+
 export function parseIsoDate(iso: string): Date {
   const [year, month, day] = iso.slice(0, 10).split("-").map(Number);
   return new Date(year, (month ?? 1) - 1, day ?? 1);
@@ -14,16 +32,19 @@ export function toDateKey(isoOrDate: string | Date): string {
   return `${year}-${month}-${day}`;
 }
 
-export function formatEventDate(isoOrDate: string | Date): string {
+export function formatEventDate(isoOrDate: string | Date, locale: Locale = "fr"): string {
   const date = typeof isoOrDate === "string" ? parseIsoDate(isoOrDate) : isoOrDate;
-  return new Intl.DateTimeFormat("fr-FR", {
+  return new Intl.DateTimeFormat(intlLocale(locale), {
     weekday: "long",
     day: "numeric",
     month: "long",
   }).format(date);
 }
 
-export function formatPublicationDate(isoOrDate: string | Date): string {
+export function formatPublicationDate(
+  isoOrDate: string | Date,
+  locale: Locale = "fr",
+): string {
   const date =
     typeof isoOrDate === "string"
       ? isoOrDate.includes("T") || isoOrDate.includes(" ")
@@ -34,20 +55,20 @@ export function formatPublicationDate(isoOrDate: string | Date): string {
     return "";
   }
 
-  return new Intl.DateTimeFormat("fr-FR", {
+  return new Intl.DateTimeFormat(intlLocale(locale), {
     day: "numeric",
     month: "long",
     year: "numeric",
   }).format(date);
 }
 
-export function formatEventTime(iso: string): string {
+export function formatEventTime(iso: string, locale: Locale = "fr"): string {
   if (iso.includes("T")) {
     const date = new Date(iso);
     if (!Number.isNaN(date.getTime())) {
       const hours = String(date.getHours()).padStart(2, "0");
       const minutes = String(date.getMinutes()).padStart(2, "0");
-      return `${hours}h${minutes}`;
+      return formatClock(hours, minutes, locale);
     }
   }
 
@@ -55,7 +76,11 @@ export function formatEventTime(iso: string): string {
   if (!time) {
     return "";
   }
-  return time.replace(":", "h");
+  const [hours, minutes] = time.split(":");
+  if (!hours || !minutes) {
+    return locale === "en" ? time : time.replace(":", "h");
+  }
+  return formatClock(hours.padStart(2, "0"), minutes, locale);
 }
 
 const MONTHS_FR = [

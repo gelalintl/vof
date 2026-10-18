@@ -4,12 +4,25 @@ import { cn } from "@/utils/cn";
 
 interface CallToTestifyProps {
   className?: string;
+  labels?: {
+    aria: string;
+    quote: string;
+    action: string;
+  };
 }
 
-export function CallToTestify({ className }: CallToTestifyProps) {
+export function CallToTestify({
+  className,
+  labels = {
+    aria: "Appel à témoigner",
+    quote:
+      "Vous avez expérimenté la grâce de Dieu ? Partagez votre témoignage pour édifier l'église.",
+    action: "Partager mon témoignage",
+  },
+}: CallToTestifyProps) {
   return (
     <aside
-      aria-label="Appel à témoigner"
+      aria-label={labels.aria}
       className={cn(
         "relative overflow-hidden border border-violet-200 border-l-4 border-l-violet-700 bg-violet-50 px-6 py-8 text-center sm:px-10 sm:py-10",
         className,
@@ -22,11 +35,10 @@ export function CallToTestify({ className }: CallToTestifyProps) {
         <MessageSquareHeart className="size-6" />
       </span>
       <p className="mx-auto mt-5 max-w-xl font-serif text-lg italic leading-relaxed text-slate-800 sm:text-xl">
-        Vous avez expérimenté la grâce de Dieu ? Partagez votre témoignage pour édifier
-        l&apos;église.
+        {labels.quote}
       </p>
       <Button href="/partager-temoignage" variant="primary" size="lg" className="mt-6">
-        Partager mon témoignage
+        {labels.action}
       </Button>
     </aside>
   );

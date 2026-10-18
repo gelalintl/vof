@@ -1,4 +1,5 @@
 export { Header } from "./Header";
+export { LanguageSwitcher } from "./LanguageSwitcher";
 export { Navbar } from "./Navbar";
 export { Footer } from "./Footer";
 export { ContentSection } from "./ContentSection";

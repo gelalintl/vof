@@ -1,4 +1,4 @@
-import type { PublicSiteContact } from "@/types";
+import type { ContactSubject, PublicSiteContact } from "@/types";
 import { ContactForm } from "./ContactForm";
 import { ContactMap } from "./ContactMap";
 import { PhoneHours } from "./PhoneHours";
@@ -6,25 +6,65 @@ import { QuickAccess } from "./QuickAccess";
 
 interface ContactStackProps {
   contact: PublicSiteContact;
+  gatherings: { id: string; label: string; detail: string }[];
+  subjects: { value: ContactSubject; label: string }[];
+  labels: {
+    quickAccess: string;
+    detailsHours: string;
+    mapTitle: string;
+    mapMissing: string;
+    openMaps: string;
+    write: string;
+    fullName: string;
+    email: string;
+    phone: string;
+    phonePlaceholder: string;
+    subject: string;
+    message: string;
+    messagePlaceholder: string;
+    send: string;
+    sentTitle: string;
+    sentBody: string;
+  };
 }
 
-export function ContactStack({ contact }: ContactStackProps) {
+export function ContactStack({ contact, gatherings, subjects, labels }: ContactStackProps) {
   return (
     <div className="flex flex-col">
       <ContactMap
         iframeUrl={contact.location.iframeUrl}
         mapsUrl={contact.location.googleMapsUrl}
         address={[contact.location.address, contact.location.city].filter(Boolean).join(", ")}
+        title={labels.mapTitle}
+        missing={labels.mapMissing}
+        openMaps={labels.openMaps}
       />
       <div className="mx-auto flex w-full max-w-xl flex-col gap-10 px-4 py-10 sm:px-6">
-        <QuickAccess social={contact.social} />
+        <QuickAccess social={contact.social} title={labels.quickAccess} />
         <PhoneHours
           phone={contact.location.phone}
           email={contact.location.email}
           address={contact.location.address}
           city={contact.location.city}
+          title={labels.detailsHours}
+          gatherings={gatherings}
         />
-        <ContactForm />
+        <ContactForm
+          subjects={subjects}
+          labels={{
+            write: labels.write,
+            fullName: labels.fullName,
+            email: labels.email,
+            phone: labels.phone,
+            phonePlaceholder: labels.phonePlaceholder,
+            subject: labels.subject,
+            message: labels.message,
+            messagePlaceholder: labels.messagePlaceholder,
+            send: labels.send,
+            sentTitle: labels.sentTitle,
+            sentBody: labels.sentBody,
+          }}
+        />
       </div>
     </div>
   );

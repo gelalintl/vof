@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import type { Locale } from "@/i18n/config";
+import { getRequestLocale, localizedText } from "@/i18n/localized";
 import { isExcludedCalendarDay } from "@/lib/eventRecurrence";
 import type { AdminEventCategory, AdminRecurrenceType } from "@/types";
 
@@ -311,6 +313,7 @@ function applyVigilDisplayPriority(events: ProjectedMonthlyEvent[]) {
 export async function getMonthlyEvents(
   year: number,
   month: number,
+  localeOverride?: Locale,
 ): Promise<ProjectedMonthlyEvent[]> {
   if (month < 1 || month > 12) {
     throw new RangeError("month must be between 1 and 12");
@@ -324,10 +327,13 @@ export async function getMonthlyEvents(
       select: {
         id: true,
         title: true,
+        titleEn: true,
         description: true,
+        descriptionEn: true,
         startDate: true,
         endDate: true,
         location: true,
+        locationEn: true,
         category: true,
         isSpecial: true,
         isExclusive: true,
@@ -373,7 +379,15 @@ export async function getMonthlyEvents(
       orderBy: { startDate: "asc" },
     });
 
-    const projected = rows.flatMap((row) => {
+    const locale = localeOverride ?? (await getRequestLocale());
+    const localizedRows = rows.map((row) => ({
+      ...row,
+      title: localizedText(locale, row.title, row.titleEn),
+      description: localizedText(locale, row.description, row.descriptionEn),
+      location: localizedText(locale, row.location, row.locationEn),
+    }));
+
+    const projected = localizedRows.flatMap((row) => {
       const typed = row as RecurringEventRow;
       if (typed.recurrenceType && typed.recurrenceType !== "NONE") {
         return projectRecurring(typed, year, month);

@@ -49,6 +49,7 @@ function serializeTestimonial(testimonial: {
   id: string;
   authorName: string;
   content: string;
+  contentEn: string | null;
   imagePath: string | null;
   contactInfo: string | null;
   isPublished: boolean;
@@ -58,6 +59,7 @@ function serializeTestimonial(testimonial: {
     id: testimonial.id,
     authorName: testimonial.authorName,
     content: testimonial.content,
+    contentEn: testimonial.contentEn,
     imagePath: testimonial.imagePath,
     contactInfo: testimonial.contactInfo,
     isPublished: testimonial.isPublished,
@@ -85,6 +87,7 @@ export async function createTestimonial(formData: FormData) {
     data: {
       authorName,
       content,
+      contentEn: readString(formData, "contentEn") || null,
       imagePath: uploaded || readString(formData, "imagePath") || null,
       contactInfo: readString(formData, "contactInfo") || null,
       isPublished: readCheckbox(formData, "isPublished"),
@@ -122,6 +125,7 @@ export async function updateTestimonial(id: string, formData: FormData) {
         data: {
           authorName,
           content,
+          contentEn: readString(formData, "contentEn") || null,
           imagePath: nextImage,
           contactInfo: readString(formData, "contactInfo") || null,
           isPublished: readCheckbox(formData, "isPublished"),

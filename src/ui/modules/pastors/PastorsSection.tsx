@@ -1,3 +1,5 @@
+import type { Locale } from "@/i18n/config";
+import { localizedOptional, localizedText } from "@/i18n/localized";
 import { getPublicPastors } from "@/lib/publicContent";
 import { SectionHeader } from "@/ui/components/layout";
 import { Typography } from "@/ui/design-system/typography";
@@ -16,7 +18,13 @@ function formatPastorQuote(quote: string) {
   return `« ${trimmed} »`;
 }
 
-export async function PastorsSection() {
+export async function PastorsSection({
+  labels,
+  locale = "fr",
+}: {
+  labels: { badge: string; title: string; empty: string };
+  locale?: Locale;
+}) {
   const pastors = await getPublicPastors();
 
   return (
@@ -27,20 +35,22 @@ export async function PastorsSection() {
     >
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <SectionHeader
-          badge="Équipe pastorale"
-          title="Ceux qui portent la maison"
+          badge={labels.badge}
+          title={labels.title}
           titleId="equipe-pastorale-title"
           align="center"
           titleStyle="display"
         />
 
         {pastors.length === 0 ? (
-          <p className="mt-10 text-center font-sans text-sm text-slate-600">
-            L’équipe pastorale sera bientôt présentée.
-          </p>
+          <p className="mt-10 text-center font-sans text-sm text-slate-600">{labels.empty}</p>
         ) : (
           <div className="mt-16 space-y-16 md:mt-20 md:space-y-24">
-            {pastors.map((pastor, index) => (
+            {pastors.map((pastor, index) => {
+              const role = localizedText(locale, pastor.role, pastor.roleEn);
+              const quote = localizedOptional(locale, pastor.quote, pastor.quoteEn);
+              const bio = localizedOptional(locale, pastor.bio, pastor.bioEn);
+              return (
               <article
                 key={pastor.id}
                 className={cn(
@@ -60,19 +70,25 @@ export async function PastorsSection() {
                   <Typography variant="h2" className="mt-4 text-slate-900">
                     {pastor.name}
                   </Typography>
-                  {pastor.quote ? (
+                  {role ? (
+                    <p className="mt-2 font-heading text-sm font-bold tracking-tight text-violet-700">
+                      {role}
+                    </p>
+                  ) : null}
+                  {quote ? (
                     <blockquote className="mt-6 border-l-4 border-[#6d28d9] bg-purple-50/50 px-5 py-4 font-serif text-lg italic leading-relaxed text-slate-800">
-                      {formatPastorQuote(pastor.quote)}
+                      {formatPastorQuote(quote)}
                     </blockquote>
                   ) : null}
-                  {pastor.bio ? (
+                  {bio ? (
                     <p className="mt-6 font-sans text-base leading-relaxed text-slate-600 text-justify">
-                      {pastor.bio}
+                      {bio}
                     </p>
                   ) : null}
                 </div>
               </article>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

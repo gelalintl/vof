@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { PublicProject } from "@/types";
+import type { ProjectStatus, PublicProject } from "@/types";
 import { projectStatusLabels } from "@/lib/donations";
 import { Typography } from "@/ui/design-system/typography";
 import { cn } from "@/utils/cn";
@@ -12,9 +12,14 @@ interface ProjectCardProps {
   project: PublicProject;
   /** `wide` : image à gauche, texte à droite (projet unique). */
   layout?: "stacked" | "wide";
+  statusLabel?: string;
 }
 
-export function ProjectCard({ project, layout = "stacked" }: ProjectCardProps) {
+export function ProjectCard({
+  project,
+  layout = "stacked",
+  statusLabel,
+}: ProjectCardProps) {
   const isWide = layout === "wide";
 
   return (
@@ -45,7 +50,7 @@ export function ProjectCard({ project, layout = "stacked" }: ProjectCardProps) {
       </div>
       <div className={cn("flex flex-1 flex-col p-5", isWide && "justify-center md:p-8")}>
         <p className="font-heading text-[11px] font-bold uppercase tracking-[0.16em] text-[#0284c7]">
-          {projectStatusLabels[project.status]}
+          {statusLabel ?? projectStatusLabels[project.status]}
         </p>
         <Typography variant="h3" className="mt-2 text-slate-900">
           {/* Lien étiré : toute la carte est cliquable. */}
@@ -77,11 +82,21 @@ export function ProjectCard({ project, layout = "stacked" }: ProjectCardProps) {
 }
 
 /** Grille adaptée au nombre de projets : 1 = carte large centrée, 2 = deux colonnes, 3+ = trois colonnes. */
-export function ProjectGrid({ projects }: { projects: PublicProject[] }) {
+export function ProjectGrid({
+  projects,
+  statusLabels,
+}: {
+  projects: PublicProject[];
+  statusLabels?: Partial<Record<ProjectStatus, string>>;
+}) {
   if (projects.length === 1) {
     return (
       <div className="mx-auto w-full max-w-4xl">
-        <ProjectCard project={projects[0]} layout="wide" />
+        <ProjectCard
+          project={projects[0]}
+          layout="wide"
+          statusLabel={statusLabels?.[projects[0].status]}
+        />
       </div>
     );
   }
@@ -94,7 +109,11 @@ export function ProjectGrid({ projects }: { projects: PublicProject[] }) {
       )}
     >
       {projects.map((project) => (
-        <ProjectCard key={project.id} project={project} />
+        <ProjectCard
+          key={project.id}
+          project={project}
+          statusLabel={statusLabels?.[project.status]}
+        />
       ))}
     </div>
   );

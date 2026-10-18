@@ -10,15 +10,18 @@ import {
   ABOUT_PILLAR_2_TITLE_KEY,
   ABOUT_PILLAR_3_DESC_KEY,
   ABOUT_PILLAR_3_TITLE_KEY,
+  englishSettingKey,
   type AboutSettingKey,
 } from "@/lib/siteSettingsKeys";
 import { AdminSubmitButton } from "./AdminSubmitButton";
+import { AdminEnglishSection } from "./AdminEnglishSection";
 import { AdminLabel, AdminPanel } from "./AdminPageHeader";
 import { adminFieldClass } from "./adminStyles";
 import { notifyAdminAction } from "./notifyAdminAction";
 
 interface AboutSettingsFormProps {
   values: Record<AboutSettingKey, string>;
+  catalog: Record<string, string>;
 }
 
 const PILLARS = [
@@ -45,7 +48,7 @@ const PILLARS = [
   },
 ] as const;
 
-export function AboutSettingsForm({ values }: AboutSettingsFormProps) {
+export function AboutSettingsForm({ values, catalog }: AboutSettingsFormProps) {
   const handleSubmit = notifyAdminAction(async (formData) => {
     await updateSiteSettings({
       [ABOUT_ANNUAL_VERSE_TEXT_KEY]: String(
@@ -60,6 +63,27 @@ export function AboutSettingsForm({ values }: AboutSettingsFormProps) {
       [ABOUT_PILLAR_2_DESC_KEY]: String(formData.get(ABOUT_PILLAR_2_DESC_KEY) ?? ""),
       [ABOUT_PILLAR_3_TITLE_KEY]: String(formData.get(ABOUT_PILLAR_3_TITLE_KEY) ?? ""),
       [ABOUT_PILLAR_3_DESC_KEY]: String(formData.get(ABOUT_PILLAR_3_DESC_KEY) ?? ""),
+      [englishSettingKey(ABOUT_ANNUAL_VERSE_TEXT_KEY)]: String(
+        formData.get(englishSettingKey(ABOUT_ANNUAL_VERSE_TEXT_KEY)) ?? "",
+      ),
+      [englishSettingKey(ABOUT_PILLAR_1_TITLE_KEY)]: String(
+        formData.get(englishSettingKey(ABOUT_PILLAR_1_TITLE_KEY)) ?? "",
+      ),
+      [englishSettingKey(ABOUT_PILLAR_1_DESC_KEY)]: String(
+        formData.get(englishSettingKey(ABOUT_PILLAR_1_DESC_KEY)) ?? "",
+      ),
+      [englishSettingKey(ABOUT_PILLAR_2_TITLE_KEY)]: String(
+        formData.get(englishSettingKey(ABOUT_PILLAR_2_TITLE_KEY)) ?? "",
+      ),
+      [englishSettingKey(ABOUT_PILLAR_2_DESC_KEY)]: String(
+        formData.get(englishSettingKey(ABOUT_PILLAR_2_DESC_KEY)) ?? "",
+      ),
+      [englishSettingKey(ABOUT_PILLAR_3_TITLE_KEY)]: String(
+        formData.get(englishSettingKey(ABOUT_PILLAR_3_TITLE_KEY)) ?? "",
+      ),
+      [englishSettingKey(ABOUT_PILLAR_3_DESC_KEY)]: String(
+        formData.get(englishSettingKey(ABOUT_PILLAR_3_DESC_KEY)) ?? "",
+      ),
     });
   }, "Page À propos enregistrée.");
 
@@ -94,6 +118,18 @@ export function AboutSettingsForm({ values }: AboutSettingsFormProps) {
               className={adminFieldClass}
             />
           </label>
+
+          <AdminEnglishSection>
+            <label className="block">
+              <AdminLabel>Citation du verset (EN)</AdminLabel>
+              <textarea
+                name={englishSettingKey(ABOUT_ANNUAL_VERSE_TEXT_KEY)}
+                rows={4}
+                defaultValue={catalog[englishSettingKey(ABOUT_ANNUAL_VERSE_TEXT_KEY)] ?? ""}
+                className={adminFieldClass}
+              />
+            </label>
+          </AdminEnglishSection>
         </div>
       </AdminPanel>
 
@@ -130,6 +166,23 @@ export function AboutSettingsForm({ values }: AboutSettingsFormProps) {
                   rows={3}
                   defaultValue={values[pillar.descKey]}
                   placeholder={pillar.descPlaceholder}
+                  className={adminFieldClass}
+                />
+              </label>
+              <label className="block">
+                <AdminLabel>Titre (EN)</AdminLabel>
+                <input
+                  name={englishSettingKey(pillar.titleKey)}
+                  defaultValue={catalog[englishSettingKey(pillar.titleKey)] ?? ""}
+                  className={adminFieldClass}
+                />
+              </label>
+              <label className="block">
+                <AdminLabel>Description courte (EN)</AdminLabel>
+                <textarea
+                  name={englishSettingKey(pillar.descKey)}
+                  rows={3}
+                  defaultValue={catalog[englishSettingKey(pillar.descKey)] ?? ""}
                   className={adminFieldClass}
                 />
               </label>

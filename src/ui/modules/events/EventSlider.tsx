@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { ContentSectionTone, Event } from "@/types";
+import type { ContentSectionTone, Event, EventKind } from "@/types";
 import { ContentSection } from "@/ui/components/layout/ContentSection";
 import { SectionHeader } from "@/ui/components/layout/SectionHeader";
-import { eventKindLabels } from "@/lib/eventPresentation";
+import type { Locale } from "@/i18n/config";
+import { formatMessage } from "@/i18n/getDictionary";
 import { cn } from "@/utils/cn";
 import { formatEventDate, formatEventTime } from "@/utils/date/format";
 import { eventColorStyles } from "@/utils/theme/eventColors";
@@ -16,9 +17,26 @@ import { MediaCover } from "@/ui/components/media/MediaCover";
 interface EventSliderProps {
   events: Event[];
   tone?: ContentSectionTone;
+  locale?: Locale;
+  labels: {
+    badge: string;
+    title: string;
+    description: string;
+    seeAnnouncement: string;
+    carouselLabel: string;
+    previous: string;
+    next: string;
+    goTo: string;
+    kinds: Record<EventKind, string>;
+  };
 }
 
-export function EventSlider({ events, tone = "muted" }: EventSliderProps) {
+export function EventSlider({
+  events,
+  tone = "muted",
+  locale = "fr",
+  labels,
+}: EventSliderProps) {
   const [index, setIndex] = useState(0);
   const slides = events.length > 0 ? events : [];
   const current = slides[index];
@@ -36,11 +54,11 @@ export function EventSlider({ events, tone = "muted" }: EventSliderProps) {
     <ContentSection tone={tone} labelledBy="evenements-a-venir">
       <SectionHeader
         titleId="evenements-a-venir"
-        badge="Agenda"
-        title="À venir"
-        description="Les prochains rendez-vous de la famille Voice Of Freedom."
+        badge={labels.badge}
+        title={labels.title}
+        description={labels.description}
       />
-      <div aria-roledescription="carousel" aria-label="Annonces principales">
+      <div aria-roledescription="carousel" aria-label={labels.carouselLabel}>
         <div className="relative overflow-hidden rounded-3xl bg-slate-900 shadow-lg">
           <div
             className="flex transition-transform duration-300 ease-out"
@@ -57,15 +75,15 @@ export function EventSlider({ events, tone = "muted" }: EventSliderProps) {
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8">
                   <Badge variant={eventColorStyles[event.colorToken].badge}>
-                    {eventKindLabels[event.kind]}
+                    {labels.kinds[event.kind]}
                   </Badge>
                   <h3 className="mt-3 max-w-xl font-heading text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
                     {event.title}
                   </h3>
                   <p className="mt-2 max-w-xl font-sans text-sm text-white/85 sm:text-base">
-                    {formatEventDate(event.startsAt)}
-                    {formatEventTime(event.startsAt)
-                      ? ` · ${formatEventTime(event.startsAt)}`
+                    {formatEventDate(event.startsAt, locale)}
+                    {formatEventTime(event.startsAt, locale)
+                      ? ` · ${formatEventTime(event.startsAt, locale)}`
                       : ""}
                     {" · "}
                     {event.location}
@@ -76,7 +94,7 @@ export function EventSlider({ events, tone = "muted" }: EventSliderProps) {
                     size="sm"
                     className="mt-4"
                   >
-                    Voir l&apos;annonce
+                    {labels.seeAnnouncement}
                   </Button>
                 </div>
               </article>
@@ -89,7 +107,7 @@ export function EventSlider({ events, tone = "muted" }: EventSliderProps) {
                 type="button"
                 onClick={() => go(-1)}
                 className="absolute left-3 top-1/2 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-violet-700 shadow sm:left-4"
-                aria-label="Annonce précédente"
+                aria-label={labels.previous}
               >
                 <ChevronLeft className="size-5" />
               </button>
@@ -97,7 +115,7 @@ export function EventSlider({ events, tone = "muted" }: EventSliderProps) {
                 type="button"
                 onClick={() => go(1)}
                 className="absolute right-3 top-1/2 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-violet-700 shadow sm:right-4"
-                aria-label="Annonce suivante"
+                aria-label={labels.next}
               >
                 <ChevronRight className="size-5" />
               </button>
@@ -110,7 +128,7 @@ export function EventSlider({ events, tone = "muted" }: EventSliderProps) {
             <button
               key={event.id}
               type="button"
-              aria-label={`Aller à ${event.title}`}
+              aria-label={formatMessage(labels.goTo, { title: event.title })}
               aria-current={slideIndex === index}
               onClick={() => setIndex(slideIndex)}
               className={cn(

@@ -1,13 +1,6 @@
 import type { PageHeroData, QuoteBlockData } from "@/types";
 import { siteConfig } from "@/config/site";
 
-export const contactHero: PageHeroData = {
-  badge: "Nous rejoindre",
-  title: "Contact",
-  description: `${siteConfig.location.address}, ${siteConfig.location.country}.`,
-  width: "narrow",
-};
-
 export const donateHero: PageHeroData = {
   badge: "Partenaires",
   title: "Soutenir VOF",
@@ -28,21 +21,6 @@ export const departmentsHero: PageHeroData = {
   title: "Les départements VOF",
   description:
     "Une place pour chacun. Découvrez les équipes, les responsables, les horaires, puis envoyez votre demande pour rejoindre un département.",
-};
-
-export const projectsHero: PageHeroData = {
-  badge: "Soutenir",
-  title: "Projets de l’église",
-  description:
-    "Chaque projet a un objectif en FCFA. Choisissez une œuvre, faites une promesse de don, puis réglez via Mobile Money, carte ou virement.",
-  glow: "amber",
-};
-
-export const churchLifeHero: PageHeroData = {
-  badge: "Vie communautaire",
-  title: "La vie de l'église",
-  description:
-    "Une famille qui prie, célèbre et grandit ensemble. Découvrez les rassemblements de la semaine, le prochain événement à la une et l’agenda mensuel de Voice of Freedom — tout au même endroit.",
 };
 
 export const testimonialsHero: PageHeroData = {

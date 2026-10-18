@@ -2,7 +2,7 @@
 
 import { useState, useTransition, type FormEvent } from "react";
 import { CheckCircle2 } from "lucide-react";
-import { submitTestimonial } from "@/app/partager-temoignage/actions";
+import { submitTestimonial } from "@/app/[locale]/partager-temoignage/actions";
 import { Button } from "@/ui/design-system/button";
 
 const fieldClass =

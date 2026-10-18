@@ -1,7 +1,8 @@
 "use client";
 
 import { updateSiteSettings } from "@/app/admin/actions";
-import { HOME_ADDRESS_KEY, type ManagedSettingKey } from "@/lib/siteSettingsKeys";
+import { HOME_ADDRESS_KEY, englishSettingKey, type ManagedSettingKey } from "@/lib/siteSettingsKeys";
+import { AdminEnglishSection } from "./AdminEnglishSection";
 import { AdminSubmitButton } from "./AdminSubmitButton";
 import { AdminLabel, AdminPanel } from "./AdminPageHeader";
 import { adminFieldClass } from "./adminStyles";
@@ -9,16 +10,22 @@ import { notifyAdminAction } from "./notifyAdminAction";
 
 interface ContactLocationFormProps {
   values: Record<ManagedSettingKey, string>;
+  catalog: Record<string, string>;
 }
 
-export function ContactLocationForm({ values }: ContactLocationFormProps) {
+export function ContactLocationForm({ values, catalog }: ContactLocationFormProps) {
   const address = values[HOME_ADDRESS_KEY] || values.location_address;
+  const addressEnKey = englishSettingKey(HOME_ADDRESS_KEY);
+  const locationEnKey = englishSettingKey("location_address");
 
   const handleSubmit = notifyAdminAction(async (formData) => {
     const mainAddress = String(formData.get(HOME_ADDRESS_KEY) ?? "");
+    const addressEn = String(formData.get(addressEnKey) ?? "");
     await updateSiteSettings({
       [HOME_ADDRESS_KEY]: mainAddress,
       location_address: mainAddress,
+      [addressEnKey]: addressEn,
+      [locationEnKey]: addressEn,
       location_google_maps_url: String(formData.get("location_google_maps_url") ?? ""),
       contact_phone: String(formData.get("contact_phone") ?? ""),
       contact_email: String(formData.get("contact_email") ?? ""),
@@ -45,6 +52,19 @@ export function ContactLocationForm({ values }: ContactLocationFormProps) {
             className={adminFieldClass}
           />
         </label>
+
+        <AdminEnglishSection>
+          <label className="block">
+            <AdminLabel>Adresse principale (EN)</AdminLabel>
+            <textarea
+              name={addressEnKey}
+              rows={3}
+              defaultValue={catalog[addressEnKey] || catalog[locationEnKey] || ""}
+              placeholder="Next to Yantala cemetery, near CEG 25, Niamey, Niger"
+              className={adminFieldClass}
+            />
+          </label>
+        </AdminEnglishSection>
 
         <label className="block">
           <AdminLabel>Lien Google Maps / GPS</AdminLabel>

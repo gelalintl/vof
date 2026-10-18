@@ -11,6 +11,7 @@ export default async function AdminSettingsMediasPage() {
   return (
     <HeroVisualEditor
       values={homeHeroDraftFromSettings(identity, settings)}
+      catalog={settings}
       fallbackTime={identity.sundayTime}
     />
   );

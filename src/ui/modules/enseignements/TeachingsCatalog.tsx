@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CalendarDays, UserRound } from "lucide-react";
+import type { Locale } from "@/i18n/config";
 import type { PublicArticle } from "@/types";
 import { excerpt } from "@/ui/modules/enseignements/excerpt";
 import { formatPublicationDate } from "@/utils/date/format";
@@ -12,22 +13,37 @@ const PLACEHOLDER_SRC = "/assets/pastors/placeholder.svg";
 
 interface TeachingsCatalogProps {
   articles: PublicArticle[];
+  locale?: Locale;
+  labels: {
+    word: string;
+    title: string;
+    empty: string;
+    featured: string;
+    featuredTitle: string;
+    featuredByTeam: string;
+    latestPublished: string;
+    allTitle: string;
+    allDescription: string;
+    readMore: string;
+  };
 }
 
-export function TeachingsCatalog({ articles }: TeachingsCatalogProps) {
+export function TeachingsCatalog({
+  articles,
+  locale = "fr",
+  labels,
+}: TeachingsCatalogProps) {
   const [featured, ...others] = articles;
 
   if (!featured) {
     return (
       <section className="bg-white" aria-labelledby="enseignements-title">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-          <Badge variant="accent">Parole</Badge>
+          <Badge variant="accent">{labels.word}</Badge>
           <Typography id="enseignements-title" variant="h2" className="mt-3 text-slate-900">
-            Enseignements
+            {labels.title}
           </Typography>
-          <p className="mt-6 font-sans text-sm text-slate-600">
-            Aucun enseignement publié pour le moment.
-          </p>
+          <p className="mt-6 font-sans text-sm text-slate-600">{labels.empty}</p>
         </div>
       </section>
     );
@@ -37,14 +53,12 @@ export function TeachingsCatalog({ articles }: TeachingsCatalogProps) {
     <>
       <section className="bg-white" aria-labelledby="enseignement-phare">
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-          <Badge variant="accent">À la une</Badge>
+          <Badge variant="accent">{labels.featured}</Badge>
           <Typography id="enseignement-phare" variant="h2" className="mt-3 text-slate-900">
-            Enseignement phare
+            {labels.featuredTitle}
           </Typography>
           <Typography variant="body" className="mt-3 max-w-2xl text-slate-600">
-            {featured.isFeatured
-              ? "L’enseignement mis en avant par l’équipe pastorale de Voice of Freedom."
-              : "La dernière prédication publiée par l’équipe pastorale de Voice of Freedom."}
+            {featured.isFeatured ? labels.featuredByTeam : labels.latestPublished}
           </Typography>
 
           <Link
@@ -72,13 +86,13 @@ export function TeachingsCatalog({ articles }: TeachingsCatalogProps) {
               </p>
               <p className="mt-1.5 flex items-center gap-2 font-sans text-sm text-slate-600">
                 <CalendarDays className="size-4 text-[#6d28d9]" aria-hidden />
-                {formatPublicationDate(featured.publishedAt)}
+                {formatPublicationDate(featured.publishedAt, locale)}
               </p>
               <p className="mt-4 font-sans text-sm leading-relaxed text-slate-800">
                 {excerpt(featured.content)}
               </p>
               <span className="mt-6 inline-flex h-9 w-fit items-center rounded-full bg-[#6d28d9] px-3 font-heading text-sm font-bold tracking-tight text-white">
-                Lire la suite
+                {labels.readMore}
               </span>
             </div>
           </Link>
@@ -89,10 +103,10 @@ export function TeachingsCatalog({ articles }: TeachingsCatalogProps) {
         <section className="bg-slate-50" aria-labelledby="tous-les-enseignements">
           <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
             <Typography id="tous-les-enseignements" variant="h2" className="text-slate-900">
-              Tous les enseignements
+              {labels.allTitle}
             </Typography>
             <Typography variant="body" className="mt-3 max-w-2xl text-slate-600">
-              Parcourez les prédications et articles publiés, du plus récent au plus ancien.
+              {labels.allDescription}
             </Typography>
 
             <div className="mt-10 grid gap-5 overflow-visible sm:grid-cols-2 lg:grid-cols-3">
@@ -112,7 +126,7 @@ export function TeachingsCatalog({ articles }: TeachingsCatalogProps) {
                   </div>
                   <div className="flex flex-1 flex-col px-5 py-5">
                     <p className="font-heading text-[11px] font-bold uppercase tracking-[0.16em] text-[#6d28d9]">
-                      {formatPublicationDate(article.publishedAt)}
+                      {formatPublicationDate(article.publishedAt, locale)}
                     </p>
                     <Typography variant="h3" className="mt-2 text-slate-900">
                       {article.title}
@@ -124,7 +138,7 @@ export function TeachingsCatalog({ articles }: TeachingsCatalogProps) {
                       {excerpt(article.content, 140)}
                     </p>
                     <span className="mt-5 inline-flex h-9 w-fit items-center rounded-full bg-[#6d28d9] px-3 font-heading text-sm font-bold tracking-tight text-white">
-                      Lire la suite
+                      {labels.readMore}
                     </span>
                   </div>
                 </Link>

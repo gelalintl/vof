@@ -1,3 +1,4 @@
+import type { Locale } from "@/i18n/config";
 import type { CalendarEventPayload, MonthlyGeneratedEvent, MonthlyEventType } from "@/types";
 import { parseIsoDate, toDateKey } from "@/utils/date/format";
 
@@ -74,8 +75,8 @@ export function shiftCalendarMonth(year: number, month: number, delta: number) {
   return { year: next.getFullYear(), month: next.getMonth() + 1 };
 }
 
-export function formatMonthTitle(year: number, month: number) {
-  return new Intl.DateTimeFormat("fr-FR", {
+export function formatMonthTitle(year: number, month: number, locale: Locale = "fr") {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "fr-FR", {
     month: "long",
     year: "numeric",
   }).format(new Date(year, month - 1, 1));

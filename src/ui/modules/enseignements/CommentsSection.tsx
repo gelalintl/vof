@@ -3,7 +3,9 @@
 import { useEffect, useState, useTransition, type FormEvent } from "react";
 import { Star } from "lucide-react";
 import { toast } from "sonner";
-import { addComment, likeComment } from "@/app/enseignements/actions";
+import { addComment, likeComment } from "@/app/[locale]/enseignements/actions";
+import type { Locale } from "@/i18n/config";
+import { formatMessage } from "@/i18n/getDictionary";
 import type { PublicArticleComment } from "@/types";
 import { formatPublicationDate } from "@/utils/date/format";
 import { Button } from "@/ui/design-system/button";
@@ -35,11 +37,30 @@ function persistLikedIds(ids: string[]) {
 interface CommentsSectionProps {
   articleId: string;
   initialComments?: PublicArticleComment[];
+  locale?: Locale;
+  labels: {
+    title: string;
+    noComments: string;
+    oneComment: string;
+    manyComments: string;
+    beFirst: string;
+    leaveComment: string;
+    fullName: string;
+    email: string;
+    optional: string;
+    message: string;
+    publishing: string;
+    publish: string;
+    thanks: string;
+    like: string;
+  };
 }
 
 export function CommentsSection({
   articleId,
   initialComments = [],
+  locale = "fr",
+  labels,
 }: CommentsSectionProps) {
   const [comments, setComments] = useState(initialComments);
   const [authorName, setAuthorName] = useState("");
@@ -55,10 +76,10 @@ export function CommentsSection({
 
   const countLabel =
     comments.length === 0
-      ? "Aucun commentaire"
+      ? labels.noComments
       : comments.length === 1
-        ? "1 commentaire"
-        : `${comments.length} commentaires`;
+        ? labels.oneComment
+        : formatMessage(labels.manyComments, { count: String(comments.length) });
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -79,7 +100,7 @@ export function CommentsSection({
       setAuthorName("");
       setAuthorEmail("");
       setContent("");
-      toast.success("Merci ! Votre commentaire a été publié.");
+      toast.success(labels.thanks);
     });
   }
 
@@ -127,14 +148,14 @@ export function CommentsSection({
   return (
     <section className="mt-10 border-t border-slate-200 pt-8" aria-labelledby="commentaires-enseignement">
       <Typography id="commentaires-enseignement" variant="h3" className="text-slate-900">
-        Commentaires
+        {labels.title}
       </Typography>
       <p className="mt-1 font-sans text-sm text-slate-600">{countLabel}</p>
 
       <ul className="mt-6 space-y-3">
         {comments.length === 0 ? (
           <li className="rounded-xl border border-slate-100 bg-slate-50 p-4 font-sans text-sm text-slate-600">
-            Soyez le premier à laisser un commentaire.
+            {labels.beFirst}
           </li>
         ) : (
           comments.map((comment) => (
@@ -146,7 +167,7 @@ export function CommentsSection({
                 {comment.authorName}
               </p>
               <p className="mt-0.5 font-sans text-xs text-slate-500">
-                {formatPublicationDate(comment.createdAt)}
+                {formatPublicationDate(comment.createdAt, locale)}
               </p>
               <p className="mt-2 font-sans text-sm leading-relaxed text-slate-800">
                 {comment.content}
@@ -156,7 +177,7 @@ export function CommentsSection({
                 onClick={() => handleLike(comment.id)}
                 disabled={likedIds.includes(comment.id) || pendingLikeId === comment.id}
                 aria-pressed={likedIds.includes(comment.id)}
-                aria-label="Aimer ce commentaire"
+                aria-label={labels.like}
                 className={cn(
                   "mt-3 inline-flex items-center gap-1.5 font-sans text-xs transition-transform hover:scale-110",
                   likedIds.includes(comment.id)
@@ -180,11 +201,11 @@ export function CommentsSection({
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <Typography variant="h4" className="text-slate-900">
-          Laisser un commentaire
+          {labels.leaveComment}
         </Typography>
         <label className="block">
           <span className="mb-1.5 block font-heading text-xs font-bold uppercase tracking-wide text-slate-600">
-            Nom complet
+            {labels.fullName}
           </span>
           <input
             name="authorName"
@@ -196,7 +217,8 @@ export function CommentsSection({
         </label>
         <label className="block">
           <span className="mb-1.5 block font-heading text-xs font-bold uppercase tracking-wide text-slate-600">
-            E-mail <span className="font-normal normal-case tracking-normal">(optionnel)</span>
+            {labels.email}{" "}
+            <span className="font-normal normal-case tracking-normal">{labels.optional}</span>
           </span>
           <input
             name="authorEmail"
@@ -208,7 +230,7 @@ export function CommentsSection({
         </label>
         <label className="block">
           <span className="mb-1.5 block font-heading text-xs font-bold uppercase tracking-wide text-slate-600">
-            Message
+            {labels.message}
           </span>
           <textarea
             name="content"
@@ -220,7 +242,7 @@ export function CommentsSection({
           />
         </label>
         <Button type="submit" variant="primary" disabled={isSubmitting}>
-          {isSubmitting ? "Envoi en cours…" : "Publier le commentaire"}
+          {isSubmitting ? labels.publishing : labels.publish}
         </Button>
       </form>
     </section>

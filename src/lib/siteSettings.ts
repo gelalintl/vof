@@ -6,6 +6,7 @@ import {
 } from "@/lib/paymentConfig";
 import {
   contactFromSettings,
+  getLocalizedSiteSettings,
   getSiteSettings,
   identityFromSettings,
   homeEditorialFallbacks,
@@ -91,7 +92,7 @@ export async function getChurchLogo(): Promise<string | null> {
 }
 
 export async function getPublicSiteContact(): Promise<PublicSiteContact> {
-  return contactFromSettings(await getSiteSettings());
+  return contactFromSettings(await getLocalizedSiteSettings());
 }
 
 export async function getManagedSettings(): Promise<Record<ManagedSettingKey, string>> {

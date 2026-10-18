@@ -3,7 +3,7 @@ import { HeaderLayout } from "@/ui/layouts/HeaderLayout";
 import { buildPublicFooter } from "@/lib/footerContent";
 import { getActivePublicProjects } from "@/lib/publicContent";
 import { getPublicPaymentConfig } from "@/lib/siteSettings";
-import { contactFromSettings, getSiteSettings, identityFromSettings } from "@/lib/settings";
+import { contactFromSettings, getLocalizedSiteSettings, identityFromSettings } from "@/lib/settings";
 import { toWhatsAppHref } from "@/lib/siteSettingsKeys";
 
 interface MainLayoutProps {
@@ -12,7 +12,7 @@ interface MainLayoutProps {
 
 export async function MainLayout({ children }: MainLayoutProps) {
   const [settings, paymentConfig, projects] = await Promise.all([
-    getSiteSettings(),
+    getLocalizedSiteSettings(),
     getPublicPaymentConfig(),
     getActivePublicProjects(),
   ]);

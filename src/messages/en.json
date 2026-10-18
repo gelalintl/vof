@@ -1,0 +1,252 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "churchLife": "Church life",
+    "teachings": "Teachings",
+    "departments": "Departments",
+    "projects": "Projects",
+    "contact": "Contact",
+    "support": "Give",
+    "gallery": "Gallery",
+    "testimonials": "Testimonials",
+    "shareTestimony": "Share a testimony",
+    "donate": "Donate"
+  },
+  "language": {
+    "label": "Language",
+    "fr": "FR",
+    "en": "EN"
+  },
+  "seo": {
+    "titleTemplate": "%s | Voice of Freedom Church",
+    "defaultTitle": "Voice of Freedom Church",
+    "defaultDescription": "Official website of Voice of Freedom Church. Services, teachings and community life.",
+    "teachingNotFound": "Teaching not found",
+    "home": {
+      "title": "Home",
+      "description": "Welcome to Voice of Freedom Church, a center of solutions in Jesus Christ. Services, teachings and community life."
+    },
+    "about": {
+      "title": "About",
+      "description": "Vision and pastoral team of Voice of Freedom Church."
+    },
+    "contact": {
+      "title": "Contact",
+      "description": "Write to Voice of Freedom Church, find the address, service times, and WhatsApp, YouTube and Facebook."
+    },
+    "donate": {
+      "title": "Give",
+      "description": "Support the work of Voice of Freedom Church in FCFA: a one-time or recurring gift, mobile money, card or bank transfer."
+    },
+    "churchLife": {
+      "title": "Church life",
+      "description": "Community life, regular gatherings, the next featured event and the monthly agenda of Voice of Freedom Church."
+    },
+    "teachings": {
+      "title": "Teachings",
+      "description": "Published sermons and teachings of Voice of Freedom Church."
+    },
+    "projects": {
+      "title": "Projects",
+      "description": "Support the projects of Voice of Freedom Church: building, media, outreach and evangelism."
+    }
+  },
+  "common": {
+    "seeFullSchedule": "See full schedule",
+    "seeAnnouncement": "See the announcement",
+    "readMore": "Read more",
+    "seeAllProjects": "See all projects",
+    "seeGallery": "See the gallery",
+    "readAllTestimonials": "Read all testimonies",
+    "inProgress": "In progress",
+    "completed": "Completed",
+    "planned": "Planned",
+    "eventKinds": {
+      "culte": "Service",
+      "enseignement": "Teaching",
+      "seminaire": "Seminar",
+      "conference": "Conference",
+      "jeunesse": "Youth",
+      "special": "Special gathering",
+      "priere": "Gathering"
+    }
+  },
+  "home": {
+    "schedule": "Service times",
+    "sundayService": "Sunday service",
+    "address": "Address",
+    "whatsappChannel": "VOF WhatsApp channel",
+    "callUs": "Call us: {phone}",
+    "joinWhatsapp": "Join the WhatsApp channel",
+    "agenda": "Agenda",
+    "upcoming": "Upcoming events",
+    "upcomingDescription": "The next gatherings of the Voice of Freedom family.",
+    "carouselLabel": "Featured announcements",
+    "previousAnnouncement": "Previous announcement",
+    "nextAnnouncement": "Next announcement",
+    "goToAnnouncement": "Go to {title}",
+    "featured": "Featured",
+    "latestTeaching": "Latest featured teaching",
+    "latestTeachingDescription": "The message highlighted by the pastoral team.",
+    "projects": "Projects",
+    "churchProjects": "The church's projects",
+    "churchProjectsDescription": "Support a specific work: every giving pledge moves the progress bar forward, in FCFA.",
+    "gallery": "Gallery",
+    "galleryTitle": "Experience VOF",
+    "galleryDescription": "A glimpse of our services, prayers, and special gatherings. Tap an image to view it larger.",
+    "testimonials": "Testimonies",
+    "transformedLives": "Transformed lives",
+    "transformedLivesDescription": "What God is doing in the lives of the Voice of Freedom family."
+  },
+  "footer": {
+    "navigation": "Navigation",
+    "contact": "Contact",
+    "scheduleLabels": {
+      "Culte dominical": "Sunday service",
+      "Conseil & Prière": "Counsel & Prayer",
+      "Etude biblique": "Bible study",
+      "Étude biblique": "Bible study",
+      "Guerriers de prière": "Prayer warriors",
+      "Guerriers de prières": "Prayer warriors",
+      "Prière et témoignages": "Prayer and testimonies",
+      "Prière et Témoignage": "Prayer and testimony",
+      "Veillée de prière": "Prayer vigil",
+      "Veillées de prière": "Prayer vigils",
+      "Jeûne et prière": "Fasting and prayer",
+      "Jeûne & Prières": "Fasting & Prayer"
+    },
+    "scheduleTimes": {
+      "Dimanche 09h00": "Sunday 09:00",
+      "Lundi 15h00": "Monday 15:00",
+      "Mardi 19h00": "Tuesday 19:00",
+      "Mercredi 19h00": "Wednesday 19:00",
+      "Jeudi 19h00": "Thursday 19:00",
+      "2e et dernier vendredi du mois 23h00 – 05h00": "2nd and last Friday of the month, 23:00–05:00",
+      "1er, 2e et 3e du mois 19h00": "1st, 2nd and 3rd of the month, 19:00"
+    }
+  },
+  "about": {
+    "badge": "About",
+    "title": "The Voice of Freedom vision",
+    "description": "A center of solutions in Jesus Christ. We are building a family church where worship, the Word and service set a generation free.",
+    "visionTitle": "What drives us",
+    "pastoralTeam": "Pastoral team",
+    "thoseWhoCarry": "Those who carry the house",
+    "pastorsEmpty": "The pastoral team will be introduced soon."
+  },
+  "churchLife": {
+    "badge": "Community life",
+    "title": "Church life",
+    "description": "A family that prays, celebrates and grows together. Discover the week's gatherings, the next featured event and the monthly agenda of Voice of Freedom — all in one place.",
+    "featuredTitle": "Next featured event",
+    "featuredDescription": "The next major gathering: a service, a vigil or a special moment at Voice of Freedom.",
+    "gatheringsBadge": "Regular gatherings",
+    "gatheringsTitle": "This week's gatherings",
+    "gatheringsDescription": "Sunday services, Bible studies, vigils and times of fasting: the rhythm of community life at Voice of Freedom.",
+    "gatheringsEmpty": "Recurring gatherings will appear here once they are published from the admin."
+  },
+  "teachings": {
+    "word": "Word",
+    "title": "Teachings",
+    "empty": "No teaching has been published yet.",
+    "featuredTitle": "Featured teaching",
+    "featuredByTeam": "The teaching highlighted by the pastoral team of Voice of Freedom.",
+    "latestPublished": "The latest sermon published by the pastoral team of Voice of Freedom.",
+    "allTitle": "All teachings",
+    "allDescription": "Browse the published sermons and articles, from the newest to the oldest.",
+    "back": "Back to teachings",
+    "commentsTitle": "Comments",
+    "noComments": "No comments",
+    "oneComment": "1 comment",
+    "manyComments": "{count} comments",
+    "beFirst": "Be the first to leave a comment.",
+    "leaveComment": "Leave a comment",
+    "fullName": "Full name",
+    "email": "Email",
+    "optional": "(optional)",
+    "message": "Message",
+    "publishing": "Sending…",
+    "publish": "Post comment",
+    "thanks": "Thank you! Your comment has been published.",
+    "like": "Like this comment",
+    "callAria": "Call to share a testimony",
+    "callQuote": "Have you experienced the grace of God? Share your testimony to build up the church."
+  },
+  "projects": {
+    "badge": "Give",
+    "title": "The church's projects",
+    "description": "Each project has a goal in FCFA. Choose a work, make a giving pledge, then pay by mobile money, card or bank transfer.",
+    "listLabel": "Project list",
+    "empty": "The church's projects will appear here once they are published from the admin."
+  },
+  "contact": {
+    "badge": "Join us",
+    "title": "Contact",
+    "quickAccess": "Quick access",
+    "detailsHours": "Contact & service times",
+    "mapTitle": "Church location",
+    "mapMissing": "Map not configured. Add an embed URL in the settings.",
+    "openMaps": "Open in Google Maps",
+    "write": "Write to the church",
+    "fullName": "Full name",
+    "email": "Email",
+    "phone": "Phone",
+    "phonePlaceholder": "07 00 00 00 00",
+    "subject": "Subject",
+    "message": "Message",
+    "messagePlaceholder": "How can we serve you?",
+    "send": "Send",
+    "sentTitle": "Message sent",
+    "sentBody": "Thank you. The VOF team will reply as soon as possible.",
+    "subjects": {
+      "information": "Request for information",
+      "priere": "Prayer request",
+      "visite": "I will visit a service",
+      "don": "Giving & partnership",
+      "departement": "Join a department",
+      "temoignage": "Share a testimony",
+      "autre": "Other"
+    }
+  },
+  "calendar": {
+    "badge": "Agenda",
+    "title": "Calendar & monthly agenda",
+    "description": "Select a day to see every appointment, in time order.",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "dayAppointments": "{day}: {count} appointments",
+    "upcomingTitle": "Upcoming appointments",
+    "dayCount": "{count} appointments this day, in time order",
+    "loading": "Loading the agenda…",
+    "emptyDay": "No appointment recorded for this day.",
+    "emptyPeriod": "No appointment recorded for this period.",
+    "fastingPostponed": "Fast postponed to Tuesday: {days}",
+    "fastingRange": "Fasting and prayer: {days}",
+    "weekdaysShort": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    "weekdaysLong": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    "weekly": "Weekly",
+    "daily": "Every day",
+    "monthly": "Monthly",
+    "first3Days": "1st, 2nd and 3rd of the month",
+    "secondAndLastFriday": "2nd and last Friday of the month",
+    "scheduleDays": {
+      "Dimanche": "Sunday",
+      "Lundi": "Monday",
+      "Mardi": "Tuesday",
+      "Mercredi": "Wednesday",
+      "Jeudi": "Thursday",
+      "Vendredi": "Friday",
+      "Samedi": "Saturday",
+      "2e et dernier vendredi du mois": "2nd and last Friday of the month",
+      "1er, 2e et 3e du mois": "1st, 2nd and 3rd of the month"
+    },
+    "types": {
+      "prayer": "Prayer",
+      "testimony": "Testimonies",
+      "vigil": "Vigil",
+      "fasting": "Fasting",
+      "special": "Special gathering"
+    }
+  }
+}

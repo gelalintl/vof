@@ -51,6 +51,7 @@ import {
   isProjectStatus,
   projectProgress,
 } from "@/lib/donations";
+import { z } from "zod";
 import { parseProjectAmounts } from "@/lib/projectSchema";
 import { parseIsoDate, toDateKey } from "@/utils/date/format";
 import { parseExcludedDateList, slugifyEventTitle } from "@/lib/eventRecurrence";
@@ -73,6 +74,29 @@ const ADMIN_RECURRENCE_TYPES: AdminRecurrenceType[] = [
 
 function readString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
+}
+
+const englishFieldSchema = z.string().max(100_000);
+
+const pastorEnglishSchema = z.object({
+  roleEn: z.string().max(100_000).optional(),
+  bioEn: z.string().max(100_000).optional(),
+  quoteEn: z.string().max(100_000).optional(),
+});
+
+const addressEnglishSchema = z.string().max(10_000);
+
+function optionalEnglish(value: string) {
+  const parsed = englishFieldSchema.safeParse(value.trim());
+  if (!parsed.success) {
+    throw new Error("Le texte anglais est trop long.");
+  }
+  return parsed.data || null;
+}
+
+function optionalEnglishRich(value: string) {
+  const clean = sanitizeRichText(value.trim());
+  return isEmptyRichText(clean) ? null : clean;
 }
 
 function toDate(value: string) {
@@ -304,12 +328,15 @@ async function replaceArticleGallery(articleId: string, nextImages: string[]) {
 function serializeEvent(event: {
   id: string;
   title: string;
+  titleEn?: string | null;
   slug?: string | null;
   description: string;
+  descriptionEn?: string | null;
   startDate: Date;
   endDate: Date | null;
   durationDays?: number;
   location: string;
+  locationEn?: string | null;
   category: AdminEventCategory;
   isSpecial: boolean;
   isExclusive?: boolean;
@@ -325,12 +352,15 @@ function serializeEvent(event: {
   return {
     id: event.id,
     title: event.title,
+    titleEn: event.titleEn ?? null,
     slug: event.slug ?? null,
     description: event.description,
+    descriptionEn: event.descriptionEn ?? null,
     startDate: event.startDate.toISOString(),
     endDate: event.endDate?.toISOString() ?? null,
     durationDays: event.durationDays ?? 1,
     location: event.location,
+    locationEn: event.locationEn ?? null,
     category: event.category,
     isSpecial: event.isSpecial,
     isExclusive: event.isExclusive ?? false,
@@ -369,12 +399,15 @@ export async function createEvent(input: CreateAdminEventInput) {
   const event = await prisma.event.create({
     data: {
       title,
+      titleEn: optionalEnglish(input.titleEn ?? ""),
       slug,
       description,
+      descriptionEn: optionalEnglishRich(input.descriptionEn ?? ""),
       startDate: schedule.startDate,
       endDate: schedule.endDate,
       durationDays: schedule.durationDays,
       location,
+      locationEn: optionalEnglish(input.locationEn ?? ""),
       category: input.category,
       isSpecial: input.isSpecial ?? input.category === "SPECIAL",
       isExclusive: input.isExclusive ?? false,
@@ -396,14 +429,17 @@ export async function createEventFromForm(formData: FormData) {
 
   await createEvent({
     title: readString(formData, "title"),
+    titleEn: readString(formData, "titleEn"),
     slug: readString(formData, "slug") || null,
     description: readString(formData, "description"),
+    descriptionEn: readString(formData, "descriptionEn"),
     startDate: readString(formData, "startDate"),
     endDate: readString(formData, "endDate") || null,
     startTime: readString(formData, "startTime"),
     endTime: readString(formData, "endTime") || null,
     durationDays: parseDurationDays(readString(formData, "durationDays")),
     location: readString(formData, "location"),
+    locationEn: readString(formData, "locationEn"),
     category,
     isSpecial: formData.get("isSpecial") === "on" || category === "SPECIAL",
     isExclusive: formData.get("isExclusive") === "on",
@@ -447,12 +483,15 @@ export async function updateEvent(id: string, input: CreateAdminEventInput) {
         where: { id },
         data: {
           title,
+          titleEn: optionalEnglish(input.titleEn ?? ""),
           slug,
           description,
+          descriptionEn: optionalEnglishRich(input.descriptionEn ?? ""),
           startDate: schedule.startDate,
           endDate: schedule.endDate,
           durationDays: schedule.durationDays,
           location,
+          locationEn: optionalEnglish(input.locationEn ?? ""),
           category: input.category,
           isSpecial: input.isSpecial ?? input.category === "SPECIAL",
           isExclusive: input.isExclusive ?? false,
@@ -491,14 +530,17 @@ export async function updateEventFromForm(formData: FormData) {
 
   await updateEvent(id, {
     title: readString(formData, "title"),
+    titleEn: readString(formData, "titleEn"),
     slug: readString(formData, "slug") || null,
     description: readString(formData, "description"),
+    descriptionEn: readString(formData, "descriptionEn"),
     startDate: readString(formData, "startDate"),
     endDate: readString(formData, "endDate") || null,
     startTime: readString(formData, "startTime"),
     endTime: readString(formData, "endTime") || null,
     durationDays: parseDurationDays(readString(formData, "durationDays")),
     location: readString(formData, "location"),
+    locationEn: readString(formData, "locationEn"),
     category,
     isSpecial: formData.get("isSpecial") === "on" || category === "SPECIAL",
     isExclusive: formData.get("isExclusive") === "on",
@@ -633,8 +675,10 @@ export async function createArticleFromForm(formData: FormData) {
   await prisma.article.create({
     data: {
       title,
+      titleEn: optionalEnglish(readString(formData, "titleEn")),
       slug,
       content,
+      contentEn: optionalEnglishRich(readString(formData, "contentEn")),
       author,
       coverImage: uploaded || readString(formData, "coverImage") || null,
       galleryImages,
@@ -682,8 +726,10 @@ export async function updateArticleFromForm(formData: FormData) {
         where: { id },
         data: {
           title: readString(formData, "title"),
+          titleEn: optionalEnglish(readString(formData, "titleEn")),
           slug: readString(formData, "slug"),
           content,
+          contentEn: optionalEnglishRich(readString(formData, "contentEn")),
           author: readString(formData, "author"),
           coverImage: nextCover,
           youtubeUrl: normalizeYoutubeUrl(readString(formData, "youtubeUrl")),
@@ -769,6 +815,11 @@ export async function updateSiteSettings(settings: Record<string, string>) {
   await requireAdmin();
   const allowed = new Set<string>(UPSERTABLE_SETTING_KEYS);
   const entries = Object.entries(settings).filter(([key]) => allowed.has(key));
+  for (const [key, value] of entries) {
+    if (key === "address_en" || key === "location_address_en") {
+      addressEnglishSchema.parse(value.trim());
+    }
+  }
 
   await prisma.$transaction(
     entries.map(([key, value]) =>
@@ -1036,8 +1087,10 @@ export async function getArticles(): Promise<AdminArticleRecord[]> {
   return articles.map((article) => ({
     id: article.id,
     title: article.title,
+    titleEn: article.titleEn,
     slug: article.slug,
     content: article.content,
+    contentEn: article.contentEn,
     author: article.author,
     coverImage: article.coverImage,
     galleryImages: article.galleryImages ?? [],
@@ -1084,8 +1137,11 @@ function serializePastor(pastor: {
   id: string;
   name: string;
   role: string;
+  roleEn?: string | null;
   bio: string | null;
+  bioEn?: string | null;
   quote?: string | null;
+  quoteEn?: string | null;
   image: string | null;
   order: number;
   createdAt: Date;
@@ -1094,11 +1150,27 @@ function serializePastor(pastor: {
     id: pastor.id,
     name: pastor.name,
     role: pastor.role,
+    roleEn: pastor.roleEn ?? null,
     bio: pastor.bio,
+    bioEn: pastor.bioEn ?? null,
     quote: pastor.quote ?? null,
+    quoteEn: pastor.quoteEn ?? null,
     image: pastor.image,
     order: pastor.order,
     createdAt: pastor.createdAt.toISOString(),
+  };
+}
+
+function pastorEnglishData(input: CreateAdminPastorInput) {
+  const parsed = pastorEnglishSchema.parse({
+    roleEn: input.roleEn ?? "",
+    bioEn: input.bioEn ?? "",
+    quoteEn: input.quoteEn ?? "",
+  });
+  return {
+    roleEn: parsed.roleEn?.trim() || null,
+    bioEn: parsed.bioEn?.trim() || null,
+    quoteEn: parsed.quoteEn?.trim() || null,
   };
 }
 
@@ -1138,6 +1210,7 @@ export async function createPastor(input: CreateAdminPastorInput) {
       quote: input.quote?.trim() || null,
       image: input.image?.trim() || null,
       order: parseDisplayOrder(input.order),
+      ...pastorEnglishData(input),
     },
   });
 
@@ -1152,8 +1225,11 @@ export async function createPastorFromForm(formData: FormData) {
   await createPastor({
     name: readString(formData, "name"),
     role: readString(formData, "role"),
+    roleEn: readString(formData, "roleEn") || null,
     bio: readString(formData, "bio") || null,
+    bioEn: readString(formData, "bioEn") || null,
     quote: readString(formData, "quote") || null,
+    quoteEn: readString(formData, "quoteEn") || null,
     image: uploaded || readString(formData, "image") || null,
     order: parseDisplayOrder(readString(formData, "order")),
   });
@@ -1184,6 +1260,7 @@ export async function updatePastor(id: string, input: CreateAdminPastorInput) {
           quote: input.quote?.trim() || null,
           image: input.image?.trim() || null,
           order: parseDisplayOrder(input.order),
+          ...pastorEnglishData(input),
         },
       }),
     "Pasteur introuvable.",
@@ -1215,8 +1292,11 @@ export async function updatePastorFromForm(formData: FormData) {
   await updatePastor(id, {
     name: readString(formData, "name"),
     role: readString(formData, "role"),
+    roleEn: readString(formData, "roleEn") || null,
     bio: readString(formData, "bio") || null,
+    bioEn: readString(formData, "bioEn") || null,
     quote: readString(formData, "quote") || null,
+    quoteEn: readString(formData, "quoteEn") || null,
     image: nextImage,
     order: parseDisplayOrder(readString(formData, "order")),
   });
@@ -1265,8 +1345,10 @@ function slugify(value: string) {
 function serializeDepartment(department: {
   id: string;
   name: string;
+  nameEn: string | null;
   slug: string;
   description: string;
+  descriptionEn: string | null;
   responsible: string | null;
   contact: string | null;
   image: string | null;
@@ -1276,8 +1358,10 @@ function serializeDepartment(department: {
   return {
     id: department.id,
     name: department.name,
+    nameEn: department.nameEn,
     slug: department.slug,
     description: department.description,
+    descriptionEn: department.descriptionEn,
     responsible: department.responsible,
     contact: department.contact,
     image: department.image,
@@ -1315,8 +1399,10 @@ export async function createDepartment(formData: FormData) {
   const department = await prisma.department.create({
     data: {
       name,
+      nameEn: optionalEnglish(readString(formData, "nameEn")),
       slug: await uniqueDepartmentSlug(name),
       description,
+      descriptionEn: optionalEnglish(readString(formData, "descriptionEn")),
       responsible: readString(formData, "responsible") || null,
       contact: readString(formData, "contact") || null,
       image: uploaded || readString(formData, "image") || null,
@@ -1357,8 +1443,10 @@ export async function updateDepartment(id: string, formData: FormData) {
         where: { id: departmentId },
         data: {
           name,
+          nameEn: optionalEnglish(readString(formData, "nameEn")),
           slug,
           description,
+          descriptionEn: optionalEnglish(readString(formData, "descriptionEn")),
           responsible: readString(formData, "responsible") || null,
           contact: readString(formData, "contact") || null,
           image: nextImage,
@@ -1410,9 +1498,12 @@ export async function getSettings(): Promise<AdminSettingRecord[]> {
 function serializeProject(project: {
   id: string;
   title: string;
+  titleEn: string | null;
   slug: string;
   description: string;
+  descriptionEn: string | null;
   category: string | null;
+  categoryEn: string | null;
   targetAmount: number;
   currentAmount: number;
   image: string | null;
@@ -1424,9 +1515,12 @@ function serializeProject(project: {
   return {
     id: project.id,
     title: project.title,
+    titleEn: project.titleEn,
     slug: project.slug,
     description: project.description,
+    descriptionEn: project.descriptionEn,
     category: project.category,
+    categoryEn: project.categoryEn,
     targetAmount: project.targetAmount,
     currentAmount: project.currentAmount,
     image: project.image,
@@ -1500,9 +1594,12 @@ export async function createProject(formData: FormData) {
   const project = await prisma.project.create({
     data: {
       title,
+      titleEn: optionalEnglish(readString(formData, "titleEn")),
       slug: await uniqueProjectSlug(requestedSlug || title),
       description,
+      descriptionEn: optionalEnglish(readString(formData, "descriptionEn")),
       category: readString(formData, "category") || null,
+      categoryEn: optionalEnglish(readString(formData, "categoryEn")),
       targetAmount: amounts.targetAmount,
       currentAmount: amounts.currentAmount,
       image: uploaded || readString(formData, "image") || null,
@@ -1561,9 +1658,12 @@ export async function updateProject(id: string, formData: FormData) {
         where: { id: projectId },
         data: {
           title,
+          titleEn: optionalEnglish(readString(formData, "titleEn")),
           slug,
           description,
+          descriptionEn: optionalEnglish(readString(formData, "descriptionEn")),
           category: readString(formData, "category") || null,
+          categoryEn: optionalEnglish(readString(formData, "categoryEn")),
           targetAmount: amounts.targetAmount,
           currentAmount: amounts.currentAmount,
           image: nextImage,

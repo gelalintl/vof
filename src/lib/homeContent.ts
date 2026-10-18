@@ -1,7 +1,9 @@
-import { siteConfig } from "@/config/site";
+import type { Locale } from "@/i18n/config";
+import { formatMessage } from "@/i18n/getDictionary";
 import { homeWelcomeHeader, homeWelcomeQuote } from "@/datas/home";
 import { pageHeroFromDraft } from "@/lib/homeHero";
 import { homeEditorialFallbacks, readSetting } from "@/lib/settings";
+import { formatClockLabel } from "@/utils/date/format";
 import type {
   HomeHeroDraft,
   InfoTileData,
@@ -76,6 +78,16 @@ export function buildHomeInfoTiles(
   identity: PublicSiteIdentity,
   contact: PublicSiteContact,
   settings: Record<string, string> = {},
+  copy: {
+    schedule: string;
+    sundayService: string;
+    seeFullSchedule: string;
+    address: string;
+    whatsappChannel: string;
+    callUs: string;
+    joinWhatsapp: string;
+  },
+  locale: Locale = "fr",
 ): InfoTileData[] {
   const fallbacks = homeEditorialFallbacks();
   const address =
@@ -96,29 +108,29 @@ export function buildHomeInfoTiles(
   return [
     {
       id: "horaires",
-      title: "Horaires",
+      title: copy.schedule,
       icon: "clock",
       items: [
         {
-          title: identity.sundayLabel,
-          detail: identity.sundayTime,
+          title: copy.sundayService,
+          detail: formatClockLabel(identity.sundayTime, locale),
         },
       ],
-      link: { href: "/vie-de-leglise", label: "Voir le programme complet" },
+      link: { href: "/vie-de-leglise", label: copy.seeFullSchedule },
     },
     {
       id: "adresse",
-      title: siteConfig.location.label,
+      title: copy.address,
       icon: "map",
       description: address,
     },
     {
       id: "whatsapp",
-      title: siteConfig.contacts.whatsappChannel.label,
+      title: copy.whatsappChannel,
       icon: "message",
       description: whatsappNumber
-        ? `Nous appeler : ${whatsappNumber}`
-        : "Rejoindre le canal WhatsApp",
+        ? formatMessage(copy.callUs, { phone: whatsappNumber })
+        : copy.joinWhatsapp,
       href: whatsappHref,
     },
   ];

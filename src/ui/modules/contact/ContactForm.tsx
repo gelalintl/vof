@@ -1,11 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { contactSubjects } from "@/config/forms";
 import type { ContactSubject } from "@/types";
 import { Button } from "@/ui/design-system/button";
 
-export function ContactForm() {
+interface ContactFormProps {
+  labels: {
+    write: string;
+    fullName: string;
+    email: string;
+    phone: string;
+    phonePlaceholder: string;
+    subject: string;
+    message: string;
+    messagePlaceholder: string;
+    send: string;
+    sentTitle: string;
+    sentBody: string;
+  };
+  subjects: { value: ContactSubject; label: string }[];
+}
+
+export function ContactForm({ labels, subjects }: ContactFormProps) {
   const [submitted, setSubmitted] = useState(false);
   const [subject, setSubject] = useState<ContactSubject>("information");
 
@@ -13,10 +29,10 @@ export function ContactForm() {
     return (
       <div className="rounded-3xl bg-violet-50 p-6 ring-1 ring-violet-100">
         <p className="font-heading text-lg font-bold tracking-tight text-violet-700">
-          Message envoyé
+          {labels.sentTitle}
         </p>
         <p className="mt-2 font-sans text-sm leading-relaxed text-slate-800">
-          Merci. L&apos;équipe VOF vous répondra dès que possible.
+          {labels.sentBody}
         </p>
       </div>
     );
@@ -28,7 +44,7 @@ export function ContactForm() {
         id="formulaire-contact"
         className="font-heading text-lg font-bold tracking-tight text-violet-700"
       >
-        Écrire à l&apos;église
+        {labels.write}
       </h2>
       <form
         className="mt-4 space-y-4"
@@ -37,24 +53,24 @@ export function ContactForm() {
           setSubmitted(true);
         }}
       >
-        <Field label="Nom complet" name="name" required autoComplete="name" />
+        <Field label={labels.fullName} name="name" required autoComplete="name" />
         <Field
-          label="E-mail"
+          label={labels.email}
           name="email"
           type="email"
           required
           autoComplete="email"
         />
         <Field
-          label="Téléphone"
+          label={labels.phone}
           name="phone"
           type="tel"
           autoComplete="tel"
-          placeholder="07 00 00 00 00"
+          placeholder={labels.phonePlaceholder}
         />
         <label className="block">
           <span className="font-heading text-sm font-bold text-slate-800">
-            Motif
+            {labels.subject}
           </span>
           <select
             name="subject"
@@ -65,7 +81,7 @@ export function ContactForm() {
             }
             className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 font-sans text-sm text-slate-800 outline-none ring-violet-700 focus:ring-2"
           >
-            {contactSubjects.map((item) => (
+            {subjects.map((item) => (
               <option key={item.value} value={item.value}>
                 {item.label}
               </option>
@@ -74,18 +90,18 @@ export function ContactForm() {
         </label>
         <label className="block">
           <span className="font-heading text-sm font-bold text-slate-800">
-            Message
+            {labels.message}
           </span>
           <textarea
             name="message"
             required
             rows={5}
             className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 font-sans text-sm text-slate-800 outline-none ring-violet-700 focus:ring-2"
-            placeholder="Comment pouvons-nous vous servir ?"
+            placeholder={labels.messagePlaceholder}
           />
         </label>
         <Button type="submit" variant="primary" className="w-full">
-          Envoyer
+          {labels.send}
         </Button>
       </form>
     </section>

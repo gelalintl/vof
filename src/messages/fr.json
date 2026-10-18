@@ -1,0 +1,252 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "about": "À propos",
+    "churchLife": "Vie de l'église",
+    "teachings": "Enseignements",
+    "departments": "Départements",
+    "projects": "Projets",
+    "contact": "Contact",
+    "support": "Soutenir",
+    "gallery": "Galerie",
+    "testimonials": "Témoignages",
+    "shareTestimony": "Partager un témoignage",
+    "donate": "Faire un don"
+  },
+  "language": {
+    "label": "Langue",
+    "fr": "FR",
+    "en": "EN"
+  },
+  "seo": {
+    "titleTemplate": "%s | Église Voice of Freedom",
+    "defaultTitle": "Église Voice of Freedom",
+    "defaultDescription": "Site officiel de l'Église Voice of Freedom. Cultes, enseignements et vie communautaire.",
+    "teachingNotFound": "Enseignement introuvable",
+    "home": {
+      "title": "Accueil",
+      "description": "Bienvenue à l'Église Voice of Freedom, centre de solutions de Jésus-Christ. Cultes, enseignements et vie communautaire."
+    },
+    "about": {
+      "title": "À propos",
+      "description": "Vision et équipe pastorale de l'Église Voice of Freedom."
+    },
+    "contact": {
+      "title": "Contact",
+      "description": "Écrire à l'Église Voice of Freedom, trouver l'adresse, les horaires et les accès WhatsApp, YouTube et Facebook."
+    },
+    "donate": {
+      "title": "Soutenir",
+      "description": "Soutenez l'œuvre Voice of Freedom en FCFA : don unique ou récurrent, Mobile Money, carte bancaire ou virement RIB."
+    },
+    "churchLife": {
+      "title": "Vie de l'église",
+      "description": "Vie communautaire, rassemblements réguliers, prochain événement et agenda de l'Église Voice of Freedom."
+    },
+    "teachings": {
+      "title": "Enseignements",
+      "description": "Prédications et enseignements publiés de l'Église Voice of Freedom."
+    },
+    "projects": {
+      "title": "Projets",
+      "description": "Soutenez les projets de l'Église Voice of Freedom : construction, médias, social et évangélisation."
+    }
+  },
+  "common": {
+    "seeFullSchedule": "Voir le programme complet",
+    "seeAnnouncement": "Voir l'annonce",
+    "readMore": "Lire la suite",
+    "seeAllProjects": "Voir tous les projets",
+    "seeGallery": "Voir la galerie",
+    "readAllTestimonials": "Lire tous les témoignages",
+    "inProgress": "En cours",
+    "completed": "Terminé",
+    "planned": "Planifié",
+    "eventKinds": {
+      "culte": "Culte",
+      "enseignement": "Enseignement",
+      "seminaire": "Séminaire",
+      "conference": "Conférence",
+      "jeunesse": "Jeunesse",
+      "special": "Temps fort",
+      "priere": "Rassemblement"
+    }
+  },
+  "home": {
+    "schedule": "Horaires",
+    "sundayService": "Culte dominical",
+    "address": "Adresse",
+    "whatsappChannel": "Canal WhatsApp VOF",
+    "callUs": "Nous appeler : {phone}",
+    "joinWhatsapp": "Rejoindre le canal WhatsApp",
+    "agenda": "Agenda",
+    "upcoming": "À venir",
+    "upcomingDescription": "Les prochains rendez-vous de la famille Voice Of Freedom.",
+    "carouselLabel": "Annonces principales",
+    "previousAnnouncement": "Annonce précédente",
+    "nextAnnouncement": "Annonce suivante",
+    "goToAnnouncement": "Aller à {title}",
+    "featured": "À la une",
+    "latestTeaching": "Dernier enseignement à la une",
+    "latestTeachingDescription": "La prédication mise en avant par l’équipe pastorale.",
+    "projects": "Projets",
+    "churchProjects": "Les projets de l’église",
+    "churchProjectsDescription": "Soutenez une œuvre précise : chaque promesse de don fait avancer la jauge en FCFA.",
+    "gallery": "Galerie",
+    "galleryTitle": "Vivre l'expérience VOF",
+    "galleryDescription": "Un aperçu de nos cultes, prières et temps forts. Touchez une image pour l'afficher en grand.",
+    "testimonials": "Témoignages",
+    "transformedLives": "Vies transformées",
+    "transformedLivesDescription": "Ce que Dieu fait dans la vie des membres de la famille Voice Of Freedom."
+  },
+  "footer": {
+    "navigation": "Navigation",
+    "contact": "Contact",
+    "scheduleLabels": {
+      "Culte dominical": "Culte dominical",
+      "Conseil & Prière": "Conseil & Prière",
+      "Etude biblique": "Etude biblique",
+      "Étude biblique": "Étude biblique",
+      "Guerriers de prière": "Guerriers de prière",
+      "Guerriers de prières": "Guerriers de prières",
+      "Prière et témoignages": "Prière et témoignages",
+      "Prière et Témoignage": "Prière et Témoignage",
+      "Veillée de prière": "Veillée de prière",
+      "Veillées de prière": "Veillées de prière",
+      "Jeûne et prière": "Jeûne et prière",
+      "Jeûne & Prières": "Jeûne & Prières"
+    },
+    "scheduleTimes": {
+      "Dimanche 09h00": "Dimanche 09h00",
+      "Lundi 15h00": "Lundi 15h00",
+      "Mardi 19h00": "Mardi 19h00",
+      "Mercredi 19h00": "Mercredi 19h00",
+      "Jeudi 19h00": "Jeudi 19h00",
+      "2e et dernier vendredi du mois 23h00 – 05h00": "2e et dernier vendredi du mois 23h00 – 05h00",
+      "1er, 2e et 3e du mois 19h00": "1er, 2e et 3e du mois 19h00"
+    }
+  },
+  "about": {
+    "badge": "À propos",
+    "title": "La vision Voice Of Freedom",
+    "description": "Centre de solutions de Jésus-Christ. Nous bâtissons une église familiale où l'adoration, la Parole et le service libèrent une génération.",
+    "visionTitle": "Ce qui nous anime",
+    "pastoralTeam": "Équipe pastorale",
+    "thoseWhoCarry": "Ceux qui portent la maison",
+    "pastorsEmpty": "L'équipe pastorale sera bientôt présentée."
+  },
+  "churchLife": {
+    "badge": "Vie communautaire",
+    "title": "La vie de l'église",
+    "description": "Une famille qui prie, célèbre et grandit ensemble. Découvrez les rassemblements de la semaine, le prochain événement à la une et l'agenda mensuel de Voice of Freedom — tout au même endroit.",
+    "featuredTitle": "Prochain événement à la une",
+    "featuredDescription": "Le grand rendez-vous à venir : culte, veillée ou temps fort de Voice of Freedom.",
+    "gatheringsBadge": "Rendez-vous réguliers",
+    "gatheringsTitle": "Les rassemblements de la semaine",
+    "gatheringsDescription": "Cultes dominicaux, études bibliques, veillées et temps de jeûne : les créneaux qui rythment la vie communautaire de Voice of Freedom.",
+    "gatheringsEmpty": "Les rassemblements récurrents apparaîtront ici dès qu'ils seront publiés depuis l'administration."
+  },
+  "teachings": {
+    "word": "Parole",
+    "title": "Enseignements",
+    "empty": "Aucun enseignement publié pour le moment.",
+    "featuredTitle": "Enseignement phare",
+    "featuredByTeam": "L'enseignement mis en avant par l'équipe pastorale de Voice of Freedom.",
+    "latestPublished": "La dernière prédication publiée par l'équipe pastorale de Voice of Freedom.",
+    "allTitle": "Tous les enseignements",
+    "allDescription": "Parcourez les prédications et articles publiés, du plus récent au plus ancien.",
+    "back": "Retour aux enseignements",
+    "commentsTitle": "Commentaires",
+    "noComments": "Aucun commentaire",
+    "oneComment": "1 commentaire",
+    "manyComments": "{count} commentaires",
+    "beFirst": "Soyez le premier à laisser un commentaire.",
+    "leaveComment": "Laisser un commentaire",
+    "fullName": "Nom complet",
+    "email": "E-mail",
+    "optional": "(optionnel)",
+    "message": "Message",
+    "publishing": "Envoi en cours…",
+    "publish": "Publier le commentaire",
+    "thanks": "Merci ! Votre commentaire a été publié.",
+    "like": "Aimer ce commentaire",
+    "callAria": "Appel à témoigner",
+    "callQuote": "Vous avez expérimenté la grâce de Dieu ? Partagez votre témoignage pour édifier l'église."
+  },
+  "projects": {
+    "badge": "Soutenir",
+    "title": "Projets de l'église",
+    "description": "Chaque projet a un objectif en FCFA. Choisissez une œuvre, faites une promesse de don, puis réglez via Mobile Money, carte ou virement.",
+    "listLabel": "Liste des projets",
+    "empty": "Les projets de l'église apparaîtront ici dès qu'ils seront publiés depuis l'administration."
+  },
+  "contact": {
+    "badge": "Nous rejoindre",
+    "title": "Contact",
+    "quickAccess": "Accès rapide",
+    "detailsHours": "Coordonnées & horaires",
+    "mapTitle": "Localisation de l'église",
+    "mapMissing": "Carte non configurée. Ajoutez une URL d'intégration dans les paramètres.",
+    "openMaps": "Ouvrir dans Google Maps",
+    "write": "Écrire à l'église",
+    "fullName": "Nom complet",
+    "email": "E-mail",
+    "phone": "Téléphone",
+    "phonePlaceholder": "07 00 00 00 00",
+    "subject": "Motif",
+    "message": "Message",
+    "messagePlaceholder": "Comment pouvons-nous vous servir ?",
+    "send": "Envoyer",
+    "sentTitle": "Message envoyé",
+    "sentBody": "Merci. L'équipe VOF vous répondra dès que possible.",
+    "subjects": {
+      "information": "Demande d'information",
+      "priere": "Demande de prière",
+      "visite": "Je visiterai un culte",
+      "don": "Dons & partenariat",
+      "departement": "Rejoindre un département",
+      "temoignage": "Partager un témoignage",
+      "autre": "Autre"
+    }
+  },
+  "calendar": {
+    "badge": "Agenda",
+    "title": "Calendrier & agenda mensuel",
+    "description": "Sélectionnez un jour pour voir tous les rendez-vous, dans l'ordre horaire.",
+    "previousMonth": "Mois précédent",
+    "nextMonth": "Mois suivant",
+    "dayAppointments": "{day} : {count} rendez-vous",
+    "upcomingTitle": "Prochains rendez-vous",
+    "dayCount": "{count} rendez-vous ce jour, par ordre horaire",
+    "loading": "Chargement de l'agenda…",
+    "emptyDay": "Aucun rendez-vous enregistré pour cette journée.",
+    "emptyPeriod": "Aucun rendez-vous enregistré pour cette période.",
+    "fastingPostponed": "Jeûne reporté au mardi : {days}",
+    "fastingRange": "Jeûne et prière : {days}",
+    "weekdaysShort": ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
+    "weekdaysLong": ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
+    "weekly": "Hebdomadaire",
+    "daily": "Tous les jours",
+    "monthly": "Mensuel",
+    "first3Days": "1er, 2e et 3e du mois",
+    "secondAndLastFriday": "2e et dernier vendredi du mois",
+    "scheduleDays": {
+      "Dimanche": "Dimanche",
+      "Lundi": "Lundi",
+      "Mardi": "Mardi",
+      "Mercredi": "Mercredi",
+      "Jeudi": "Jeudi",
+      "Vendredi": "Vendredi",
+      "Samedi": "Samedi",
+      "2e et dernier vendredi du mois": "2e et dernier vendredi du mois",
+      "1er, 2e et 3e du mois": "1er, 2e et 3e du mois"
+    },
+    "types": {
+      "prayer": "Prière",
+      "testimony": "Témoignages",
+      "vigil": "Veillée",
+      "fasting": "Jeûne",
+      "special": "Temps fort"
+    }
+  }
+}
