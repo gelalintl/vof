@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
+import { formatMessage } from "@/i18n/getDictionary";
 import type { PublicBankTransfer } from "@/types";
 import { Button } from "@/ui/design-system/button";
+import { useDonateFlowCopy } from "./useDonateFlowCopy";
 
 interface DonateBankTransferProps {
   bank: PublicBankTransfer;
@@ -28,6 +30,7 @@ async function copyText(value: string) {
 }
 
 export function DonateBankTransfer({ bank, summary, compact = false }: DonateBankTransferProps) {
+  const { t } = useDonateFlowCopy();
   const [copied, setCopied] = useState(false);
   const iban = bank.iban.replace(/\s+/g, " ").trim();
 
@@ -44,27 +47,26 @@ export function DonateBankTransfer({ bank, summary, compact = false }: DonateBan
     <div className="overflow-hidden rounded-2xl border border-violet-100 bg-white shadow-sm">
       <div className="bg-gradient-to-r from-violet-700 to-sky-600 px-4 py-3">
         <p className="font-heading text-[11px] font-bold uppercase tracking-[0.2em] text-white/80">
-          Virement bancaire
+          {t("bankTitle")}
         </p>
         <p className="mt-1 font-heading text-sm font-bold text-white">
-          Coordonnées officielles VOF
+          {t("bankOfficial")}
         </p>
       </div>
 
       <div className={compact ? "space-y-3 p-3" : "space-y-4 p-4"}>
         {compact ? null : (
         <p className="font-sans text-sm leading-relaxed text-slate-700">
-          Effectuez un virement de <strong>{summary}</strong> vers le compte
-          ci-dessous, puis conservez votre reçu.
+          {formatMessage(t("bankIntro"), { summary })}
         </p>
         )}
 
         <dl className="divide-y divide-slate-100 rounded-2xl bg-slate-50">
-          <BankRow label="Banque" value={bank.bankName} />
-          <BankRow label="Titulaire" value={bank.accountName} />
+          <BankRow label={t("bankName")} value={bank.bankName} />
+          <BankRow label={t("accountHolder")} value={bank.accountName} />
           <BankRow label="IBAN" value={iban} mono />
           <BankRow label="SWIFT / BIC" value={bank.swift} mono />
-          {bank.ribCode ? <BankRow label="RIB / clé" value={bank.ribCode} mono /> : null}
+          {bank.ribCode ? <BankRow label={t("ribKey")} value={bank.ribCode} mono /> : null}
         </dl>
 
         <Button
@@ -77,12 +79,12 @@ export function DonateBankTransfer({ bank, summary, compact = false }: DonateBan
           {copied ? (
             <>
               <Check className="size-4" />
-              IBAN copié
+              {t("ibanCopied")}
             </>
           ) : (
             <>
               <Copy className="size-4" />
-              Copier l&apos;IBAN
+              {t("copyIban")}
             </>
           )}
         </Button>

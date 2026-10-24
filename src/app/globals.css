@@ -95,3 +95,47 @@ body {
   height: 0;
   pointer-events: none;
 }
+
+.vof-phone {
+  --PhoneInput-color--focus: #6d28d9;
+  --PhoneInputCountrySelectArrow-color--focus: #6d28d9;
+  --PhoneInputCountryFlag-borderColor--focus: #6d28d9;
+  --PhoneInputCountryFlag-height: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.375rem;
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  padding: 0.625rem 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #1e293b;
+}
+
+.vof-phone:focus-within {
+  outline: none;
+  box-shadow: 0 0 0 2px #6d28d9;
+}
+
+.vof-phone-invalid {
+  border-color: #dc2626;
+}
+
+.vof-phone .PhoneInputInput {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  outline: none;
+}
+
+.vof-phone .PhoneInputInput::placeholder {
+  color: #94a3b8;
+}

@@ -4,9 +4,11 @@ import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { merchantDisplayName } from "@/lib/paymentConfig";
 import type { MobileMoneyOperatorId, PublicMobileMoneyOperator } from "@/types";
+import { formatMessage } from "@/i18n/getDictionary";
 import { formatFcfa } from "@/utils/formatters/currency";
 import { cn } from "@/utils/cn";
 import { Button } from "@/ui/design-system/button";
+import { useDonateFlowCopy } from "./useDonateFlowCopy";
 
 interface DonateMobileMoneyProps {
   amountFcfa: number;
@@ -29,6 +31,7 @@ export function DonateMobileMoney({
   onSenderNumberChange,
   compact = false,
 }: DonateMobileMoneyProps) {
+  const { t } = useDonateFlowCopy();
   const [internalOperatorId, setInternalOperatorId] = useState<MobileMoneyOperatorId>(
     operators[0]?.id ?? "amana",
   );
@@ -70,14 +73,12 @@ export function DonateMobileMoney({
     <div className={cn("rounded-2xl bg-slate-50", compact ? "space-y-3 p-3" : "space-y-4 p-4")}>
       {compact ? null : (
         <p className="font-sans text-sm leading-relaxed text-slate-800">
-          Envoyez <strong>{summary}</strong> via Mobile Money. Choisissez
-          l&apos;opérateur, scannez le QR marchand ou copiez le numéro officiel
-          de {merchantDisplayName()}.
+          {formatMessage(t("mmIntro"), { summary, merchant: merchantDisplayName() })}
         </p>
       )}
 
       {compact && operators.length <= 1 ? null : (
-      <div className="grid grid-cols-3 gap-2" role="tablist" aria-label="Opérateur Mobile Money">
+      <div className="grid grid-cols-3 gap-2" role="tablist" aria-label={t("operatorAria")}>
         {operators.map((item) => {
           const selected = item.id === operatorId;
           return (
@@ -112,7 +113,7 @@ export function DonateMobileMoney({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={account.qrUrl}
-                alt={`QR Code marchand ${account.label}`}
+                alt={formatMessage(t("qrAlt"), { operator: account.label })}
                 width={180}
                 height={180}
                 className={cn(
@@ -128,7 +129,7 @@ export function DonateMobileMoney({
                 compact ? "size-[120px]" : "size-[160px] sm:size-[180px]",
               )}
             >
-              QR {account.label} à venir
+              {formatMessage(t("qrPending"), { operator: account.label })}
             </div>
           )}
           <p className="mt-2 font-heading text-xs font-bold uppercase tracking-widest text-violet-700">
@@ -138,7 +139,7 @@ export function DonateMobileMoney({
 
         <div className={cn("space-y-1 text-center", compact ? "mt-2" : "mt-4")}>
           <p className="font-heading text-lg font-extrabold tracking-tight text-slate-800">
-            {account.phone || "Numéro marchand à confirmer"}
+            {account.phone || t("merchantPending")}
           </p>
           <p className="font-sans text-sm text-slate-600">{merchantDisplayName()}</p>
         </div>
@@ -153,12 +154,12 @@ export function DonateMobileMoney({
           {copied ? (
             <>
               <Check className="size-4" />
-              Numéro copié
+              {t("numberCopied")}
             </>
           ) : (
             <>
               <Copy className="size-4" />
-              Copier le numéro
+              {t("copyNumber")}
             </>
           )}
         </Button>
@@ -166,7 +167,7 @@ export function DonateMobileMoney({
         {compact ? null : (
           <label className="mt-4 block">
             <span className="font-heading text-sm font-bold text-slate-800">
-              Votre numéro d&apos;expéditeur
+              {t("senderNumber")}
             </span>
             <input
               type="tel"
@@ -176,14 +177,14 @@ export function DonateMobileMoney({
                 onSenderNumberChange?.(event.target.value);
                 setInternalSenderNumber(event.target.value);
               }}
-              placeholder="Ex. +227 90 00 00 00"
+              placeholder={t("senderPlaceholder")}
               className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 font-sans text-slate-800 outline-none ring-violet-700 placeholder:text-slate-400 focus:ring-2"
             />
           </label>
         )}
 
         <p className="mt-3 text-center font-sans text-xs text-slate-500">
-          Montant à envoyer : {formatFcfa(amountFcfa)}
+          {formatMessage(t("amountToSend"), { amount: formatFcfa(amountFcfa) })}
         </p>
       </div>
     </div>

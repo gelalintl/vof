@@ -1,45 +1,51 @@
 "use server";
 
+import { getDictionary } from "@/i18n/getDictionary";
+import { getRequestLocale } from "@/i18n/localized";
 import { prisma } from "@/lib/prisma";
 import { revalidateDonationContent } from "@/lib/adminActionUtils";
 import {
-  isDonationPaymentMethod,
-  isDonationPromiseType,
-} from "@/lib/donations";
+  donationPromiseSchema,
+  isMobileMoneyMethod,
+  notesWithTransferPhone,
+} from "@/lib/donationSchema";
 import type { SubmitDonationPromiseInput } from "@/types";
 
 export type SubmitDonationResult =
   | { success: true; id: string }
   | { success: false; error: string };
 
+function compactPhone(value: string | undefined) {
+  return (value ?? "").replace(/[\s().-]/g, "");
+}
+
 export async function submitDonationPromise(
   data: SubmitDonationPromiseInput,
 ): Promise<SubmitDonationResult> {
   try {
-    const amount = Number(data.amount);
-    if (!Number.isFinite(amount) || amount <= 0) {
-      return { success: false, error: "Le montant du don doit être supérieur à 0 FCFA." };
-    }
+    const locale = await getRequestLocale();
+    const phoneMessage = getDictionary(locale).donate.phoneInvalid;
+    const parsed = donationPromiseSchema(phoneMessage).safeParse({
+      donorName: data.donorName ?? "",
+      donorPhone: compactPhone(data.donorPhone),
+      donorEmail: data.donorEmail ?? "",
+      type: String(data.type ?? "PROJET").trim().toUpperCase(),
+      amount: Number(data.amount),
+      paymentMethod: String(data.paymentMethod ?? "").trim().toUpperCase(),
+      notes: data.notes ?? "",
+      projectId: data.projectId?.trim() || null,
+      transferPhone: compactPhone(data.transferPhone),
+    });
 
-    const donorPhone = data.donorPhone?.trim() ?? "";
-    if (donorPhone.replace(/\s/g, "").length < 8) {
+    if (!parsed.success) {
       return {
         success: false,
-        error: "Le téléphone / WhatsApp est requis pour le suivi du don.",
+        error: parsed.error.issues[0]?.message ?? "Promesse de don invalide.",
       };
     }
 
-    const paymentMethod = String(data.paymentMethod ?? "").trim().toUpperCase();
-    if (!isDonationPaymentMethod(paymentMethod)) {
-      return { success: false, error: "Moyen de paiement invalide." };
-    }
-
-    const type = String(data.type ?? "PROJET").trim().toUpperCase();
-    if (!isDonationPromiseType(type)) {
-      return { success: false, error: "Type de don invalide." };
-    }
-
-    const projectId = data.projectId?.trim() || null;
+    const promise = parsed.data;
+    const projectId = promise.projectId ?? null;
     if (projectId) {
       const project = await prisma.project.findUnique({
         where: { id: projectId },
@@ -57,15 +63,16 @@ export async function submitDonationPromise(
       };
     }
 
+    const mobile = isMobileMoneyMethod(promise.paymentMethod);
     const donation = await prisma.donationPromise.create({
       data: {
-        donorName: data.donorName?.trim() || null,
-        donorPhone,
-        donorEmail: data.donorEmail?.trim() || null,
-        type: projectId ? "PROJET" : type,
-        amount,
-        paymentMethod,
-        notes: data.notes?.trim() || null,
+        donorName: promise.donorName || null,
+        donorPhone: promise.donorPhone,
+        donorEmail: promise.donorEmail || null,
+        type: projectId ? "PROJET" : promise.type,
+        amount: promise.amount,
+        paymentMethod: promise.paymentMethod,
+        notes: notesWithTransferPhone(promise.notes, promise.transferPhone, mobile),
         projectId,
         status: "PENDING",
       },

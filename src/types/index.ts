@@ -209,6 +209,8 @@ export interface SubmitDonationPromiseInput {
   paymentMethod: string;
   notes?: string;
   projectId?: string | null;
+  /** Numéro Mobile Money du transfert, au format E.164. */
+  transferPhone?: string;
 }
 
 export interface DonationListFilters {

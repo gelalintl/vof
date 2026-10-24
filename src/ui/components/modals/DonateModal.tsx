@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import { getDictionary } from "@/i18n/getDictionary";
+import { localeFromPathname } from "@/i18n/routing";
 import type { PublicPaymentConfig, PublicProject } from "@/types";
 import { DonateFlow } from "@/ui/components/forms";
 
@@ -21,6 +24,8 @@ export function DonateModal({
   projects = [],
   whatsappHref = "",
 }: DonateModalProps) {
+  const pathname = usePathname();
+  const copy = getDictionary(localeFromPathname(pathname) ?? "fr").donate;
   const [flowKey, setFlowKey] = useState(0);
   const [mounted, setMounted] = useState(false);
 
@@ -81,13 +86,13 @@ export function DonateModal({
           id="vof-donate-title"
           className="pr-12 font-heading text-lg font-bold tracking-tight text-slate-800 sm:text-xl"
         >
-          Soutenir l&apos;œuvre VOF
+          {copy.modalTitle}
         </h2>
         <p
           id="vof-donate-description"
           className="mt-1 font-sans text-sm leading-relaxed text-slate-600"
         >
-          Trois étapes : montant, coordonnées, puis paiement en FCFA.
+          {copy.modalDescription}
         </p>
         <div className="mt-4">
           <DonateFlow

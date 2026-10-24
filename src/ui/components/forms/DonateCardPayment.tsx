@@ -1,16 +1,18 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
-import { Lock } from "lucide-react";
+import { useState, type FormEvent } from "react";
 import { formatFcfa } from "@/utils/formatters/currency";
 import { cn } from "@/utils/cn";
 import { Button } from "@/ui/design-system/button";
+import { useDonateFlowCopy } from "./useDonateFlowCopy";
 
 type CardBrand = "visa" | "mastercard" | "unknown";
 
 interface DonateCardPaymentProps {
   amountFcfa: number;
   purpose: string;
+  submitLabel: string;
+  preparedMessage: string;
 }
 
 function digitsOnly(value: string, max: number) {
@@ -60,7 +62,13 @@ function isValidExpiry(value: string) {
   return month >= 1 && month <= 12;
 }
 
-export function DonateCardPayment({ amountFcfa, purpose }: DonateCardPaymentProps) {
+export function DonateCardPayment({
+  amountFcfa,
+  purpose,
+  submitLabel,
+  preparedMessage,
+}: DonateCardPaymentProps) {
+  const { t } = useDonateFlowCopy();
   const [cardNumber, setCardNumber] = useState("");
   const [holderName, setHolderName] = useState("");
   const [expiry, setExpiry] = useState("");
@@ -76,11 +84,6 @@ export function DonateCardPayment({ amountFcfa, purpose }: DonateCardPaymentProp
     cvc.length === 3 &&
     amountFcfa > 0;
 
-  const payLabel = useMemo(
-    () => `Payer ${formatFcfa(amountFcfa)} en toute sécurité`,
-    [amountFcfa],
-  );
-
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!canPay) {
@@ -93,13 +96,11 @@ export function DonateCardPayment({ amountFcfa, purpose }: DonateCardPaymentProp
     return (
       <div className="rounded-2xl bg-slate-50 p-4">
         <p className="font-heading text-sm font-bold text-violet-700">
-          Don enregistré
+          {t("cardRecorded")}
         </p>
         <p className="mt-2 font-sans text-sm leading-relaxed text-slate-800">
-          Merci. Votre {purpose.toLowerCase()} de{" "}
-          <strong>{formatFcfa(amountFcfa)}</strong> a été
-          préparé. Le terminal de paiement sécurisé sera branché sur cette
-          étape. Aucune donnée de carte n&apos;est transmise pour le moment.
+          {preparedMessage.replace("{amount}", formatFcfa(amountFcfa))}
+          <span className="sr-only">{purpose}</span>
         </p>
       </div>
     );
@@ -109,8 +110,8 @@ export function DonateCardPayment({ amountFcfa, purpose }: DonateCardPaymentProp
     <form className="space-y-4" onSubmit={handleSubmit} autoComplete="off">
       <VirtualCard
         number={displayCardNumber(digits)}
-        holder={holderName.trim() || "NOM DU TITULAIRE"}
-        expiry={expiry || "MM/AA"}
+        holder={holderName.trim() || t("cardHolderPlaceholder")}
+        expiry={expiry || t("cardExpiryPlaceholder")}
         brand={brand}
         placeholderHolder={!holderName.trim()}
         placeholderExpiry={!expiry}
@@ -119,7 +120,7 @@ export function DonateCardPayment({ amountFcfa, purpose }: DonateCardPaymentProp
       <div className="space-y-3 rounded-2xl bg-slate-50 p-4">
         <label className="block">
           <span className="font-heading text-sm font-bold text-slate-800">
-            Numéro de carte
+            {t("cardNumber")}
           </span>
           <input
             type="text"
@@ -134,12 +135,12 @@ export function DonateCardPayment({ amountFcfa, purpose }: DonateCardPaymentProp
 
         <label className="block">
           <span className="font-heading text-sm font-bold text-slate-800">
-            Nom du titulaire
+            {t("cardHolder")}
           </span>
           <input
             type="text"
             autoComplete="cc-name"
-            placeholder="Prénom NOM"
+            placeholder={t("cardHolderInput")}
             value={holderName}
             onChange={(event) => setHolderName(event.target.value.slice(0, 32))}
             className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 font-sans uppercase text-slate-800 outline-none ring-violet-700 placeholder:normal-case placeholder:text-slate-400 focus:ring-2"
@@ -149,13 +150,13 @@ export function DonateCardPayment({ amountFcfa, purpose }: DonateCardPaymentProp
         <div className="grid grid-cols-2 gap-3">
           <label className="block">
             <span className="font-heading text-sm font-bold text-slate-800">
-              Expiration
+              {t("cardExpiry")}
             </span>
             <input
               type="text"
               inputMode="numeric"
               autoComplete="cc-exp"
-              placeholder="MM/AA"
+              placeholder={t("cardExpiryPlaceholder")}
               value={expiry}
               onChange={(event) => setExpiry(formatExpiry(event.target.value))}
               className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 font-heading tracking-widest text-slate-800 outline-none ring-violet-700 placeholder:tracking-normal placeholder:text-slate-400 focus:ring-2"
@@ -184,8 +185,7 @@ export function DonateCardPayment({ amountFcfa, purpose }: DonateCardPaymentProp
           disabled={!canPay}
           type="submit"
         >
-          <Lock className="size-4" />
-          {payLabel}
+          {submitLabel}
         </Button>
       </div>
     </form>

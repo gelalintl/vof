@@ -115,6 +115,9 @@ export function DonationManager({ donations, projects }: DonationManagerProps) {
                         ? donationTypeLabelsAdmin[donation.type]
                         : donation.type}
                     </p>
+                    {donation.notes ? (
+                      <p className="mt-0.5 text-xs text-slate-500">{donation.notes}</p>
+                    ) : null}
                   </td>
                   <td className="px-4 py-3 text-slate-600">
                     {donation.projectTitle || "Soutien général"}

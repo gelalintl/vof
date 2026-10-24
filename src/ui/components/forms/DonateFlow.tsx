@@ -1,11 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Building2, CheckCircle2, CreditCard, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { submitDonationPromise } from "@/app/[locale]/don/actions";
-import { donationRecurrenceLabels, donationTypeLabels, donationTypes } from "@/config/forms";
+import { donationTypes } from "@/config/forms";
+import { formatMessage, getDictionary } from "@/i18n/getDictionary";
+import { localeFromPathname } from "@/i18n/routing";
 import { donationOptions } from "@/config/site";
 import {
   mapWizardPaymentMethod,
@@ -17,7 +20,6 @@ import {
 } from "@/lib/paymentConfig";
 import type {
   DonationOption,
-  DonationRecurrence,
   DonationType,
   MobileMoneyOperatorId,
   PaymentMethod,
@@ -25,6 +27,7 @@ import type {
   PublicPaymentConfig,
   PublicProject,
 } from "@/types";
+import { createE164PhoneSchema, phoneFieldError } from "@/lib/phoneSchema";
 import { whatsappPrefillHref } from "@/lib/siteSettingsKeys";
 import { formatFcfa } from "@/utils/formatters/currency";
 import { cn } from "@/utils/cn";
@@ -32,19 +35,8 @@ import { Button } from "@/ui/design-system/button";
 import { DonateBankTransfer } from "./DonateBankTransfer";
 import { DonateCardPayment } from "./DonateCardPayment";
 import { DonateMobileMoney } from "./DonateMobileMoney";
-
-const recurrences: DonationRecurrence[] = [
-  "once",
-  "monthly",
-  "quarterly",
-  "yearly",
-];
-
-const stepCopy = {
-  1: "Le don & le montant",
-  2: "Vos coordonnées",
-  3: "Mode de paiement",
-} as const;
+import { PhoneInput } from "./PhoneInput";
+import { useDonateFlowCopy } from "./useDonateFlowCopy";
 
 type WizardStep = 1 | 2 | 3;
 type PaymentChannel =
@@ -105,8 +97,8 @@ export function DonateFlow({
   const [donationType, setDonationType] = useState<DonationType>("offrande");
   const [selectedId, setSelectedId] = useState(donationOptions[2]?.id ?? "10000");
   const [customAmount, setCustomAmount] = useState("");
-  const [recurrence, setRecurrence] = useState<DonationRecurrence>("once");
   const [projectId, setProjectId] = useState(initialProjectId);
+  const [transferPhone, setTransferPhone] = useState("");
   const [donorName, setDonorName] = useState("");
   const [donorPhone, setDonorPhone] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
@@ -129,16 +121,25 @@ export function DonateFlow({
     return selectedOption?.amountFcfa ?? 0;
   }, [customAmount, selectedOption]);
 
+  const pathname = usePathname();
+  const locale = localeFromPathname(pathname) ?? "fr";
+  const copy = getDictionary(locale).donate;
+  const { t } = useDonateFlowCopy();
+  const phoneSchema = useMemo(() => createE164PhoneSchema(copy.phoneInvalid), [copy.phoneInvalid]);
+  const donorPhoneValid = phoneSchema.safeParse(donorPhone).success;
+  const transferPhoneValid = phoneSchema.safeParse(transferPhone).success;
   const canContinueAmount = amountFcfa > 0;
-  const canContinueContact = donorPhone.replace(/\s/g, "").length >= 8;
-  const typeLabel = donationTypeLabels[donationType];
-  const recap = `${typeLabel} · ${formatFcfa(amountFcfa)} · ${donationRecurrenceLabels[recurrence].toLowerCase()}`;
+  const canContinueContact = donorPhoneValid;
+  const typeLabel = t("types")[donationType];
+  const recap = `${typeLabel} · ${formatFcfa(amountFcfa)}`;
+  const needsTransferPhone = resolvedChannel.kind === "operator";
+  const canSubmitTransfer = !needsTransferPhone || transferPhoneValid;
   const selectedProject = projects.find((project) => project.id === projectId);
   const operatorId =
     resolvedChannel.kind === "operator" ? resolvedChannel.id : operators[0]?.id ?? "amana";
 
   async function handleSubmitPromise() {
-    if (submitted || submitting || amountFcfa <= 0 || !canContinueContact) {
+    if (submitted || submitting || amountFcfa <= 0 || !canContinueContact || !canSubmitTransfer) {
       return;
     }
 
@@ -152,10 +153,15 @@ export function DonateFlow({
         amount: amountFcfa,
         paymentMethod: mapWizardPaymentMethod(toPaymentMethod(resolvedChannel), operatorId),
         projectId: projectId || null,
+        transferPhone: needsTransferPhone ? transferPhone : "",
         notes: [
           recap,
           selectedProject ? `Projet : ${selectedProject.title}` : "Soutien général",
-        ].join(" · "),
+          "Fréquence : une fois",
+          needsTransferPhone ? `Numéro de transfert : ${transferPhone.trim()}` : "",
+        ]
+          .filter(Boolean)
+          .join(" · "),
       });
       if (!result.success) {
         toast.error(result.error);
@@ -163,7 +169,7 @@ export function DonateFlow({
       }
       setSubmitted(true);
     } catch {
-      toast.error("Impossible d’enregistrer la promesse de don.");
+      toast.error(t("submitError"));
     } finally {
       setSubmitting(false);
     }
@@ -195,14 +201,12 @@ export function DonateFlow({
               selectedId={selectedId}
               customAmount={customAmount}
               selectedOption={selectedOption}
-              recurrence={recurrence}
               projectId={projectId}
               projects={projects}
               canContinue={canContinueAmount}
               onType={setDonationType}
               onAmount={setSelectedId}
               onCustomAmount={setCustomAmount}
-              onRecurrence={setRecurrence}
               onProject={setProjectId}
               onNext={() => setStep(2)}
             />
@@ -210,9 +214,11 @@ export function DonateFlow({
 
           {step === 2 ? (
             <StepContact
+              locale={locale}
               donorName={donorName}
               donorPhone={donorPhone}
               donorEmail={donorEmail}
+              phoneError={phoneFieldError(donorPhone, copy.phoneInvalid)}
               canContinue={canContinueContact}
               onName={setDonorName}
               onPhone={setDonorPhone}
@@ -233,6 +239,21 @@ export function DonateFlow({
               paymentConfig={paymentConfig}
               donationType={donationType}
               submitting={submitting}
+              canConfirm={canSubmitTransfer}
+              locale={locale}
+              transferPhone={transferPhone}
+              transferError={
+                needsTransferPhone ? phoneFieldError(transferPhone, copy.phoneInvalid) : undefined
+              }
+              transferLabel={copy.transferPhone}
+              transferHint={copy.transferPhoneHint}
+              confirmLabel={copy.confirmPromise}
+              paymentTitle={copy.paymentTitle}
+              noMethod={copy.noMethod}
+              promiseNotice={copy.promiseNotice}
+              registerLabel={copy.registerGift}
+              cardPrepared={copy.cardPrepared}
+              onTransferPhone={setTransferPhone}
               onChannel={setChannel}
               onBack={() => setStep(2)}
               onConfirm={() => void handleSubmitPromise()}
@@ -251,20 +272,21 @@ function DonationSuccess({
   amountFcfa: number;
   whatsappHref: string;
 }) {
+  const { t } = useDonateFlowCopy();
+  const amount = formatFcfa(amountFcfa);
   const receiptHref = whatsappPrefillHref(
     whatsappHref,
-    `Bonjour l'église VOF, je viens d'enregistrer une promesse de don de ${formatFcfa(amountFcfa)}. Je vous envoie mon reçu / preuve de transfert.`,
+    formatMessage(t("whatsappMessage"), { amount }),
   );
 
   return (
     <div className="space-y-4 rounded-2xl bg-violet-50 p-5 text-center">
       <CheckCircle2 className="mx-auto size-10 text-[#6d28d9]" aria-hidden />
       <h3 className="font-heading text-lg font-bold tracking-tight text-slate-900">
-        Merci pour votre soutien !
+        {t("thanksTitle")}
       </h3>
       <p className="font-sans text-sm leading-relaxed text-slate-700">
-        Votre promesse de don de <strong>{formatFcfa(amountFcfa)}</strong> a bien été
-        enregistrée. Dès réception de votre transfert, la jauge sera mise à jour.
+        {formatMessage(t("thanksBody"), { amount })}
       </p>
       {receiptHref ? (
         <Button
@@ -274,7 +296,7 @@ function DonationSuccess({
           target="_blank"
           rel="noopener noreferrer"
         >
-          Envoyer le reçu/preuve sur WhatsApp
+          {t("whatsappReceipt")}
         </Button>
       ) : null}
     </div>
@@ -282,10 +304,13 @@ function DonationSuccess({
 }
 
 function WizardProgress({ step }: { step: WizardStep }) {
+  const { t } = useDonateFlowCopy();
+  const label =
+    step === 1 ? t("stepAmount") : step === 2 ? t("stepContact") : t("stepRecord");
   return (
     <div>
       <p className="font-heading text-xs font-bold uppercase tracking-widest text-violet-700">
-        Étape {step} sur 3 · {stepCopy[step]}
+        {formatMessage(t("stepOf"), { step: String(step), label })}
       </p>
       <div className="mt-2 flex gap-1.5" aria-hidden>
         {([1, 2, 3] as const).map((item) => (
@@ -308,14 +333,12 @@ function StepAmount({
   selectedId,
   customAmount,
   selectedOption,
-  recurrence,
   projectId,
   projects,
   canContinue,
   onType,
   onAmount,
   onCustomAmount,
-  onRecurrence,
   onProject,
   onNext,
 }: {
@@ -324,28 +347,27 @@ function StepAmount({
   selectedId: string;
   customAmount: string;
   selectedOption?: DonationOption;
-  recurrence: DonationRecurrence;
   projectId: string;
   projects: PublicProject[];
   canContinue: boolean;
   onType: (type: DonationType) => void;
   onAmount: (id: string) => void;
   onCustomAmount: (value: string) => void;
-  onRecurrence: (value: DonationRecurrence) => void;
   onProject: (id: string) => void;
   onNext: () => void;
 }) {
+  const { t } = useDonateFlowCopy();
   return (
     <>
       <fieldset>
-        <legend className="font-heading text-sm font-bold text-slate-800">Type de don</legend>
+        <legend className="font-heading text-sm font-bold text-slate-800">{t("donationType")}</legend>
         <div className="mt-2 flex flex-wrap gap-2">
           {donationTypes.map((type) => (
             <TypeChoice
               key={type}
-              type={type}
+              label={t("types")[type]}
               selected={donationType === type}
-              onSelect={onType}
+              onSelect={() => onType(type)}
             />
           ))}
         </div>
@@ -354,14 +376,14 @@ function StepAmount({
       {projects.length > 0 ? (
         <label className="block">
           <span className="font-heading text-sm font-bold text-slate-800">
-            Rattacher ce don à un projet
+            {t("attachProject")}
           </span>
           <select
             value={projectId}
             onChange={(event) => onProject(event.target.value)}
             className={fieldClass}
           >
-            <option value="">Soutien général (aucun projet)</option>
+            <option value="">{t("generalSupport")}</option>
             {projects.map((project) => (
               <option key={project.id} value={project.id}>
                 {project.title}
@@ -381,6 +403,7 @@ function StepAmount({
           <AmountChoice
             key={option.id}
             option={option}
+            label={option.isCustom ? t("otherAmount") : option.label}
             selected={selectedId === option.id}
             onSelect={onAmount}
           />
@@ -389,7 +412,7 @@ function StepAmount({
       {selectedOption?.isCustom ? (
         <label className="block">
           <span className="font-heading text-sm font-bold text-slate-800">
-            Montant personnalisé (FCFA)
+            {t("customAmount")}
           </span>
           <input
             type="number"
@@ -398,44 +421,25 @@ function StepAmount({
             inputMode="numeric"
             value={customAmount}
             onChange={(event) => onCustomAmount(event.target.value)}
-            placeholder="Ex. 15000"
+            placeholder={t("customAmountPlaceholder")}
             className={fieldClass}
           />
         </label>
       ) : null}
 
-      <fieldset>
-        <legend className="font-heading text-sm font-bold text-slate-800">Récurrence</legend>
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          {recurrences.map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => onRecurrence(item)}
-              className={cn(
-                "rounded-full px-3 py-2 font-heading text-sm font-bold tracking-tight",
-                recurrence === item
-                  ? "bg-violet-700 text-white"
-                  : "bg-slate-50 text-slate-800 ring-1 ring-slate-200 hover:ring-sky-600",
-              )}
-            >
-              {donationRecurrenceLabels[item]}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-
       <Button variant="accent" className="w-full" disabled={!canContinue} onClick={onNext}>
-        Continuer vers mes coordonnées →
+        {t("continueContact")}
       </Button>
     </>
   );
 }
 
 function StepContact({
+  locale,
   donorName,
   donorPhone,
   donorEmail,
+  phoneError,
   canContinue,
   onName,
   onPhone,
@@ -443,9 +447,11 @@ function StepContact({
   onBack,
   onNext,
 }: {
+  locale: "fr" | "en";
   donorName: string;
   donorPhone: string;
   donorEmail: string;
+  phoneError?: string;
   canContinue: boolean;
   onName: (value: string) => void;
   onPhone: (value: string) => void;
@@ -453,50 +459,59 @@ function StepContact({
   onBack: () => void;
   onNext: () => void;
 }) {
+  const { t } = useDonateFlowCopy();
   return (
     <>
       <h3 className="font-heading text-base font-bold tracking-tight text-slate-900">
-        Qui effectue ce don ?
+        {t("whoGives")}
       </h3>
       <label className="block">
-        <span className="font-heading text-sm font-bold text-slate-800">Nom &amp; Prénom</span>
+        <span className="font-heading text-sm font-bold text-slate-800">{t("fullName")}</span>
         <input
           type="text"
           value={donorName}
           onChange={(event) => onName(event.target.value)}
-          placeholder="Laisser vide pour rester anonyme"
+          placeholder={t("namePlaceholder")}
           className={fieldClass}
         />
       </label>
-      <label className="block">
-        <span className="font-heading text-sm font-bold text-slate-800">
-          Téléphone / WhatsApp
-        </span>
-        <input
-          type="tel"
+      <div className="block">
+        <label htmlFor="donor-phone" className="font-heading text-sm font-bold text-slate-800">
+          {t("phoneLabel")}
+        </label>
+        <PhoneInput
+          id="donor-phone"
+          locale={locale}
           required
           value={donorPhone}
-          onChange={(event) => onPhone(event.target.value)}
-          placeholder="+227 90 00 00 00"
-          className={fieldClass}
+          onChange={onPhone}
+          placeholder="90 00 00 00"
+          aria-invalid={Boolean(phoneError)}
+          aria-describedby={phoneError ? "donor-phone-error" : "donor-phone-hint"}
         />
-        <span className="mt-1 block font-sans text-xs text-slate-500">
-          Requis pour le suivi de votre promesse.
-        </span>
-      </label>
+        {phoneError ? (
+          <span id="donor-phone-error" className="mt-1 block font-sans text-xs text-red-600">
+            {phoneError}
+          </span>
+        ) : (
+          <span id="donor-phone-hint" className="mt-1 block font-sans text-xs text-slate-500">
+            {t("phoneHint")}
+          </span>
+        )}
+      </div>
       <label className="block">
-        <span className="font-heading text-sm font-bold text-slate-800">E-mail</span>
+        <span className="font-heading text-sm font-bold text-slate-800">{t("email")}</span>
         <input
           type="email"
           value={donorEmail}
           onChange={(event) => onEmail(event.target.value)}
-          placeholder="Optionnel"
+          placeholder={t("optional")}
           className={fieldClass}
         />
       </label>
       <div className="flex flex-col gap-2 sm:flex-row">
         <Button variant="ghost" className="w-full sm:w-auto" onClick={onBack}>
-          ← Retour
+          {t("back")}
         </Button>
         <Button
           variant="accent"
@@ -504,7 +519,7 @@ function StepContact({
           disabled={!canContinue}
           onClick={onNext}
         >
-          Choisir le moyen de paiement →
+          {t("continuePayment")}
         </Button>
       </div>
     </>
@@ -521,6 +536,19 @@ function StepPayment({
   paymentConfig,
   donationType,
   submitting,
+  canConfirm,
+  locale,
+  transferPhone,
+  transferError,
+  transferLabel,
+  transferHint,
+  confirmLabel,
+  paymentTitle,
+  noMethod,
+  promiseNotice,
+  registerLabel,
+  cardPrepared,
+  onTransferPhone,
   onChannel,
   onBack,
   onConfirm,
@@ -534,10 +562,24 @@ function StepPayment({
   paymentConfig: PublicPaymentConfig;
   donationType: DonationType;
   submitting: boolean;
+  canConfirm: boolean;
+  locale: "fr" | "en";
+  transferPhone: string;
+  transferError?: string;
+  transferLabel: string;
+  transferHint: string;
+  confirmLabel: string;
+  paymentTitle: string;
+  noMethod: string;
+  promiseNotice: string;
+  registerLabel: string;
+  cardPrepared: string;
+  onTransferPhone: (value: string) => void;
   onChannel: (channel: PaymentChannel) => void;
   onBack: () => void;
   onConfirm: () => void;
 }) {
+  const { t } = useDonateFlowCopy();
   const selectedOperator =
     channel.kind === "operator"
       ? operators.find((item) => item.id === channel.id)
@@ -546,7 +588,7 @@ function StepPayment({
   return (
     <>
       <h3 className="font-heading text-base font-bold tracking-tight text-slate-900">
-        Choisissez votre mode de paiement
+        {paymentTitle}
       </h3>
       <p className="font-sans text-sm text-slate-600">
         {recap}
@@ -555,13 +597,13 @@ function StepPayment({
 
       {channels.length === 0 ? (
         <p className="rounded-2xl bg-slate-50 p-3 font-sans text-sm text-slate-600">
-          Aucun moyen de paiement n&apos;est actuellement activé.
+          {noMethod}
         </p>
       ) : (
         <div className="grid grid-cols-2 gap-2">
           {channels.map((item) => {
             const selected = channelKey(item) === channelKey(channel);
-            const meta = channelMeta(item, operators);
+            const meta = channelMeta(item, operators, t);
             const Icon = meta.icon;
             return (
               <button
@@ -591,38 +633,66 @@ function StepPayment({
       )}
 
       {channel.kind === "operator" && selectedOperator ? (
-        <DonateMobileMoney
-          amountFcfa={amountFcfa}
-          summary={recap}
-          operators={[selectedOperator]}
-          operatorId={selectedOperator.id}
-          compact
-        />
+        <>
+          <DonateMobileMoney
+            amountFcfa={amountFcfa}
+            summary={recap}
+            operators={[selectedOperator]}
+            operatorId={selectedOperator.id}
+            compact
+          />
+          <div className="block">
+            <label htmlFor="transfer-phone" className="font-heading text-sm font-bold text-slate-800">
+              {transferLabel}
+            </label>
+            <PhoneInput
+              id="transfer-phone"
+              locale={locale}
+              required
+              value={transferPhone}
+              onChange={onTransferPhone}
+              placeholder="90 00 00 00"
+              aria-invalid={Boolean(transferError)}
+              aria-describedby={transferError ? "transfer-phone-error" : "transfer-phone-hint"}
+            />
+            {transferError ? (
+              <span id="transfer-phone-error" className="mt-1 block font-sans text-xs text-red-600">
+                {transferError}
+              </span>
+            ) : (
+              <span id="transfer-phone-hint" className="mt-1 block font-sans text-xs text-slate-500">
+                {transferHint}
+              </span>
+            )}
+          </div>
+        </>
       ) : null}
       {channel.kind === "rib" ? (
         <DonateBankTransfer bank={paymentConfig.bank} summary={recap} compact />
       ) : null}
       {channel.kind === "card" ? (
-        <DonateCardPayment amountFcfa={amountFcfa} purpose={donationTypeLabels[donationType]} />
+        <DonateCardPayment
+          amountFcfa={amountFcfa}
+          purpose={t("types")[donationType]}
+          submitLabel={registerLabel}
+          preparedMessage={cardPrepared}
+        />
       ) : null}
 
       <div className="flex flex-col gap-2 sm:flex-row">
         <Button variant="ghost" className="w-full sm:w-auto" onClick={onBack}>
-          ← Retour
+          {t("back")}
         </Button>
         <Button
           variant="accent"
           className="w-full sm:flex-1"
-          disabled={submitting || channels.length === 0}
+          disabled={submitting || channels.length === 0 || !canConfirm}
           onClick={onConfirm}
         >
-          {submitting ? "Enregistrement…" : "Valider l’enregistrement de mon don"}
+          {submitting ? t("recording") : confirmLabel}
         </Button>
       </div>
-      <p className="font-sans text-xs leading-relaxed text-slate-500">
-        En cliquant, vous enregistrez votre promesse de don. Notre équipe validera sa
-        réception dès confirmation du virement/transfert.
-      </p>
+      <p className="font-sans text-xs leading-relaxed text-slate-500">{promiseNotice}</p>
     </>
   );
 }
@@ -630,34 +700,35 @@ function StepPayment({
 function channelMeta(
   channel: PaymentChannel,
   operators: PublicMobileMoneyOperator[],
+  t: ReturnType<typeof useDonateFlowCopy>["t"],
 ) {
   if (channel.kind === "operator") {
     const operator = operators.find((item) => item.id === channel.id);
     return {
-      label: operator?.label ?? "Mobile Money",
-      description: "QR & numéro marchand",
+      label: operator?.label ?? t("mobileMoney"),
+      description: t("channelQr"),
       icon: Smartphone,
     };
   }
   if (channel.kind === "card") {
-    return { label: "Carte", description: "Visa, Mastercard", icon: CreditCard };
+    return { label: t("channelCard"), description: t("channelCardHint"), icon: CreditCard };
   }
-  return { label: "Virement RIB", description: "Transfert bancaire", icon: Building2 };
+  return { label: t("channelBank"), description: t("channelBankHint"), icon: Building2 };
 }
 
 function TypeChoice({
-  type,
+  label,
   selected,
   onSelect,
 }: {
-  type: DonationType;
+  label: string;
   selected: boolean;
-  onSelect: (type: DonationType) => void;
+  onSelect: () => void;
 }) {
   return (
     <button
       type="button"
-      onClick={() => onSelect(type)}
+      onClick={onSelect}
       aria-pressed={selected}
       className={cn(
         "rounded-full px-3 py-2 font-heading text-sm font-bold tracking-tight",
@@ -666,17 +737,19 @@ function TypeChoice({
           : "bg-slate-50 text-slate-800 ring-1 ring-slate-200 hover:ring-amber-500",
       )}
     >
-      {donationTypeLabels[type]}
+      {label}
     </button>
   );
 }
 
 function AmountChoice({
   option,
+  label,
   selected,
   onSelect,
 }: {
   option: DonationOption;
+  label: string;
   selected: boolean;
   onSelect: (id: string) => void;
 }) {
@@ -692,7 +765,7 @@ function AmountChoice({
       )}
     >
       <span className="block font-heading text-sm font-extrabold text-slate-800">
-        {option.label}
+        {label}
       </span>
     </button>
   );
