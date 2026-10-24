@@ -6,7 +6,7 @@ import { HomeGallery } from "@/ui/modules/home";
 import { buildHomeHero, buildHomeInfoTiles, buildHomeWelcome } from "@/lib/homeContent";
 import {
   getFeaturedHomeMedia,
-  getActivePublicProjects,
+  getHomeProjects,
   getPublishedArticles,
   getPublishedTestimonials,
   getUpcomingEvents,
@@ -49,17 +49,16 @@ export default async function HomePage({
   const locale = isLocale(localeParam) ? localeParam : "fr";
   const dictionary = getDictionary(locale);
   const { home, common } = dictionary;
-  const [settings, upcomingEvents, gallery, articles, projects, testimonials] =
+  const [settings, upcomingEvents, gallery, articles, featuredProjects, testimonials] =
     await Promise.all([
       getLocalizedSiteSettings(),
       getUpcomingEvents(6),
       getFeaturedHomeMedia(),
       getPublishedArticles(),
-      getActivePublicProjects(),
+      getHomeProjects(),
       getPublishedTestimonials(3),
     ]);
   const featuredTeaching = articles.find((article) => article.isFeatured) ?? articles[0] ?? null;
-  const featuredProjects = projects.slice(0, 3);
   const identity = identityFromSettings(settings);
   const contact = contactFromSettings(settings);
   const welcome = buildHomeWelcome(settings);

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { isLocale } from "@/i18n/config";
 import { toEventDetailView } from "@/lib/eventPresentation";
 import { getEventBySlug } from "@/lib/publicContent";
 import { excerptRichText } from "@/lib/richText";
@@ -10,7 +11,7 @@ import { MainLayout } from "@/ui/layouts/MainLayout";
 import { CommentSection } from "@/ui/modules/events";
 
 interface EventDetailPageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }
 
 export async function generateMetadata({
@@ -30,14 +31,15 @@ export async function generateMetadata({
 }
 
 export default async function EventDetailPage({ params }: EventDetailPageProps) {
-  const { slug } = await params;
+  const { locale: localeParam, slug } = await params;
+  const locale = isLocale(localeParam) ? localeParam : "fr";
   const event = await getEventBySlug(slug);
 
   if (!event) {
     notFound();
   }
 
-  const view = toEventDetailView(event);
+  const view = toEventDetailView(event, locale);
 
   return (
     <MainLayout>
@@ -54,7 +56,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
         )}
         <ProseHtml html={view.body} className="mt-8" />
         {view.author ? <AuthorSignature {...view.author} /> : null}
-        <CommentSection eventTitle={view.title} comments={view.comments} />
+        <CommentSection eventTitle={view.title} comments={view.comments} locale={locale} />
         <GalleryGrid
           images={view.gallery}
           layout="grid"

@@ -1,7 +1,7 @@
 import type { Locale } from "@/i18n/config";
 
-function intlLocale(locale: Locale) {
-  return locale === "en" ? "en-GB" : "fr-FR";
+export function toIntlLocale(locale: Locale) {
+  return locale === "en" ? "en-US" : "fr-FR";
 }
 
 function formatClock(hours: string, minutes: string, locale: Locale) {
@@ -9,7 +9,7 @@ function formatClock(hours: string, minutes: string, locale: Locale) {
 }
 
 /** Réécrit les heures « 09h00 » d'un texte libre. L'anglais utilise « 09:00 ». */
-export function formatClockLabel(value: string, locale: Locale = "fr") {
+export function formatClockLabel(value: string, locale: Locale) {
   if (locale !== "en") {
     return value;
   }
@@ -32,9 +32,9 @@ export function toDateKey(isoOrDate: string | Date): string {
   return `${year}-${month}-${day}`;
 }
 
-export function formatEventDate(isoOrDate: string | Date, locale: Locale = "fr"): string {
+export function formatEventDate(isoOrDate: string | Date, locale: Locale): string {
   const date = typeof isoOrDate === "string" ? parseIsoDate(isoOrDate) : isoOrDate;
-  return new Intl.DateTimeFormat(intlLocale(locale), {
+  return new Intl.DateTimeFormat(toIntlLocale(locale), {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -43,7 +43,7 @@ export function formatEventDate(isoOrDate: string | Date, locale: Locale = "fr")
 
 export function formatPublicationDate(
   isoOrDate: string | Date,
-  locale: Locale = "fr",
+  locale: Locale,
 ): string {
   const date =
     typeof isoOrDate === "string"
@@ -55,14 +55,14 @@ export function formatPublicationDate(
     return "";
   }
 
-  return new Intl.DateTimeFormat(intlLocale(locale), {
+  return new Intl.DateTimeFormat(toIntlLocale(locale), {
     day: "numeric",
     month: "long",
     year: "numeric",
   }).format(date);
 }
 
-export function formatEventTime(iso: string, locale: Locale = "fr"): string {
+export function formatEventTime(iso: string, locale: Locale): string {
   if (iso.includes("T")) {
     const date = new Date(iso);
     if (!Number.isNaN(date.getTime())) {

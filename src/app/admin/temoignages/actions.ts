@@ -3,6 +3,7 @@
 // ⚠️ RAPPEL : le modèle `Testimonial` vient d'être ajouté à prisma/schema.prisma.
 //    Exécutez `npx prisma db push` (puis relancez `next dev`) pour créer la table.
 
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import {
   requireRecordId,
@@ -33,21 +34,47 @@ async function optionalUploadedUrl(formData: FormData, field: string) {
   return null;
 }
 
-function validateTestimonialFields(authorName: string, content: string) {
-  if (!authorName || !content) {
-    throw new Error("Le nom et le témoignage sont obligatoires.");
+const testimonialSchema = z.object({
+  authorName: z
+    .string()
+    .trim()
+    .min(1, "Le nom et le témoignage sont obligatoires.")
+    .max(MAX_AUTHOR_LENGTH, "Le nom est trop long."),
+  authorEn: z.string().trim().max(MAX_AUTHOR_LENGTH, "Le nom anglais est trop long.").optional(),
+  content: z
+    .string()
+    .trim()
+    .min(1, "Le nom et le témoignage sont obligatoires.")
+    .max(MAX_CONTENT_LENGTH, "Le témoignage est trop long."),
+  contentEn: z
+    .string()
+    .trim()
+    .max(MAX_CONTENT_LENGTH, "Le témoignage anglais est trop long.")
+    .optional(),
+});
+
+function parseTestimonialFields(formData: FormData) {
+  const parsed = testimonialSchema.safeParse({
+    authorName: readString(formData, "authorName"),
+    authorEn: readString(formData, "authorEn"),
+    content: readString(formData, "content"),
+    contentEn: readString(formData, "contentEn"),
+  });
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message ?? "Témoignage invalide.");
   }
-  if (authorName.length > MAX_AUTHOR_LENGTH) {
-    throw new Error("Le nom est trop long.");
-  }
-  if (content.length > MAX_CONTENT_LENGTH) {
-    throw new Error("Le témoignage est trop long.");
-  }
+  return {
+    authorName: parsed.data.authorName,
+    authorEn: parsed.data.authorEn || null,
+    content: parsed.data.content,
+    contentEn: parsed.data.contentEn || null,
+  };
 }
 
 function serializeTestimonial(testimonial: {
   id: string;
   authorName: string;
+  authorEn: string | null;
   content: string;
   contentEn: string | null;
   imagePath: string | null;
@@ -58,6 +85,7 @@ function serializeTestimonial(testimonial: {
   return {
     id: testimonial.id,
     authorName: testimonial.authorName,
+    authorEn: testimonial.authorEn,
     content: testimonial.content,
     contentEn: testimonial.contentEn,
     imagePath: testimonial.imagePath,
@@ -77,17 +105,16 @@ export async function getTestimonials(): Promise<AdminTestimonialRecord[]> {
 
 export async function createTestimonial(formData: FormData) {
   await requireAdmin();
-  const authorName = readString(formData, "authorName");
-  const content = readString(formData, "content");
-  validateTestimonialFields(authorName, content);
+  const fields = parseTestimonialFields(formData);
 
   const uploaded = await optionalUploadedUrl(formData, "imageFile");
 
   const testimonial = await prisma.testimonial.create({
     data: {
-      authorName,
-      content,
-      contentEn: readString(formData, "contentEn") || null,
+      authorName: fields.authorName,
+      authorEn: fields.authorEn,
+      content: fields.content,
+      contentEn: fields.contentEn,
       imagePath: uploaded || readString(formData, "imagePath") || null,
       contactInfo: readString(formData, "contactInfo") || null,
       isPublished: readCheckbox(formData, "isPublished"),
@@ -107,9 +134,7 @@ export async function updateTestimonial(id: string, formData: FormData) {
     throw new Error("Témoignage introuvable.");
   }
 
-  const authorName = readString(formData, "authorName");
-  const content = readString(formData, "content");
-  validateTestimonialFields(authorName, content);
+  const fields = parseTestimonialFields(formData);
 
   const uploaded = await optionalUploadedUrl(formData, "imageFile");
   const nextImage = uploaded || readString(formData, "imagePath") || null;
@@ -123,9 +148,10 @@ export async function updateTestimonial(id: string, formData: FormData) {
       prisma.testimonial.update({
         where: { id: testimonialId },
         data: {
-          authorName,
-          content,
-          contentEn: readString(formData, "contentEn") || null,
+          authorName: fields.authorName,
+          authorEn: fields.authorEn,
+          content: fields.content,
+          contentEn: fields.contentEn,
           imagePath: nextImage,
           contactInfo: readString(formData, "contactInfo") || null,
           isPublished: readCheckbox(formData, "isPublished"),

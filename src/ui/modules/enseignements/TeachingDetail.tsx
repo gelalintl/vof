@@ -18,6 +18,8 @@ interface TeachingDetailProps {
   locale?: Locale;
   labels: {
     back: string;
+    eventGallery: string;
+    enlargeImage: string;
     commentsTitle: string;
     noComments: string;
     oneComment: string;
@@ -88,7 +90,11 @@ export function TeachingDetail({ article, locale = "fr", labels }: TeachingDetai
           }}
         />
 
-        <EventGallery images={article.galleryImages} />
+        <EventGallery
+          images={article.galleryImages}
+          title={labels.eventGallery}
+          enlargeLabel={labels.enlargeImage}
+        />
         <CommentsSection
           articleId={article.id}
           initialComments={article.comments}

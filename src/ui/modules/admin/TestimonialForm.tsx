@@ -100,6 +100,16 @@ export function TestimonialForm({ action, testimonial, submitLabel }: Testimonia
 
       <AdminEnglishSection>
         <label className="block">
+          <AdminLabel>Auteur (EN)</AdminLabel>
+          <input
+            name="authorEn"
+            maxLength={120}
+            defaultValue={testimonial?.authorEn ?? ""}
+            placeholder="Sister Marie, Brother Jean…"
+            className={adminFieldClass}
+          />
+        </label>
+        <label className="block">
           <AdminLabel>Témoignage (EN)</AdminLabel>
           <textarea
             name="contentEn"

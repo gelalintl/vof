@@ -36,6 +36,7 @@ import type {
   AdminDonationRecord,
   AdminEventCategory,
   AdminEventRecord,
+  AdminEventThemeInput,
   AdminMediaRecord,
   AdminPastorRecord,
   AdminProjectRecord,
@@ -257,6 +258,107 @@ function recurrenceFromForm(formData: FormData) {
   };
 }
 
+const THEME_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+const eventThemeSchema = z.object({
+  startDate: z.string().regex(THEME_DATE_PATTERN, "Date de début de thème invalide."),
+  endDate: z.string().regex(THEME_DATE_PATTERN, "Date de fin de thème invalide."),
+  theme: z.string().trim().min(1, "Le thème est obligatoire.").max(200, "Thème trop long."),
+  themeEn: z.string().trim().max(200, "Thème anglais trop long.").optional(),
+});
+
+const eventThemeTextSchema = z.string().trim().max(200, "Thème trop long.");
+
+function optionalThemeText(value: string | null | undefined) {
+  const parsed = eventThemeTextSchema.safeParse(value ?? "");
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message ?? "Thème invalide.");
+  }
+  return parsed.data || null;
+}
+
+/** Date seule (colonne @db.Date) stockée à minuit UTC pour éviter tout décalage de fuseau. */
+function themeDateToDb(key: string) {
+  return new Date(`${key}T00:00:00.000Z`);
+}
+
+function parseEventThemes(inputs: AdminEventThemeInput[]) {
+  const rows: { startDate: Date; endDate: Date; theme: string; themeEn: string | null }[] = [];
+
+  for (const input of inputs) {
+    const isBlank =
+      !input.startDate.trim() &&
+      !input.endDate.trim() &&
+      !input.theme.trim() &&
+      !(input.themeEn ?? "").trim();
+    if (isBlank) {
+      continue;
+    }
+
+    const parsed = eventThemeSchema.safeParse({
+      startDate: input.startDate.trim(),
+      endDate: input.endDate.trim(),
+      theme: input.theme,
+      themeEn: input.themeEn ?? "",
+    });
+    if (!parsed.success) {
+      throw new Error(parsed.error.issues[0]?.message ?? "Thème invalide.");
+    }
+    if (parsed.data.endDate < parsed.data.startDate) {
+      throw new Error("La date de fin d'un thème ne peut pas précéder sa date de début.");
+    }
+
+    rows.push({
+      startDate: themeDateToDb(parsed.data.startDate),
+      endDate: themeDateToDb(parsed.data.endDate),
+      theme: parsed.data.theme,
+      themeEn: parsed.data.themeEn || null,
+    });
+  }
+
+  return rows;
+}
+
+/**
+ * Événement récurrent : thèmes par période (le thème ponctuel est vidé).
+ * Événement ponctuel : thème unique (les périodes sont supprimées).
+ */
+function eventThemeFields(input: CreateAdminEventInput, recurrenceType: AdminRecurrenceType) {
+  if (recurrenceType !== "NONE") {
+    return { theme: null, themeEn: null, rows: parseEventThemes(input.themes ?? []) };
+  }
+
+  return {
+    theme: optionalThemeText(input.theme),
+    themeEn: optionalThemeText(input.themeEn),
+    rows: [],
+  };
+}
+
+function themesFromForm(formData: FormData) {
+  const starts = formData.getAll("themeStart").map(String);
+  const ends = formData.getAll("themeEnd").map(String);
+  const themes = formData.getAll("themeFr").map(String);
+  const themesEn = formData.getAll("themeEnRow").map(String);
+  const count = Math.max(starts.length, ends.length, themes.length, themesEn.length);
+
+  const rows: AdminEventThemeInput[] = [];
+  for (let index = 0; index < count; index += 1) {
+    rows.push({
+      startDate: starts[index] ?? "",
+      endDate: ends[index] ?? "",
+      theme: themes[index] ?? "",
+      themeEn: themesEn[index] ?? "",
+    });
+  }
+
+  return {
+    theme: readString(formData, "theme"),
+    themeEn: readString(formData, "themeEn"),
+    themes: rows,
+  };
+}
+
 async function uniqueEventSlug(base: string, excludeId?: string) {
   let slug = slugifyEventTitle(base);
   let suffix = 2;
@@ -347,6 +449,15 @@ function serializeEvent(event: {
   daysOfWeek: number[];
   recurrenceEndDate: Date | null;
   excludedDates?: string[];
+  theme?: string | null;
+  themeEn?: string | null;
+  themes?: {
+    id: string;
+    startDate: Date;
+    endDate: Date;
+    theme: string;
+    themeEn: string | null;
+  }[];
   createdAt: Date;
 }): AdminEventRecord {
   return {
@@ -371,6 +482,15 @@ function serializeEvent(event: {
     daysOfWeek: event.daysOfWeek,
     recurrenceEndDate: event.recurrenceEndDate?.toISOString() ?? null,
     excludedDates: event.excludedDates ?? [],
+    theme: event.theme ?? null,
+    themeEn: event.themeEn ?? null,
+    themes: (event.themes ?? []).map((item) => ({
+      id: item.id,
+      startDate: item.startDate.toISOString().slice(0, 10),
+      endDate: item.endDate.toISOString().slice(0, 10),
+      theme: item.theme,
+      themeEn: item.themeEn,
+    })),
     createdAt: event.createdAt.toISOString(),
   };
 }
@@ -386,6 +506,7 @@ export async function createEvent(input: CreateAdminEventInput) {
   }
 
   const recurrence = recurrenceFromInput(input);
+  const themeFields = eventThemeFields(input, recurrence.recurrenceType);
   const schedule = eventScheduleFromInput(input);
   const image = input.image?.trim() || null;
   const youtubeUrl = normalizeYoutubeUrl(input.youtubeUrl);
@@ -397,7 +518,11 @@ export async function createEvent(input: CreateAdminEventInput) {
   }
 
   const event = await prisma.event.create({
+    include: { themes: true },
     data: {
+      theme: themeFields.theme,
+      themeEn: themeFields.themeEn,
+      themes: { create: themeFields.rows },
       title,
       titleEn: optionalEnglish(input.titleEn ?? ""),
       slug,
@@ -447,6 +572,7 @@ export async function createEventFromForm(formData: FormData) {
     image: uploaded || readString(formData, "image") || null,
     youtubeUrl: readString(formData, "youtubeUrl") || null,
     ...recurrenceFromForm(formData),
+    ...themesFromForm(formData),
   });
 }
 
@@ -467,6 +593,7 @@ export async function updateEvent(id: string, input: CreateAdminEventInput) {
   }
 
   const recurrence = recurrenceFromInput(input);
+  const themeFields = eventThemeFields(input, recurrence.recurrenceType);
   const schedule = eventScheduleFromInput(input);
   const image = input.image?.trim() || null;
   const youtubeUrl = normalizeYoutubeUrl(input.youtubeUrl);
@@ -479,9 +606,15 @@ export async function updateEvent(id: string, input: CreateAdminEventInput) {
 
   const event = await runPrismaWrite(
     () =>
-      prisma.event.update({
+      prisma.$transaction(async (tx) => {
+        await tx.eventTheme.deleteMany({ where: { eventId: id } });
+        return tx.event.update({
         where: { id },
+        include: { themes: true },
         data: {
+          theme: themeFields.theme,
+          themeEn: themeFields.themeEn,
+          themes: { create: themeFields.rows },
           title,
           titleEn: optionalEnglish(input.titleEn ?? ""),
           slug,
@@ -500,6 +633,7 @@ export async function updateEvent(id: string, input: CreateAdminEventInput) {
           youtubeUrl,
           ...recurrence,
         },
+        });
       }),
     "Événement introuvable.",
   );
@@ -548,6 +682,7 @@ export async function updateEventFromForm(formData: FormData) {
     image: nextImage,
     youtubeUrl: readString(formData, "youtubeUrl") || null,
     ...recurrenceFromForm(formData),
+    ...themesFromForm(formData),
   });
 }
 
@@ -1045,13 +1180,17 @@ export async function getEvents(): Promise<AdminEventRecord[]> {
   await requireAdmin();
   const events = await prisma.event.findMany({
     orderBy: { startDate: "desc" },
+    include: { themes: { orderBy: { startDate: "asc" } } },
   });
   return events.map(serializeEvent);
 }
 
 export async function getEvent(id: string): Promise<AdminEventRecord | null> {
   await requireAdmin();
-  const event = await prisma.event.findUnique({ where: { id } });
+  const event = await prisma.event.findUnique({
+    where: { id },
+    include: { themes: { orderBy: { startDate: "asc" } } },
+  });
   return event ? serializeEvent(event) : null;
 }
 

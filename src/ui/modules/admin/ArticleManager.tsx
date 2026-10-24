@@ -81,7 +81,7 @@ export function ArticleManager({ articles }: ArticleManagerProps) {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-slate-600">
-                    {formatPublicationDate(article.publishedAt)}
+                    {formatPublicationDate(article.publishedAt, "fr")}
                   </td>
                   <td className="px-4 py-3">
                     <AdminActionBar
@@ -122,8 +122,8 @@ export function ArticleManager({ articles }: ArticleManagerProps) {
             <Detail label="Auteur" value={selected.author} />
             <Detail label="Slug" value={selected.slug} />
             <Detail label="Statut" value={selected.isPublished ? "Publié" : "Brouillon"} />
-            <Detail label="Date de publication" value={formatPublicationDate(selected.publishedAt)} />
-            <Detail label="Créé le" value={formatPublicationDate(selected.createdAt)} />
+            <Detail label="Date de publication" value={formatPublicationDate(selected.publishedAt, "fr")} />
+            <Detail label="Créé le" value={formatPublicationDate(selected.createdAt, "fr")} />
             {selected.galleryImages.length > 0 ? (
               <div>
                 <AdminLabel>Galerie</AdminLabel>

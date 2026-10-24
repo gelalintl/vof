@@ -9,7 +9,8 @@ export type StaticSeoPage =
   | "donate"
   | "churchLife"
   | "teachings"
-  | "projects";
+  | "projects"
+  | "testimonials";
 
 export function metadataLocale(value: string | undefined): Locale {
   return isLocale(value) ? value : "fr";

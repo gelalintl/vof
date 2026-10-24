@@ -8,6 +8,7 @@ import type {
   MonthlyEventType,
 } from "@/types";
 import type { AdminEventCategory } from "@/types";
+import type { Locale } from "@/i18n/config";
 import { formatEventDate, formatEventTime } from "@/utils/date/format";
 
 export const eventKindLabels: Record<EventKind, string> = {
@@ -62,8 +63,8 @@ export function categoryToMonthlyType(
   return "prayer";
 }
 
-export function toMediaCard(event: Event): MediaCardData {
-  const time = formatEventTime(event.startsAt);
+export function toMediaCard(event: Event, locale: Locale): MediaCardData {
+  const time = formatEventTime(event.startsAt, locale);
 
   return {
     href: `/vie-de-leglise/${event.slug}`,
@@ -73,24 +74,24 @@ export function toMediaCard(event: Event): MediaCardData {
     badge: eventKindLabels[event.kind],
     description: event.description,
     location: event.location,
-    dateLabel: `${formatEventDate(event.startsAt)}${time ? ` · ${time}` : ""}`,
+    dateLabel: `${formatEventDate(event.startsAt, locale)}${time ? ` · ${time}` : ""}`,
     colorToken: event.colorToken,
   };
 }
 
-export function toEventHeadline(event: Event): EventHeadlineData {
-  const time = formatEventTime(event.startsAt);
+export function toEventHeadline(event: Event, locale: Locale): EventHeadlineData {
+  const time = formatEventTime(event.startsAt, locale);
 
   return {
     badge: eventKindLabels[event.kind],
     title: event.title,
-    dateLabel: `${formatEventDate(event.startsAt)}${time ? ` · ${time}` : ""}`,
+    dateLabel: `${formatEventDate(event.startsAt, locale)}${time ? ` · ${time}` : ""}`,
     location: event.location,
     colorToken: event.colorToken,
   };
 }
 
-export function toEventDetailView(event: Event) {
+export function toEventDetailView(event: Event, locale: Locale) {
   const gallery: GalleryImage[] = event.imageUrl
     ? [{ id: event.id, src: event.imageUrl, alt: event.title }]
     : event.gallery
@@ -103,7 +104,7 @@ export function toEventDetailView(event: Event) {
       : [];
 
   return {
-    headline: toEventHeadline(event),
+    headline: toEventHeadline(event, locale),
     body: event.body ?? event.description,
     gallery,
     author: event.author,

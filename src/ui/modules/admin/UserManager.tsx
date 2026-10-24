@@ -89,7 +89,7 @@ export function UserManager({ users, currentRole }: UserManagerProps) {
                       </td>
                     ) : null}
                     <td className="whitespace-nowrap px-4 py-3 text-slate-600">
-                      {formatPublicationDate(user.createdAt)}
+                      {formatPublicationDate(user.createdAt, "fr")}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-1.5">

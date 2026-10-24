@@ -5,6 +5,7 @@
     "churchLife": "Vie de l'église",
     "teachings": "Enseignements",
     "departments": "Départements",
+    "ourChurch": "Notre Église",
     "projects": "Projets",
     "contact": "Contact",
     "support": "Soutenir",
@@ -50,6 +51,10 @@
     "projects": {
       "title": "Projets",
       "description": "Soutenez les projets de l'Église Voice of Freedom : construction, médias, social et évangélisation."
+    },
+    "testimonials": {
+      "title": "Témoignages",
+      "description": "Vies transformées : les témoignages de la famille Voice of Freedom pour édifier l'église."
     }
   },
   "common": {
@@ -156,6 +161,8 @@
     "allTitle": "Tous les enseignements",
     "allDescription": "Parcourez les prédications et articles publiés, du plus récent au plus ancien.",
     "back": "Retour aux enseignements",
+    "eventGallery": "Galerie de l'événement",
+    "enlargeImage": "Agrandir {alt}",
     "commentsTitle": "Commentaires",
     "noComments": "Aucun commentaire",
     "oneComment": "1 commentaire",
@@ -179,6 +186,15 @@
     "description": "Chaque projet a un objectif en FCFA. Choisissez une œuvre, faites une promesse de don, puis réglez via Mobile Money, carte ou virement.",
     "listLabel": "Liste des projets",
     "empty": "Les projets de l'église apparaîtront ici dès qu'ils seront publiés depuis l'administration."
+  },
+  "testimonials": {
+    "badge": "Vies transformées",
+    "title": "Témoignages",
+    "description": "Découvrez ce que Dieu accomplit dans la vie des membres de la famille Voice of Freedom — des récits de grâce, de guérison et de liberté pour édifier la foi de tous.",
+    "listLabel": "Liste des témoignages",
+    "emptyLabel": "Aucun témoignage pour le moment",
+    "callAria": "Appel à témoigner",
+    "callQuote": "Vous avez expérimenté la grâce de Dieu ? Partagez votre témoignage pour édifier l'église."
   },
   "contact": {
     "badge": "Nous rejoindre",

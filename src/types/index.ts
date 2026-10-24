@@ -27,6 +27,8 @@ export interface MonthlyGeneratedEvent {
   location: string;
   kind?: EventKind;
   imageUrl?: string;
+  /** Thème localisé (sous-titre), vide quand aucun thème ne s'applique. */
+  theme?: string;
 }
 
 export interface CalendarEventPayload {
@@ -40,6 +42,7 @@ export interface CalendarEventPayload {
   location: string;
   kind?: EventKind;
   imageUrl?: string;
+  theme?: string;
 }
 
 export type EventRecurrence =
@@ -86,6 +89,8 @@ export interface Event {
   endsAt?: string;
   location: string;
   locationEn?: string | null;
+  theme?: string | null;
+  themeEn?: string | null;
   kind: EventKind;
   colorToken: EventColorToken;
   imageUrl?: string;
@@ -449,6 +454,25 @@ export interface CreateAdminEventInput {
   daysOfWeek?: number[];
   recurrenceEndDate?: string | null;
   excludedDates?: string[];
+  theme?: string | null;
+  themeEn?: string | null;
+  themes?: AdminEventThemeInput[];
+}
+
+/** Thème d'une période (AAAA-MM-JJ) pour une série récurrente. */
+export interface AdminEventThemeInput {
+  startDate: string;
+  endDate: string;
+  theme: string;
+  themeEn?: string | null;
+}
+
+export interface AdminEventThemeRecord {
+  id: string;
+  startDate: string;
+  endDate: string;
+  theme: string;
+  themeEn: string | null;
 }
 
 export interface PublicRecurringGathering {
@@ -483,6 +507,9 @@ export interface AdminEventRecord {
   daysOfWeek: number[];
   recurrenceEndDate: string | null;
   excludedDates: string[];
+  theme: string | null;
+  themeEn: string | null;
+  themes: AdminEventThemeRecord[];
   createdAt: string;
 }
 
@@ -578,6 +605,7 @@ export interface UpdateAdminUserInput {
 export interface AdminTestimonialRecord {
   id: string;
   authorName: string;
+  authorEn: string | null;
   content: string;
   contentEn: string | null;
   imagePath: string | null;
@@ -589,6 +617,7 @@ export interface AdminTestimonialRecord {
 export interface PublicTestimonial {
   id: string;
   authorName: string;
+  authorEn?: string | null;
   content: string;
   contentEn?: string | null;
   imagePath: string | null;

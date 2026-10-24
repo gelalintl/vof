@@ -51,6 +51,8 @@ model Event {
   durationDays      Int            @default(1)
   location          String
   locationEn        String?
+  theme             String?
+  themeEn           String?
   category          EventCategory
   isSpecial         Boolean        @default(false)
   isExclusive       Boolean        @default(false)
@@ -63,6 +65,20 @@ model Event {
   excludedDates     String[]       @default([])
   createdAt         DateTime       @default(now())
   media             Media[]
+  themes            EventTheme[]
+}
+
+/// Thème d'une série récurrente sur une période (ex. « Le mois de la faveur »).
+model EventTheme {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  theme     String
+  themeEn   String?
+
+  @@index([eventId])
 }
 
 model Media {
@@ -149,6 +165,7 @@ model Department {
 model Testimonial {
   id          String   @id @default(cuid())
   authorName  String
+  authorEn    String?
   content     String   @db.Text
   contentEn   String?  @db.Text
   imagePath   String?

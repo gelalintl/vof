@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import type { AdminEventCategory, AdminEventRecord, AdminRecurrenceType } from "@/types";
+import { Plus, Trash2 } from "lucide-react";
+import type {
+  AdminEventCategory,
+  AdminEventRecord,
+  AdminEventThemeInput,
+  AdminRecurrenceType,
+} from "@/types";
 import { RECURRENCE_ADMIN_LABELS, slugifyEventTitle } from "@/lib/eventRecurrence";
 import { toDateInputValue, toTimeInputValue } from "@/utils/date/format";
 import { cn } from "@/utils/cn";
@@ -71,6 +77,10 @@ function inferredDurationDays(event?: AdminEventRecord) {
   return 1;
 }
 
+function emptyThemeRow(): AdminEventThemeInput {
+  return { startDate: "", endDate: "", theme: "", themeEn: "" };
+}
+
 export function EventForm({ action, event, submitLabel }: EventFormProps) {
   const [title, setTitle] = useState(event?.title ?? "");
   const [slug, setSlug] = useState(event?.slug ?? slugifyEventTitle(event?.title ?? ""));
@@ -91,6 +101,16 @@ export function EventForm({ action, event, submitLabel }: EventFormProps) {
   const [excludedDates, setExcludedDates] = useState((event?.excludedDates ?? []).join("\n"));
   const [description, setDescription] = useState(event?.description ?? "");
   const [descriptionEn, setDescriptionEn] = useState(event?.descriptionEn ?? "");
+  const [themeRows, setThemeRows] = useState<AdminEventThemeInput[]>(
+    event?.themes && event.themes.length > 0
+      ? event.themes.map((item) => ({
+          startDate: item.startDate,
+          endDate: item.endDate,
+          theme: item.theme,
+          themeEn: item.themeEn ?? "",
+        }))
+      : [emptyThemeRow()],
+  );
 
   function toggleDay(day: number) {
     setDaysOfWeek((current) =>
@@ -151,6 +171,31 @@ export function EventForm({ action, event, submitLabel }: EventFormProps) {
         <AdminLabel>Lieu</AdminLabel>
         <input name="location" required defaultValue={event?.location} className={adminFieldClass} />
       </label>
+
+      {!isRecurring ? (
+        <>
+          <label className="block">
+            <AdminLabel>Thème</AdminLabel>
+            <input
+              name="theme"
+              defaultValue={event?.theme ?? ""}
+              placeholder="Le mois de la faveur"
+              maxLength={200}
+              className={adminFieldClass}
+            />
+          </label>
+          <label className="block">
+            <AdminLabel>Thème (EN)</AdminLabel>
+            <input
+              name="themeEn"
+              defaultValue={event?.themeEn ?? ""}
+              placeholder="The month of favor"
+              maxLength={200}
+              className={adminFieldClass}
+            />
+          </label>
+        </>
+      ) : null}
 
       <label className="block">
         <AdminLabel>Catégorie</AdminLabel>
@@ -377,6 +422,113 @@ export function EventForm({ action, event, submitLabel }: EventFormProps) {
           <input type="hidden" name="recurrenceType" value="NONE" />
         )}
       </fieldset>
+
+      {isRecurring ? (
+        <fieldset className="space-y-4 border border-slate-200 bg-slate-50 p-4 sm:col-span-2">
+          <legend className="px-1 font-heading text-sm font-bold text-slate-900">
+            Thèmes par période
+          </legend>
+          <p className="font-sans text-xs text-slate-500">
+            Le thème s’affiche sous le titre pour chaque date de la période. Une ligne vide est
+            ignorée.
+          </p>
+          <div className="space-y-3">
+            {themeRows.map((row, index) => (
+              <div
+                key={`theme-row-${index}`}
+                className="grid gap-3 border border-slate-200 bg-white p-3 sm:grid-cols-2"
+              >
+                <label className="block">
+                  <AdminLabel>Date de début</AdminLabel>
+                  <input
+                    name="themeStart"
+                    type="date"
+                    value={row.startDate}
+                    onChange={(change) =>
+                      setThemeRows((current) =>
+                        current.map((item, itemIndex) =>
+                          itemIndex === index ? { ...item, startDate: change.target.value } : item,
+                        ),
+                      )
+                    }
+                    className={adminFieldClass}
+                  />
+                </label>
+                <label className="block">
+                  <AdminLabel>Date de fin</AdminLabel>
+                  <input
+                    name="themeEnd"
+                    type="date"
+                    value={row.endDate}
+                    onChange={(change) =>
+                      setThemeRows((current) =>
+                        current.map((item, itemIndex) =>
+                          itemIndex === index ? { ...item, endDate: change.target.value } : item,
+                        ),
+                      )
+                    }
+                    className={adminFieldClass}
+                  />
+                </label>
+                <label className="block">
+                  <AdminLabel>Thème (FR)</AdminLabel>
+                  <input
+                    name="themeFr"
+                    value={row.theme}
+                    onChange={(change) =>
+                      setThemeRows((current) =>
+                        current.map((item, itemIndex) =>
+                          itemIndex === index ? { ...item, theme: change.target.value } : item,
+                        ),
+                      )
+                    }
+                    placeholder="Le mois de la faveur"
+                    maxLength={200}
+                    className={adminFieldClass}
+                  />
+                </label>
+                <label className="block">
+                  <AdminLabel>Thème (EN)</AdminLabel>
+                  <input
+                    name="themeEnRow"
+                    value={row.themeEn ?? ""}
+                    onChange={(change) =>
+                      setThemeRows((current) =>
+                        current.map((item, itemIndex) =>
+                          itemIndex === index ? { ...item, themeEn: change.target.value } : item,
+                        ),
+                      )
+                    }
+                    placeholder="The month of favor"
+                    maxLength={200}
+                    className={adminFieldClass}
+                  />
+                </label>
+                {themeRows.length > 1 ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setThemeRows((current) => current.filter((_, itemIndex) => itemIndex !== index))
+                    }
+                    className="inline-flex w-fit items-center gap-1 font-sans text-xs text-red-600 hover:text-red-700 sm:col-span-2"
+                  >
+                    <Trash2 className="size-3.5" />
+                    Supprimer cette période
+                  </button>
+                ) : null}
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setThemeRows((current) => [...current, emptyThemeRow()])}
+            className="inline-flex items-center gap-1 font-heading text-sm font-bold text-[#6d28d9] hover:text-violet-800"
+          >
+            <Plus className="size-4" />
+            Ajouter un thème
+          </button>
+        </fieldset>
+      ) : null}
 
       <fieldset className="space-y-3 border border-slate-200 bg-slate-50 p-4 sm:col-span-2">
         <legend className="px-1 font-heading text-sm font-bold text-slate-900">

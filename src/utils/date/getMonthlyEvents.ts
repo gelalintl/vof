@@ -1,6 +1,6 @@
 import type { Locale } from "@/i18n/config";
 import type { CalendarEventPayload, MonthlyGeneratedEvent, MonthlyEventType } from "@/types";
-import { parseIsoDate, toDateKey } from "@/utils/date/format";
+import { parseIsoDate, toDateKey, toIntlLocale } from "@/utils/date/format";
 
 export const monthlyEventTypeLabels: Record<MonthlyEventType, string> = {
   prayer: "Prière",
@@ -24,6 +24,7 @@ export function hydrateCalendarEvents(
     location: item.location,
     kind: item.kind,
     imageUrl: item.imageUrl,
+    theme: item.theme,
   }));
 }
 

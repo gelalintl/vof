@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HeartHandshake, Menu, X } from "lucide-react";
+import { ChevronDown, HeartHandshake, Menu, X } from "lucide-react";
 import { mainNavigation } from "@/config/navigation";
 import { getDictionary } from "@/i18n/getDictionary";
 import { localeFromPathname, withLocale } from "@/i18n/routing";
@@ -13,6 +13,12 @@ import { LanguageSwitcher } from "@/ui/components/layout/LanguageSwitcher";
 import { Logo } from "@/ui/design-system/logo";
 import type { PublicPaymentConfig, PublicProject } from "@/types";
 import { DonateModal } from "@/ui/components/modals";
+
+const OUR_CHURCH_HREFS = ["/a-propos", "/vie-de-leglise", "/departements"];
+
+type NavEntry =
+  | { kind: "link"; href: string; label: string }
+  | { kind: "group"; children: { href: string; label: string }[] };
 
 export function Navbar({
   logoSrc,
@@ -41,8 +47,31 @@ export function Navbar({
   };
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDonateOpen, setIsDonateOpen] = useState(false);
+  const [isChurchOpen, setIsChurchOpen] = useState(false);
 
   const closeDrawer = () => setIsDrawerOpen(false);
+
+  const entries: NavEntry[] = [];
+  const churchChildren = mainNavigation
+    .filter((item) => OUR_CHURCH_HREFS.includes(item.href))
+    .map((item) => ({ href: item.href, label: labels[item.href] ?? item.label }));
+  let groupInserted = false;
+  for (const item of mainNavigation) {
+    if (OUR_CHURCH_HREFS.includes(item.href)) {
+      if (!groupInserted) {
+        entries.push({ kind: "group", children: churchChildren });
+        groupInserted = true;
+      }
+      continue;
+    }
+    entries.push({ kind: "link", href: item.href, label: labels[item.href] ?? item.label });
+  }
+
+  const isPathActive = (href: string) => {
+    const full = withLocale(locale, href);
+    return href === "/" ? pathname === full : pathname.startsWith(full);
+  };
+  const isChurchActive = churchChildren.some((child) => isPathActive(child.href));
 
   return (
     <header className="sticky top-0 z-50 border-b border-sky-100/50 bg-white/75 shadow-lg shadow-black/5 backdrop-blur-xl backdrop-saturate-150">
@@ -52,22 +81,60 @@ export function Navbar({
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Navigation principale">
-          {mainNavigation.map((item) => {
-            const href = withLocale(locale, item.href);
-            const isActive = item.href === "/" ? pathname === href : pathname.startsWith(href);
+          {entries.map((entry) => {
+            if (entry.kind === "group") {
+              return (
+                <div key="our-church" className="group relative">
+                  <button
+                    type="button"
+                    aria-haspopup="menu"
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-full px-3 py-2 font-heading text-sm font-bold tracking-tight transition-colors",
+                      isChurchActive
+                        ? "bg-violet-50 text-violet-700"
+                        : "text-slate-800 hover:bg-white/70 hover:text-violet-700 group-hover:text-violet-700",
+                    )}
+                  >
+                    {dictionary.nav.ourChurch}
+                    <ChevronDown className="size-4 transition-transform group-focus-within:rotate-180 group-hover:rotate-180" />
+                  </button>
+                  <div className="invisible absolute left-0 top-full z-50 pt-2 opacity-0 transition-opacity group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
+                    <div
+                      role="menu"
+                      className="min-w-52 rounded-md bg-white py-2 shadow-lg ring-1 ring-black/5"
+                    >
+                      {entry.children.map((child) => (
+                        <Link
+                          key={child.href}
+                          href={withLocale(locale, child.href)}
+                          role="menuitem"
+                          onClick={(event) => event.currentTarget.blur()}
+                          className={cn(
+                            "block px-4 py-2 font-heading text-sm font-bold tracking-tight transition-colors hover:bg-violet-50 hover:text-violet-700",
+                            isPathActive(child.href) ? "text-violet-700" : "text-slate-800",
+                          )}
+                        >
+                          {child.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
 
             return (
               <Link
-                key={item.href}
-                href={href}
+                key={entry.href}
+                href={withLocale(locale, entry.href)}
                 className={cn(
                   "rounded-full px-3 py-2 font-heading text-sm font-bold tracking-tight transition-colors",
-                  isActive
+                  isPathActive(entry.href)
                     ? "bg-violet-50 text-violet-700"
                     : "text-slate-800 hover:bg-white/70 hover:text-violet-700",
                 )}
               >
-                {labels[item.href] ?? item.label}
+                {entry.label}
               </Link>
             );
           })}
@@ -110,16 +177,51 @@ export function Navbar({
             className="absolute inset-x-0 top-full z-50 border-b border-sky-100/50 bg-white/90 px-4 py-4 shadow-lg shadow-black/5 backdrop-blur-xl backdrop-saturate-150 sm:px-6"
           >
             <nav className="flex flex-col gap-1" aria-label="Navigation mobile">
-              {mainNavigation.map((item) => (
-                <Link
-                  key={item.href}
-                  href={withLocale(locale, item.href)}
-                  onClick={closeDrawer}
-                  className="rounded-xl px-3 py-3 font-heading text-base font-bold tracking-tight text-slate-800 hover:bg-violet-50 hover:text-violet-700"
-                >
-                  {labels[item.href] ?? item.label}
-                </Link>
-              ))}
+              {entries.map((entry) => {
+                if (entry.kind === "group") {
+                  return (
+                    <div key="our-church">
+                      <button
+                        type="button"
+                        aria-expanded={isChurchOpen}
+                        aria-controls="vof-mobile-our-church"
+                        onClick={() => setIsChurchOpen((open) => !open)}
+                        className="flex w-full items-center justify-between rounded-xl px-3 py-3 font-heading text-base font-bold tracking-tight text-slate-800 hover:bg-violet-50 hover:text-violet-700"
+                      >
+                        {dictionary.nav.ourChurch}
+                        <ChevronDown
+                          className={cn("size-5 transition-transform", isChurchOpen && "rotate-180")}
+                        />
+                      </button>
+                      {isChurchOpen ? (
+                        <div id="vof-mobile-our-church" className="flex flex-col gap-1 pl-4">
+                          {entry.children.map((child) => (
+                            <Link
+                              key={child.href}
+                              href={withLocale(locale, child.href)}
+                              onClick={closeDrawer}
+                              className="rounded-xl px-3 py-3 font-heading text-base tracking-tight text-slate-700 hover:bg-violet-50 hover:text-violet-700"
+                            >
+                              {child.label}
+                            </Link>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                }
+
+                return (
+                  <Link
+                    key={entry.href}
+                    href={withLocale(locale, entry.href)}
+                    onClick={closeDrawer}
+                    className="rounded-xl px-3 py-3 font-heading text-base font-bold tracking-tight text-slate-800 hover:bg-violet-50 hover:text-violet-700"
+                  >
+                    {entry.label}
+                  </Link>
+                );
+              })}
             </nav>
             <LanguageSwitcher className="mt-4" />
             <Button

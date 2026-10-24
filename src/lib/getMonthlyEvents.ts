@@ -17,9 +17,17 @@ export interface ProjectedMonthlyEvent {
   isExclusive: boolean;
   image: string | null;
   recurrenceType: AdminRecurrenceType;
+  theme?: string;
 }
 
-interface RecurringEventRow {
+interface EventThemePeriod {
+  startDate: Date;
+  endDate: Date;
+  theme: string;
+  themeEn: string | null;
+}
+
+export interface RecurringEventRow {
   id: string;
   title: string;
   description: string;
@@ -35,6 +43,9 @@ interface RecurringEventRow {
   recurrenceEndDate: Date | null;
   durationDays: number;
   excludedDates?: string[];
+  theme: string | null;
+  themeEn: string | null;
+  themes: EventThemePeriod[];
 }
 
 function startOfDay(date: Date) {
@@ -51,6 +62,43 @@ function atClock(day: Date, clock: Date) {
     clock.getSeconds(),
     clock.getMilliseconds(),
   );
+}
+
+function calendarDayKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function storedDateKey(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function themeSpanDays(period: EventThemePeriod) {
+  const start = Date.parse(`${storedDateKey(period.startDate)}T00:00:00.000Z`);
+  const end = Date.parse(`${storedDateKey(period.endDate)}T00:00:00.000Z`);
+  return end - start;
+}
+
+function resolveOccurrenceTheme(day: Date, row: RecurringEventRow, locale: Locale) {
+  const key = calendarDayKey(day);
+  const matches = (row.themes ?? []).filter((period) => {
+    const start = storedDateKey(period.startDate);
+    const end = storedDateKey(period.endDate);
+    return key >= start && key <= end;
+  });
+
+  if (matches.length > 0) {
+    matches.sort((left, right) => {
+      const bySpan = themeSpanDays(left) - themeSpanDays(right);
+      if (bySpan !== 0) {
+        return bySpan;
+      }
+      return storedDateKey(right.startDate).localeCompare(storedDateKey(left.startDate));
+    });
+    return localizedText(locale, matches[0].theme, matches[0].themeEn) || undefined;
+  }
+
+  const fallback = localizedText(locale, row.theme ?? "", row.themeEn);
+  return fallback || undefined;
 }
 
 function daysInMonth(year: number, month: number) {
@@ -174,7 +222,7 @@ function isAnchorDay(day: Date, template: RecurringEventRow) {
   return false;
 }
 
-function projectOneOff(row: RecurringEventRow, year: number, month: number) {
+function projectOneOff(row: RecurringEventRow, year: number, month: number, locale: Locale) {
   const start = startOfDay(row.startDate);
   const span = Math.max(1, Math.min(31, row.durationDays ?? 1));
   const end =
@@ -193,13 +241,13 @@ function projectOneOff(row: RecurringEventRow, year: number, month: number) {
     if (day < start || day > end || isExcludedCalendarDay(day, row.excludedDates ?? [])) {
       continue;
     }
-    items.push(projectOccurrenceDay(row, day));
+    items.push(projectOccurrenceDay(row, day, locale));
   }
 
   return items;
 }
 
-function projectOccurrenceDay(row: RecurringEventRow, day: Date): ProjectedMonthlyEvent {
+function projectOccurrenceDay(row: RecurringEventRow, day: Date, locale: Locale): ProjectedMonthlyEvent {
   const occurrenceStart = atClock(day, row.startDate);
   return {
     id: `${row.id}-${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`,
@@ -214,10 +262,11 @@ function projectOccurrenceDay(row: RecurringEventRow, day: Date): ProjectedMonth
     isExclusive: row.isExclusive ?? false,
     image: row.image,
     recurrenceType: row.recurrenceType ?? "NONE",
+    theme: resolveOccurrenceTheme(day, row, locale),
   };
 }
 
-function projectRecurring(row: RecurringEventRow, year: number, month: number) {
+function projectRecurring(row: RecurringEventRow, year: number, month: number, locale: Locale) {
   const span = Math.min(31, occurrenceSpan(row));
   const rangeStart = new Date(year, month - 1, 1);
   const rangeEnd = new Date(year, month, 0);
@@ -257,11 +306,52 @@ function projectRecurring(row: RecurringEventRow, year: number, month: number) {
         continue;
       }
       seen.add(key);
-      items.push(projectOccurrenceDay(row, day));
+      items.push(projectOccurrenceDay(row, day, locale));
     }
   }
 
   return items;
+}
+
+/** Prochaine occurrence encore en cours ou à venir, avec les mêmes règles que le calendrier. */
+export function nextRecurringOccurrence(
+  row: RecurringEventRow,
+  from: Date,
+  locale: Locale,
+): ProjectedMonthlyEvent | null {
+  const span = Math.min(31, occurrenceSpan(row));
+  const cursor = startOfDay(from);
+  cursor.setDate(cursor.getDate() - (span - 1));
+  const horizon = new Date(from);
+  horizon.setDate(horizon.getDate() + 400);
+
+  for (; cursor <= horizon; cursor.setDate(cursor.getDate() + 1)) {
+    if (!isAnchorDay(cursor, row)) {
+      continue;
+    }
+    const days =
+      row.recurrenceType === "DAILY" || row.recurrenceType === "SECOND_AND_LAST_FRIDAY"
+        ? [new Date(cursor)]
+        : Array.from({ length: span }, (_, index) => {
+            const next = new Date(cursor);
+            next.setDate(cursor.getDate() + index);
+            return next;
+          });
+
+    for (const day of days) {
+      if (!isWithinSeries(day, row) || isExcludedCalendarDay(day, row.excludedDates ?? [])) {
+        continue;
+      }
+      const start = atClock(day, row.startDate);
+      const end = occurrenceEnd(start, row);
+      if ((end ?? start).getTime() < from.getTime()) {
+        continue;
+      }
+      return projectOccurrenceDay(row, day, locale);
+    }
+  }
+
+  return null;
 }
 
 function dayKey(date: Date) {
@@ -343,6 +433,11 @@ export async function getMonthlyEvents(
         recurrenceEndDate: true,
         durationDays: true,
         excludedDates: true,
+        theme: true,
+        themeEn: true,
+        themes: {
+          select: { startDate: true, endDate: true, theme: true, themeEn: true },
+        },
       },
       where: {
         OR: [
@@ -390,9 +485,9 @@ export async function getMonthlyEvents(
     const projected = localizedRows.flatMap((row) => {
       const typed = row as RecurringEventRow;
       if (typed.recurrenceType && typed.recurrenceType !== "NONE") {
-        return projectRecurring(typed, year, month);
+        return projectRecurring(typed, year, month, locale);
       }
-      return projectOneOff(typed, year, month);
+      return projectOneOff(typed, year, month, locale);
     });
 
     return applyVigilDisplayPriority(projected).sort(

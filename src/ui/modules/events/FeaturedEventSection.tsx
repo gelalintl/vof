@@ -66,6 +66,9 @@ export function FeaturedEventSection({
             <Typography variant="h3" className="mt-3 text-slate-900">
               {event.title}
             </Typography>
+            {event.theme ? (
+              <p className="mt-1 font-serif text-sm italic text-violet-700">{event.theme}</p>
+            ) : null}
             {event.description ? (
               <p className="mt-3 font-sans text-sm leading-relaxed text-slate-800">
                 {excerptRichText(event.description, 180)}

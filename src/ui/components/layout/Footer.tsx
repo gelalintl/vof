@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { headers } from "next/headers";
+import { Roboto } from "next/font/google";
 import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { getDictionary, type Dictionary } from "@/i18n/getDictionary";
@@ -15,6 +16,8 @@ import {
 } from "@/ui/components/media/SocialMarks";
 import { Logo } from "@/ui/design-system/logo";
 import { Typography } from "@/ui/design-system/typography";
+
+const roboto = Roboto({ weight: "400", subsets: ["latin"] });
 
 interface FooterProps {
   logoSrc?: string | null;
@@ -143,6 +146,16 @@ export async function Footer({ logoSrc, contact, identity, content }: FooterProp
       </div>
       <div className="border-t border-violet-100 py-4 text-center font-sans text-xs text-slate-600">
         <p>{content.copyright}</p>
+      </div>
+      <div className="bg-slate-900 py-4 text-center">
+        <a
+          href="https://dimensionplus.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${roboto.className} text-sm text-slate-400 transition-colors hover:text-white`}
+        >
+          Developped by Dimension +
+        </a>
       </div>
     </footer>
   );

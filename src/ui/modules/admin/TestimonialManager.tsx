@@ -104,7 +104,7 @@ export function TestimonialManager({ testimonials }: TestimonialManagerProps) {
                     {previewText(testimonial.content)}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-slate-600">
-                    {formatPublicationDate(testimonial.createdAt)}
+                    {formatPublicationDate(testimonial.createdAt, "fr")}
                   </td>
                   <td className="px-4 py-3">
                     <span

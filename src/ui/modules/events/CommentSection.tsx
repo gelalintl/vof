@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { Locale } from "@/i18n/config";
 import type { EventComment } from "@/types";
 import { formatEventDate } from "@/utils/date/format";
 import { Button } from "@/ui/design-system/button";
@@ -9,9 +10,10 @@ import { Typography } from "@/ui/design-system/typography";
 interface CommentSectionProps {
   eventTitle: string;
   comments?: EventComment[];
+  locale: Locale;
 }
 
-export function CommentSection({ eventTitle, comments = [] }: CommentSectionProps) {
+export function CommentSection({ eventTitle, comments = [], locale }: CommentSectionProps) {
   const [items, setItems] = useState(comments);
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
@@ -43,7 +45,7 @@ export function CommentSection({ eventTitle, comments = [] }: CommentSectionProp
                 {comment.authorName}
               </p>
               <p className="font-sans text-xs capitalize text-slate-500">
-                {formatEventDate(comment.postedAt)}
+                {formatEventDate(comment.postedAt, locale)}
               </p>
               <p className="mt-2 font-sans text-sm leading-relaxed text-slate-800">
                 {comment.message}

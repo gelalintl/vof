@@ -18,12 +18,6 @@ export function HeaderLayout({
 }: HeaderLayoutProps) {
   return (
     <>
-      <Header
-        logoSrc={logoSrc}
-        churchName={identity?.churchName}
-        tagline={identity?.tagline}
-        sundayTime={identity?.sundayTime}
-      />
       <Navbar
         logoSrc={logoSrc}
         churchName={identity?.churchName}

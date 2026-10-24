@@ -123,6 +123,13 @@ export function EventManager({ events }: EventManagerProps) {
                           Exclusif
                         </AdminBadge>
                       ) : null}
+                      {event.theme || event.themes.length > 0 ? (
+                        <AdminBadge className="border-sky-200 bg-sky-50 text-sky-700">
+                          {event.theme
+                            ? event.theme
+                            : `${event.themes.length} thème${event.themes.length > 1 ? "s" : ""}`}
+                        </AdminBadge>
+                      ) : null}
                     </div>
                   </td>
                   <td className="px-4 py-3">

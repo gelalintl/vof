@@ -296,6 +296,11 @@ export function CalendarWidget({
                     <Typography variant="h4" className="mt-2">
                       {event.title}
                     </Typography>
+                    {event.theme ? (
+                      <p className="mt-1 font-serif text-sm italic text-violet-700">
+                        {event.theme}
+                      </p>
+                    ) : null}
                     <p className="mt-1 flex items-center gap-2 font-sans text-sm text-slate-600">
                       <Clock className="size-4 text-sky-600" />
                       {formatEventDate(event.date, locale)}

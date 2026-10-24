@@ -8,9 +8,15 @@ import { Typography } from "@/ui/design-system/typography";
 interface EventGalleryProps {
   images: string[];
   title?: string;
+  /** Gabarit d'étiquette d'accessibilité, ex. « Agrandir {alt} ». */
+  enlargeLabel?: string;
 }
 
-export function EventGallery({ images, title = "Galerie de l'événement" }: EventGalleryProps) {
+export function EventGallery({
+  images,
+  title = "Galerie de l'événement",
+  enlargeLabel = "Agrandir {alt}",
+}: EventGalleryProps) {
   const [index, setIndex] = useState<number | null>(null);
   const gallery: GalleryImage[] = images
     .filter((src) => src.trim().length > 0)
@@ -36,7 +42,7 @@ export function EventGallery({ images, title = "Galerie de l'événement" }: Eve
             type="button"
             onClick={() => setIndex(imageIndex)}
             className="overflow-hidden border border-slate-200 bg-slate-50"
-            aria-label={`Agrandir ${image.alt}`}
+            aria-label={enlargeLabel.replace("{alt}", image.alt)}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img

@@ -22,10 +22,3 @@ export const departmentsHero: PageHeroData = {
   description:
     "Une place pour chacun. Découvrez les équipes, les responsables, les horaires, puis envoyez votre demande pour rejoindre un département.",
 };
-
-export const testimonialsHero: PageHeroData = {
-  badge: "Vies transformées",
-  title: "Témoignages",
-  description:
-    "Découvrez ce que Dieu accomplit dans la vie des membres de la famille Voice Of Freedom — des récits de grâce, de guérison et de liberté pour édifier la foi de tous.",
-};

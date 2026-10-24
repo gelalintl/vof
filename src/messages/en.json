@@ -5,6 +5,7 @@
     "churchLife": "Church life",
     "teachings": "Teachings",
     "departments": "Departments",
+    "ourChurch": "Our Church",
     "projects": "Projects",
     "contact": "Contact",
     "support": "Give",
@@ -50,6 +51,10 @@
     "projects": {
       "title": "Projects",
       "description": "Support the projects of Voice of Freedom Church: building, media, outreach and evangelism."
+    },
+    "testimonials": {
+      "title": "Testimonials",
+      "description": "Transformed lives: testimonies from the Voice of Freedom family to build up the church."
     }
   },
   "common": {
@@ -156,6 +161,8 @@
     "allTitle": "All teachings",
     "allDescription": "Browse the published sermons and articles, from the newest to the oldest.",
     "back": "Back to teachings",
+    "eventGallery": "Event Gallery",
+    "enlargeImage": "Enlarge {alt}",
     "commentsTitle": "Comments",
     "noComments": "No comments",
     "oneComment": "1 comment",
@@ -179,6 +186,15 @@
     "description": "Each project has a goal in FCFA. Choose a work, make a giving pledge, then pay by mobile money, card or bank transfer.",
     "listLabel": "Project list",
     "empty": "The church's projects will appear here once they are published from the admin."
+  },
+  "testimonials": {
+    "badge": "Transformed lives",
+    "title": "Testimonials",
+    "description": "Discover what God is doing in the lives of the Voice of Freedom family — stories of grace, healing and freedom to build up everyone's faith.",
+    "listLabel": "Testimonial list",
+    "emptyLabel": "No testimonies yet",
+    "callAria": "Call to share a testimony",
+    "callQuote": "Have you experienced the grace of God? Share your testimony to build up the church."
   },
   "contact": {
     "badge": "Join us",

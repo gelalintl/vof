@@ -47,6 +47,8 @@ export default async function TeachingDetailPage({ params }: TeachingDetailPageP
         locale={locale}
         labels={{
           back: teachings.back,
+          eventGallery: teachings.eventGallery,
+          enlargeImage: teachings.enlargeImage,
           commentsTitle: teachings.commentsTitle,
           noComments: teachings.noComments,
           oneComment: teachings.oneComment,

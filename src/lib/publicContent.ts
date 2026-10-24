@@ -1,13 +1,17 @@
 import { unstable_cache } from "next/cache";
 import type { Locale } from "@/i18n/config";
-import { getRequestLocale, localizedText } from "@/i18n/localized";
+import { getRequestLocale, localizedOptional, localizedText } from "@/i18n/localized";
 import { prisma } from "@/lib/prisma";
 import {
   categoryToColor,
   categoryToKind,
   categoryToMonthlyType,
 } from "@/lib/eventPresentation";
-import { getMonthlyEvents as getProjectedMonthlyEvents } from "@/lib/getMonthlyEvents";
+import {
+  getMonthlyEvents as getProjectedMonthlyEvents,
+  nextRecurringOccurrence,
+  type RecurringEventRow,
+} from "@/lib/getMonthlyEvents";
 import type { AdminEventCategory, AdminRecurrenceType } from "@/types";
 import type {
   CalendarEventPayload,
@@ -43,6 +47,8 @@ const PUBLIC_EVENT_SELECT = {
   endDate: true,
   location: true,
   locationEn: true,
+  theme: true,
+  themeEn: true,
   category: true,
   isSpecial: true,
   isFeatured: true,
@@ -61,6 +67,8 @@ interface EventRow {
   endDate: Date | null;
   location: string;
   locationEn: string | null;
+  theme: string | null;
+  themeEn: string | null;
   category: AdminEventCategory;
   isSpecial: boolean;
   isFeatured: boolean;
@@ -81,6 +89,8 @@ function toPublicEvent(row: EventRow): Event {
     endsAt: row.endDate?.toISOString(),
     location: row.location,
     locationEn: row.locationEn,
+    theme: row.theme,
+    themeEn: row.themeEn,
     kind: categoryToKind(row.category, row.isSpecial),
     colorToken: categoryToColor(row.category, row.isSpecial),
     imageUrl: row.image ?? undefined,
@@ -96,6 +106,7 @@ function localizeEvent(event: Event, locale: Locale): Event {
     description: localizedText(locale, event.description, event.descriptionEn),
     body: localizedText(locale, event.body ?? event.description, event.descriptionEn),
     location: localizedText(locale, event.location, event.locationEn),
+    theme: localizedOptional(locale, event.theme, event.themeEn),
   };
 }
 
@@ -116,37 +127,120 @@ export const getPublicEvents = unstable_cache(loadPublicEvents, ["public-events"
   revalidate: 60,
 });
 
+/** Encore affichable : fin non dépassée, ou début encore à venir s'il n'y a pas de fin. */
+function isCurrentEvent(event: Pick<Event, "startsAt" | "endsAt">, now: Date) {
+  if (event.endsAt) {
+    return new Date(event.endsAt).getTime() >= now.getTime();
+  }
+  return new Date(event.startsAt).getTime() >= now.getTime();
+}
+
+const FEATURED_EVENT_SELECT = {
+  ...PUBLIC_EVENT_SELECT,
+  isExclusive: true,
+  recurrenceType: true,
+  daysOfWeek: true,
+  recurrenceEndDate: true,
+  durationDays: true,
+  excludedDates: true,
+  themes: {
+    select: { startDate: true, endDate: true, theme: true, themeEn: true },
+  },
+} as const;
+
+type SpotlightRow = RecurringEventRow & {
+  slug: string | null;
+  titleEn: string | null;
+  descriptionEn: string | null;
+  locationEn: string | null;
+  isFeatured: boolean;
+  youtubeUrl: string | null;
+};
+
+function projectRowForDisplay(row: SpotlightRow, now: Date, locale: Locale): Event | null {
+  if (row.recurrenceType !== "NONE") {
+    const next = nextRecurringOccurrence(row, now, locale);
+    if (!next) {
+      return null;
+    }
+    return localizeEvent(
+      {
+        ...toPublicEvent(row),
+        startsAt: next.startDate.toISOString(),
+        endsAt: next.endDate?.toISOString(),
+        theme: next.theme ?? null,
+        themeEn: null,
+      },
+      locale,
+    );
+  }
+
+  const event = toPublicEvent(row);
+  return isCurrentEvent(event, now) ? localizeEvent(event, locale) : null;
+}
+
+async function loadFeaturedEvent(now: Date, locale: Locale): Promise<Event | null> {
+  const row = await prisma.event.findFirst({
+    where: { isFeatured: true },
+    select: FEATURED_EVENT_SELECT,
+  });
+  return row ? projectRowForDisplay(row, now, locale) : null;
+}
+
+async function loadNextSpotlightFallback(now: Date, locale: Locale): Promise<Event | null> {
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const rows = await prisma.event.findMany({
+    where: {
+      OR: [
+        {
+          recurrenceType: "NONE",
+          OR: [{ endDate: { gte: now } }, { endDate: null, startDate: { gte: now } }],
+        },
+        {
+          recurrenceType: { not: "NONE" },
+          OR: [{ recurrenceEndDate: null }, { recurrenceEndDate: { gte: startOfToday } }],
+        },
+      ],
+    },
+    select: FEATURED_EVENT_SELECT,
+  });
+
+  const projected = rows
+    .map((row) => projectRowForDisplay(row, now, locale))
+    .filter((event): event is Event => Boolean(event))
+    .sort((left, right) => new Date(left.startsAt).getTime() - new Date(right.startsAt).getTime());
+
+  return projected[0] ?? null;
+}
+
 export async function getUpcomingEvents(limit = 6): Promise<Event[]> {
   const now = new Date();
-  const events = await getPublicEvents();
-  const featured = events.find((event) => event.isFeatured);
-  const upcoming = events.filter(
-    (event) => new Date(event.startsAt) >= now && event.id !== featured?.id,
-  );
-  const list = featured ? [featured, ...upcoming] : upcoming;
   const locale = await getRequestLocale();
-  return list.slice(0, limit).map((event) => localizeEvent(event, locale));
+  const [events, featured] = await Promise.all([
+    getPublicEvents(),
+    loadFeaturedEvent(now, locale),
+  ]);
+  const upcoming = events
+    .filter((event) => isCurrentEvent(event, now) && event.id !== featured?.id)
+    .map((event) => localizeEvent(event, locale));
+  const list = featured ? [featured, ...upcoming] : upcoming;
+  return list.slice(0, limit);
 }
 
 export async function getSpotlightEvent(): Promise<Event | null> {
-  const events = await getPublicEvents();
-  const locale = await getRequestLocale();
-  const featured = events.find((event) => event.isFeatured);
-  if (featured) {
-    return localizeEvent(featured, locale);
-  }
-
   const now = new Date();
-  const upcoming = events.filter((event) => new Date(event.startsAt) >= now);
-  if (upcoming.length === 0) {
+  const locale = await getRequestLocale();
+
+  try {
+    const featured = await loadFeaturedEvent(now, locale);
+    if (featured) {
+      return featured;
+    }
+
+    return await loadNextSpotlightFallback(now, locale);
+  } catch {
     return null;
   }
-
-  const spotlight =
-    upcoming.find((event) => event.kind === "special") ??
-    upcoming.find((event) => event.colorToken === "secondary" || event.colorToken === "impact") ??
-    upcoming[0];
-  return localizeEvent(spotlight, locale);
 }
 
 export async function getEventBySlug(slug: string): Promise<Event | null> {
@@ -358,6 +452,7 @@ export async function getMonthlyEvents(
       location: event.location,
       kind: categoryToKind(event.category, event.isSpecial),
       imageUrl: event.image ?? undefined,
+      theme: event.theme || undefined,
     };
   });
 }
@@ -644,6 +739,7 @@ async function loadPublishedTestimonials(limit?: number): Promise<PublicTestimon
     return rows.map((row) => ({
       id: row.id,
       authorName: row.authorName,
+      authorEn: row.authorEn,
       content: row.content,
       contentEn: row.contentEn,
       imagePath: row.imagePath,
@@ -657,19 +753,12 @@ async function loadPublishedTestimonials(limit?: number): Promise<PublicTestimon
 
 const getPublishedTestimonialsCached = unstable_cache(
   loadPublishedTestimonials,
-  ["public-testimonials"],
+  ["public-testimonials-author-en"],
   { tags: [PUBLIC_TESTIMONIALS_CACHE_TAG], revalidate: 60 },
 );
 
 export async function getPublishedTestimonials(limit?: number) {
-  const [testimonials, locale] = await Promise.all([
-    getPublishedTestimonialsCached(limit),
-    getRequestLocale(),
-  ]);
-  return testimonials.map((testimonial) => ({
-    ...testimonial,
-    content: localizedText(locale, testimonial.content, testimonial.contentEn),
-  }));
+  return getPublishedTestimonialsCached(limit);
 }
 
 function toPublicProject(row: {
@@ -760,6 +849,41 @@ export async function getActivePublicProjects() {
     getActivePublicProjectsCached(),
     getRequestLocale(),
   ]);
+  return projects.map((project) => localizeProject(project, locale));
+}
+
+async function loadHomeProjects(): Promise<PublicProject[]> {
+  try {
+    const featured = await prisma.project.findMany({
+      where: { status: "IN_PROGRESS", isFeatured: true },
+      orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+    });
+    if (featured.length > 0) {
+      return featured.map(toPublicProject);
+    }
+
+    const recent = await prisma.project.findMany({
+      where: { status: "IN_PROGRESS" },
+      orderBy: { createdAt: "desc" },
+      take: 3,
+    });
+    return recent.map(toPublicProject);
+  } catch {
+    return [];
+  }
+}
+
+const getHomeProjectsCached = unstable_cache(loadHomeProjects, ["home-projects"], {
+  tags: [PUBLIC_PROJECTS_CACHE_TAG],
+  revalidate: 60,
+});
+
+/**
+ * Accueil : uniquement les projets en cours cochés « À la une ».
+ * S'il n'y en a aucun, les 3 projets en cours les plus récents.
+ */
+export async function getHomeProjects(): Promise<PublicProject[]> {
+  const [projects, locale] = await Promise.all([getHomeProjectsCached(), getRequestLocale()]);
   return projects.map((project) => localizeProject(project, locale));
 }
 

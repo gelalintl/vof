@@ -80,6 +80,11 @@ export function EventSlider({
                   <h3 className="mt-3 max-w-xl font-heading text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
                     {event.title}
                   </h3>
+                  {event.theme ? (
+                    <p className="mt-1 max-w-xl font-serif text-sm italic text-violet-200 sm:text-base">
+                      {event.theme}
+                    </p>
+                  ) : null}
                   <p className="mt-2 max-w-xl font-sans text-sm text-white/85 sm:text-base">
                     {formatEventDate(event.startsAt, locale)}
                     {formatEventTime(event.startsAt, locale)
