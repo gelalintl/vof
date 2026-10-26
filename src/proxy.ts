@@ -11,7 +11,7 @@ import { localeFromAcceptLanguage } from "@/i18n/routing";
 
 function isLocaleExempt(pathname: string) {
   if (
-    pathname.startsWith("/admin") ||
+    pathname.startsWith("/sacristie") ||
     pathname.startsWith("/api") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/icon") ||

@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Inter, Lora, Plus_Jakarta_Sans } from "next/font/google";
 import { isLocale, LOCALE_HEADER } from "@/i18n/config";
+import { getDictionary } from "@/i18n/getDictionary";
 import { Toaster } from "sonner";
 import { churchIconCacheId } from "@/lib/churchIcon";
+import { requestMetadataBase, socialMetadata } from "@/lib/socialMetadata";
 import { getChurchLogo } from "@/lib/siteSettings";
+import { Analytics } from "@/ui/components/Analytics";
 import "./globals.css";
 
 const inter = Inter({
@@ -28,16 +31,26 @@ const lora = Lora({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
+  const headerList = await headers();
+  const headerLocale = headerList.get(LOCALE_HEADER);
+  const locale = isLocale(headerLocale) ? headerLocale : "fr";
+  const seo = getDictionary(locale).seo;
   const logoSrc = await getChurchLogo();
   const version = churchIconCacheId(logoSrc);
 
   return {
+    metadataBase: await requestMetadataBase(),
     title: {
-      default: "Église VOF — Voice Of Freedom",
-      template: "%s | Église VOF",
+      default: seo.defaultTitle,
+      template: seo.titleTemplate,
     },
-    description:
-      "Site officiel de l'Église Voice Of Freedom. Cultes, enseignements et vie communautaire.",
+    description: seo.defaultDescription,
+    ...socialMetadata({
+      title: seo.defaultTitle,
+      description: seo.defaultDescription,
+      image: logoSrc,
+      locale,
+    }),
     icons: {
       icon: [{ url: `/icon/${version}`, type: "image/png", sizes: "32x32" }],
       apple: [{ url: `/apple-icon/${version}`, type: "image/png", sizes: "180x180" }],
@@ -61,6 +74,7 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-white font-sans text-slate-800">
         {children}
+        <Analytics />
         <Toaster position="top-right" richColors />
       </body>
     </html>

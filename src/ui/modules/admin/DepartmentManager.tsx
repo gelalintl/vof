@@ -6,7 +6,7 @@ import {
   createDepartment,
   deleteDepartment,
   updateDepartment,
-} from "@/app/admin/actions";
+} from "@/app/sacristie/actions";
 import type { AdminDepartmentRecord } from "@/types";
 import { AdminConfirmDialog, AdminDrawer } from "./AdminDrawer";
 import { AdminEmptyState } from "./AdminPageHeader";

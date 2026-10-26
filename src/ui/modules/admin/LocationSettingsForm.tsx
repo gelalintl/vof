@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { updateSiteSettings } from "@/app/admin/actions";
+import { updateSiteSettings } from "@/app/sacristie/actions";
 import { normalizeMapsEmbedUrl, type ManagedSettingKey } from "@/lib/siteSettingsKeys";
 import { AdminSubmitButton } from "./AdminSubmitButton";
 import { AdminLabel, AdminPanel } from "./AdminPageHeader";

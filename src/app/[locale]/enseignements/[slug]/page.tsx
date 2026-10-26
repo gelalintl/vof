@@ -4,6 +4,8 @@ import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/getDictionary";
 import { metadataLocale } from "@/i18n/metadata";
 import { getArticleBySlug } from "@/lib/publicContent";
+import { socialMetadata } from "@/lib/socialMetadata";
+import { getChurchLogo } from "@/lib/siteSettings";
 import { MainLayout } from "@/ui/layouts/MainLayout";
 import { TeachingDetail } from "@/ui/modules/enseignements";
 import { excerpt } from "@/ui/modules/enseignements/excerpt";
@@ -23,10 +25,18 @@ export async function generateMetadata({
     return { title: getDictionary(resolvedLocale).seo.teachingNotFound };
   }
 
-  const description = excerpt(article.content, 160);
+  const description = excerpt(article.content, 160) || undefined;
+  const logo = await getChurchLogo();
   return {
     title: article.title,
-    description: description || undefined,
+    description,
+    ...socialMetadata({
+      title: article.title,
+      description,
+      image: article.coverImage || logo,
+      type: "article",
+      locale: resolvedLocale,
+    }),
   };
 }
 

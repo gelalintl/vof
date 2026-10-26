@@ -19,6 +19,7 @@ import type {
   Event,
   GalleryImage,
   PublicArticle,
+  PublicArticleComment,
   PublicPastor,
   PublicProject,
   PublicRecurringGathering,
@@ -240,6 +241,35 @@ export async function getSpotlightEvent(): Promise<Event | null> {
     return await loadNextSpotlightFallback(now, locale);
   } catch {
     return null;
+  }
+}
+
+export async function getApprovedEventComments(eventId: string): Promise<PublicArticleComment[]> {
+  const id = eventId.trim();
+  if (!id) {
+    return [];
+  }
+  try {
+    const rows = await prisma.comment.findMany({
+      where: { eventId: id, isApproved: true },
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        authorName: true,
+        content: true,
+        likesCount: true,
+        createdAt: true,
+      },
+    });
+    return rows.map((comment) => ({
+      id: comment.id,
+      authorName: comment.authorName,
+      content: comment.content,
+      likesCount: comment.likesCount ?? 0,
+      createdAt: comment.createdAt.toISOString(),
+    }));
+  } catch {
+    return [];
   }
 }
 

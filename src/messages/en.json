@@ -12,7 +12,9 @@
     "gallery": "Gallery",
     "testimonials": "Testimonials",
     "shareTestimony": "Share a testimony",
-    "donate": "Donate"
+    "donate": "Donate",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "language": {
     "label": "Language",
@@ -24,6 +26,7 @@
     "defaultTitle": "Voice of Freedom Church",
     "defaultDescription": "Official website of Voice of Freedom Church. Services, teachings and community life.",
     "teachingNotFound": "Teaching not found",
+    "eventNotFound": "Event not found",
     "home": {
       "title": "Home",
       "description": "Welcome to Voice of Freedom Church, a center of solutions in Jesus Christ. Services, teachings and community life."
@@ -55,6 +58,26 @@
     "testimonials": {
       "title": "Testimonials",
       "description": "Transformed lives: testimonies from the Voice of Freedom family to build up the church."
+    },
+    "gallery": {
+      "title": "Gallery",
+      "description": "Services, prayer meetings and special gatherings of Voice of Freedom Church in pictures."
+    },
+    "departments": {
+      "title": "Departments",
+      "description": "Serve at Voice of Freedom: worship, youth, welcome, media, compassion and more."
+    },
+    "shareTestimony": {
+      "title": "Share my testimony",
+      "description": "Share what God has done in your life to build up the Voice of Freedom family."
+    },
+    "legalNotice": {
+      "title": "Legal notice",
+      "description": "Publisher, content and contact details for Voice of Freedom Church."
+    },
+    "privacy": {
+      "title": "Privacy policy",
+      "description": "How Voice of Freedom Church uses the information left on this site."
     }
   },
   "common": {
@@ -107,6 +130,8 @@
   "footer": {
     "navigation": "Navigation",
     "contact": "Contact",
+    "legalNotice": "Legal notice",
+    "privacy": "Privacy policy",
     "scheduleLabels": {
       "Culte dominical": "Sunday service",
       "Conseil & Prière": "Counsel & Prayer",
@@ -131,6 +156,30 @@
       "1er, 2e et 3e du mois 19h00": "1st, 2nd and 3rd of the month, 19:00"
     }
   },
+  "errors": {
+    "notFoundTitle": "This page cannot be found",
+    "notFoundBody": "This link does not lead to a page on the site. Come back home: the Voice of Freedom family is there to welcome you.",
+    "errorTitle": "This page could not be displayed",
+    "errorBody": "Something unexpected interrupted the page. You can try again, or come back home.",
+    "home": "Back to home",
+    "retry": "Try again"
+  },
+  "legal": {
+    "noticeBadge": "Information",
+    "privacyBadge": "Privacy",
+    "publisherTitle": "Site publisher",
+    "publisherBody": "This site is published by Voice of Freedom Church, in Niamey, Niger. It presents the life of the church, its teachings, its events and its projects.",
+    "contentTitle": "Content",
+    "contentBody": "The texts, photographs, teachings and visuals published here belong to Voice of Freedom Church, unless stated otherwise. Reuse requires the church's agreement.",
+    "contactTitle": "Contact",
+    "contactBody": "For a question about the site, write to us from the Contact page. The address and phone number shown on the site are the church's.",
+    "dataTitle": "Information we collect",
+    "dataBody": "The contact, testimony and giving-pledge forms ask for your name, a way to reach you, and the message you choose to write. When a phone number is given, it is stored in international format.",
+    "useTitle": "How it is used",
+    "useBody": "The church team uses this information to reply to you, to review a testimony or a comment, and to recognize a giving pledge. It is not sold or passed on to a third party.",
+    "rightsTitle": "Your requests",
+    "rightsBody": "You can ask to see, correct or remove a message you left, by writing to the church from the Contact page."
+  },
   "about": {
     "badge": "About",
     "title": "The Voice of Freedom vision",
@@ -149,7 +198,8 @@
     "gatheringsBadge": "Regular gatherings",
     "gatheringsTitle": "This week's gatherings",
     "gatheringsDescription": "Sunday services, Bible studies, vigils and times of fasting: the rhythm of community life at Voice of Freedom.",
-    "gatheringsEmpty": "Recurring gatherings will appear here once they are published from the admin."
+    "gatheringsEmpty": "Recurring gatherings will appear here once they are published from the admin.",
+    "photoGallery": "Photo gallery"
   },
   "teachings": {
     "word": "Word",
@@ -175,7 +225,15 @@
     "message": "Message",
     "publishing": "Sending…",
     "publish": "Post comment",
-    "thanks": "Thank you! Your comment has been published.",
+    "thanks": "Thank you. Your comment will appear after the team reviews it.",
+    "errorRequired": "Name and message are required.",
+    "errorName": "The name is too long.",
+    "errorMessage": "The message is too long.",
+    "errorEmail": "The email address is not valid.",
+    "errorTeaching": "Teaching not found.",
+    "errorEvent": "Event not found.",
+    "errorFailed": "This comment could not be saved.",
+    "errorLike": "This like could not be saved.",
     "like": "Like this comment",
     "callAria": "Call to share a testimony",
     "callQuote": "Have you experienced the grace of God? Share your testimony to build up the church."
@@ -196,6 +254,54 @@
     "callAria": "Call to share a testimony",
     "callQuote": "Have you experienced the grace of God? Share your testimony to build up the church."
   },
+  "gallery": {
+    "badge": "Gallery",
+    "title": "Experience VOF",
+    "description": "Our services, prayer meetings and special gatherings in pictures.",
+    "listLabel": "Gallery photos",
+    "empty": "Photos will appear here once they are added from the admin."
+  },
+  "departments": {
+    "badge": "Serve",
+    "title": "VOF departments",
+    "description": "A place for everyone. Discover the teams, the leaders and the times, then send a request to join a department.",
+    "listLabel": "Department list",
+    "empty": "Departments will appear here once they are published from the admin.",
+    "join": "Join this department",
+    "joinTitle": "Join {name}",
+    "joinFallback": "Join a department",
+    "joinHint": "Leave your contact details. A VOF leader will write to you about the next step.",
+    "joinSuccess": "Your request has been recorded. The team will contact you.",
+    "close": "Close",
+    "fullName": "Full name",
+    "phone": "Phone",
+    "phonePlaceholder": "07 00 00 00 00",
+    "email": "Email",
+    "availability": "Availability / message",
+    "availabilityPlaceholder": "Share your availability or a short note about why you want to join.",
+    "sendRequest": "Send my request"
+  },
+  "shareTestimony": {
+    "badge": "Testimony",
+    "title": "Share what God has done",
+    "description": "Your story can restore hope and strengthen the faith of the whole church. Write a few lines: our team will read them with joy.",
+    "fullName": "Full name",
+    "contact": "Email or phone number",
+    "contactPlaceholder": "you@example.com or 90 00 00 00",
+    "contactHint": "Visible only to the team, so we can contact you if needed.",
+    "content": "Your testimony",
+    "contentPlaceholder": "Tell us what God has done in your life…",
+    "submit": "Send my testimony",
+    "sending": "Sending…",
+    "success": "Thank you for sharing your testimony. It has been sent to our team.",
+    "honeypot": "Do not fill in",
+    "errorRequired": "All fields are required.",
+    "errorName": "The name is too long.",
+    "errorContact": "Enter a valid email address or phone number.",
+    "errorShort": "Your testimony is a little short. Tell us a bit more.",
+    "errorLong": "Your testimony is too long (5,000 characters maximum).",
+    "errorFailed": "Your testimony could not be sent right now. Please try again later."
+  },
   "contact": {
     "badge": "Join us",
     "title": "Contact",
@@ -208,7 +314,14 @@
     "fullName": "Full name",
     "email": "Email",
     "phone": "Phone",
-    "phonePlaceholder": "07 00 00 00 00",
+    "phonePlaceholder": "90 00 00 00",
+    "phoneInvalid": "Enter the number in international format, for example +22790000000.",
+    "sending": "Sending…",
+    "errorName": "Enter your name.",
+    "errorEmail": "Enter a valid email address.",
+    "errorSubject": "Choose a subject.",
+    "errorMessage": "Write your message.",
+    "errorFailed": "Your message could not be sent right now.",
     "subject": "Subject",
     "message": "Message",
     "messagePlaceholder": "How can we serve you?",
@@ -232,6 +345,11 @@
     "transferPhone": "Phone number used for the transfer",
     "transferPhoneHint": "Required so the church can match your transfer.",
     "phoneInvalid": "Enter the number in international format, for example +22790000000.",
+    "heroBadge": "Partners",
+    "heroTitle": "Support VOF",
+    "heroDescription": "Every amount is in FCFA. Support us by Mobile Money, card or bank transfer.",
+    "quote": "“Each of you should give what you have decided in your heart.”",
+    "quoteAttribution": "2 Corinthians 9.7 · Voice of Freedom Church",
     "modalTitle": "Support the VOF work",
     "modalDescription": "Three steps: amount, contact details, then recording the promise in FCFA.",
     "paymentTitle": "Gift recording",

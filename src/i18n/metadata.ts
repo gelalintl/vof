@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/getDictionary";
+import { socialMetadata } from "@/lib/socialMetadata";
 
 export type StaticSeoPage =
   | "home"
@@ -10,20 +11,31 @@ export type StaticSeoPage =
   | "churchLife"
   | "teachings"
   | "projects"
-  | "testimonials";
+  | "testimonials"
+  | "gallery"
+  | "departments"
+  | "shareTestimony"
+  | "legalNotice"
+  | "privacy";
 
 export function metadataLocale(value: string | undefined): Locale {
   return isLocale(value) ? value : "fr";
 }
 
 export function localeLayoutMetadata(locale: string): Metadata {
-  const seo = getDictionary(metadataLocale(locale)).seo;
+  const resolved = metadataLocale(locale);
+  const seo = getDictionary(resolved).seo;
   return {
     title: {
       default: seo.defaultTitle,
       template: seo.titleTemplate,
     },
     description: seo.defaultDescription,
+    ...socialMetadata({
+      title: seo.defaultTitle,
+      description: seo.defaultDescription,
+      locale: resolved,
+    }),
   };
 }
 
@@ -32,17 +44,25 @@ export function staticPageMetadata(
   page: StaticSeoPage,
   options?: { absolute?: boolean },
 ): Metadata {
-  const seo = getDictionary(metadataLocale(locale)).seo;
+  const resolved = metadataLocale(locale);
+  const seo = getDictionary(resolved).seo;
   const entry = seo[page];
+  const social = socialMetadata({
+    title: entry.title,
+    description: entry.description,
+    locale: resolved,
+  });
   // La page d'accueil partage le segment [locale] : le template du layout ne s'y applique pas.
   if (options?.absolute) {
     return {
       title: { absolute: seo.titleTemplate.replace("%s", entry.title) },
       description: entry.description,
+      ...social,
     };
   }
   return {
     title: entry.title,
     description: entry.description,
+    ...social,
   };
 }

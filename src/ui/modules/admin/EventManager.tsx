@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Pencil, Trash2 } from "lucide-react";
-import { deleteEvent } from "@/app/admin/actions";
+import { deleteEvent } from "@/app/sacristie/actions";
 import {
   eventAdminStatus,
   isRecurringEvent,
@@ -140,7 +140,7 @@ export function EventManager({ events }: EventManagerProps) {
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1.5">
                       <Link
-                        href={`/admin/evenements/${event.id}/edit`}
+                        href={`/sacristie/evenements/${event.id}/edit`}
                         className="inline-flex size-9 items-center justify-center border border-slate-200 text-[#6d28d9] transition-colors hover:bg-[#6d28d9] hover:text-white"
                         aria-label={`Éditer ${event.title}`}
                       >

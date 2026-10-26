@@ -1,3 +1,5 @@
+import type { Locale } from "@/i18n/config";
+import type { ContactMessageCopy } from "@/lib/contactSchema";
 import type { ContactSubject, PublicSiteContact } from "@/types";
 import { ContactForm } from "./ContactForm";
 import { ContactMap } from "./ContactMap";
@@ -5,10 +7,11 @@ import { PhoneHours } from "./PhoneHours";
 import { QuickAccess } from "./QuickAccess";
 
 interface ContactStackProps {
+  locale: Locale;
   contact: PublicSiteContact;
   gatherings: { id: string; label: string; detail: string }[];
   subjects: { value: ContactSubject; label: string }[];
-  labels: {
+  labels: ContactMessageCopy & {
     quickAccess: string;
     detailsHours: string;
     mapTitle: string;
@@ -23,12 +26,20 @@ interface ContactStackProps {
     message: string;
     messagePlaceholder: string;
     send: string;
+    sending: string;
     sentTitle: string;
     sentBody: string;
+    errorFailed: string;
   };
 }
 
-export function ContactStack({ contact, gatherings, subjects, labels }: ContactStackProps) {
+export function ContactStack({
+  locale,
+  contact,
+  gatherings,
+  subjects,
+  labels,
+}: ContactStackProps) {
   return (
     <div className="flex flex-col">
       <ContactMap
@@ -50,6 +61,7 @@ export function ContactStack({ contact, gatherings, subjects, labels }: ContactS
           gatherings={gatherings}
         />
         <ContactForm
+          locale={locale}
           subjects={subjects}
           labels={{
             write: labels.write,
@@ -57,12 +69,19 @@ export function ContactStack({ contact, gatherings, subjects, labels }: ContactS
             email: labels.email,
             phone: labels.phone,
             phonePlaceholder: labels.phonePlaceholder,
+            phoneInvalid: labels.phoneInvalid,
             subject: labels.subject,
             message: labels.message,
             messagePlaceholder: labels.messagePlaceholder,
             send: labels.send,
+            sending: labels.sending,
             sentTitle: labels.sentTitle,
             sentBody: labels.sentBody,
+            errorName: labels.errorName,
+            errorEmail: labels.errorEmail,
+            errorSubject: labels.errorSubject,
+            errorMessage: labels.errorMessage,
+            errorFailed: labels.errorFailed,
           }}
         />
       </div>

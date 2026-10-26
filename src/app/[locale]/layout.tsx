@@ -13,7 +13,12 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  return localeLayoutMetadata(locale);
+  return {
+    ...localeLayoutMetadata(locale),
+    alternates: {
+      canonical: "./",
+    },
+  };
 }
 
 export default async function LocaleLayout({

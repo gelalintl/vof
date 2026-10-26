@@ -554,6 +554,9 @@ export interface AdminCommentRecord {
   articleId: string | null;
   articleTitle: string | null;
   articleSlug: string | null;
+  eventId: string | null;
+  eventTitle: string | null;
+  eventSlug: string | null;
 }
 
 export interface CreateAdminPastorInput {

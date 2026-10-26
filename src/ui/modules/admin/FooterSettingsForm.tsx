@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
-import { updateSiteSettings } from "@/app/admin/actions";
+import { updateSiteSettings } from "@/app/sacristie/actions";
 import {
   FOOTER_NAV_FALLBACKS,
   FOOTER_SCHEDULE_FALLBACKS,

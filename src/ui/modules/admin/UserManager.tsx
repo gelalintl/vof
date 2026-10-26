@@ -7,7 +7,7 @@ import {
   deleteUser,
   updateUser,
   updateUserPassword,
-} from "@/app/admin/utilisateurs/actions";
+} from "@/app/sacristie/utilisateurs/actions";
 import type { AdminUserRecord, AdminUserRole } from "@/types";
 import { formatPublicationDate } from "@/utils/date/format";
 import { AdminConfirmDialog, AdminDrawer } from "./AdminDrawer";

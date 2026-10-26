@@ -12,7 +12,9 @@
     "gallery": "Galerie",
     "testimonials": "Témoignages",
     "shareTestimony": "Partager un témoignage",
-    "donate": "Faire un don"
+    "donate": "Faire un don",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu"
   },
   "language": {
     "label": "Langue",
@@ -24,6 +26,7 @@
     "defaultTitle": "Église Voice of Freedom",
     "defaultDescription": "Site officiel de l'Église Voice of Freedom. Cultes, enseignements et vie communautaire.",
     "teachingNotFound": "Enseignement introuvable",
+    "eventNotFound": "Événement introuvable",
     "home": {
       "title": "Accueil",
       "description": "Bienvenue à l'Église Voice of Freedom, centre de solutions de Jésus-Christ. Cultes, enseignements et vie communautaire."
@@ -55,6 +58,26 @@
     "testimonials": {
       "title": "Témoignages",
       "description": "Vies transformées : les témoignages de la famille Voice of Freedom pour édifier l'église."
+    },
+    "gallery": {
+      "title": "Galerie",
+      "description": "Les cultes, temps de prière et temps forts de l'Église Voice of Freedom en images."
+    },
+    "departments": {
+      "title": "Départements",
+      "description": "Servez à Voice of Freedom : louange, jeunesse, accueil, média, compassion et plus encore."
+    },
+    "shareTestimony": {
+      "title": "Partager mon témoignage",
+      "description": "Partagez ce que Dieu a fait dans votre vie pour édifier la famille Voice of Freedom."
+    },
+    "legalNotice": {
+      "title": "Mentions légales",
+      "description": "Éditeur, contenus et contact de l'Église Voice of Freedom."
+    },
+    "privacy": {
+      "title": "Politique de confidentialité",
+      "description": "Comment l'Église Voice of Freedom utilise les informations laissées sur ce site."
     }
   },
   "common": {
@@ -107,6 +130,8 @@
   "footer": {
     "navigation": "Navigation",
     "contact": "Contact",
+    "legalNotice": "Mentions légales",
+    "privacy": "Politique de confidentialité",
     "scheduleLabels": {
       "Culte dominical": "Culte dominical",
       "Conseil & Prière": "Conseil & Prière",
@@ -131,6 +156,30 @@
       "1er, 2e et 3e du mois 19h00": "1er, 2e et 3e du mois 19h00"
     }
   },
+  "errors": {
+    "notFoundTitle": "Cette page est introuvable",
+    "notFoundBody": "Le lien ne mène à aucune page du site. Revenez à l'accueil : la famille Voice of Freedom vous y accueille.",
+    "errorTitle": "La page n'a pas pu s'afficher",
+    "errorBody": "Un imprévu a interrompu l'affichage. Vous pouvez réessayer, ou revenir à l'accueil.",
+    "home": "Retour à l'accueil",
+    "retry": "Réessayer"
+  },
+  "legal": {
+    "noticeBadge": "Informations",
+    "privacyBadge": "Vie privée",
+    "publisherTitle": "Éditeur du site",
+    "publisherBody": "Ce site est publié par l'Église Voice of Freedom, à Niamey, au Niger. Il présente la vie de l'église, ses enseignements, ses événements et ses projets.",
+    "contentTitle": "Contenus",
+    "contentBody": "Les textes, photographies, enseignements et visuels publiés ici appartiennent à l'Église Voice of Freedom, sauf mention contraire. Toute reprise demande l'accord de l'église.",
+    "contactTitle": "Contact",
+    "contactBody": "Pour une question sur le site, écrivez-nous depuis la page Contact. L'adresse et le téléphone affichés sur le site sont ceux de l'église.",
+    "dataTitle": "Informations recueillies",
+    "dataBody": "Les formulaires de contact, de témoignage et de promesse de don demandent le nom, un moyen de vous joindre et le message que vous choisissez d'écrire. Le téléphone, lorsqu'il est indiqué, est enregistré au format international.",
+    "useTitle": "Utilisation",
+    "useBody": "L'équipe de l'église utilise ces informations pour vous répondre, modérer un témoignage ou un commentaire, et reconnaître une promesse de don. Elles ne sont pas vendues ni cédées à un tiers.",
+    "rightsTitle": "Vos demandes",
+    "rightsBody": "Vous pouvez demander à consulter, corriger ou retirer un message que vous avez laissé, en écrivant à l'église depuis la page Contact."
+  },
   "about": {
     "badge": "À propos",
     "title": "La vision Voice Of Freedom",
@@ -149,7 +198,8 @@
     "gatheringsBadge": "Rendez-vous réguliers",
     "gatheringsTitle": "Les rassemblements de la semaine",
     "gatheringsDescription": "Cultes dominicaux, études bibliques, veillées et temps de jeûne : les créneaux qui rythment la vie communautaire de Voice of Freedom.",
-    "gatheringsEmpty": "Les rassemblements récurrents apparaîtront ici dès qu'ils seront publiés depuis l'administration."
+    "gatheringsEmpty": "Les rassemblements récurrents apparaîtront ici dès qu'ils seront publiés depuis l'administration.",
+    "photoGallery": "Galerie photo"
   },
   "teachings": {
     "word": "Parole",
@@ -175,7 +225,15 @@
     "message": "Message",
     "publishing": "Envoi en cours…",
     "publish": "Publier le commentaire",
-    "thanks": "Merci ! Votre commentaire a été publié.",
+    "thanks": "Merci. Votre commentaire sera visible après validation par l'équipe.",
+    "errorRequired": "Le nom et le message sont obligatoires.",
+    "errorName": "Le nom est trop long.",
+    "errorMessage": "Le message est trop long.",
+    "errorEmail": "L’adresse e-mail n’est pas valide.",
+    "errorTeaching": "Enseignement introuvable.",
+    "errorEvent": "Événement introuvable.",
+    "errorFailed": "Impossible d’enregistrer ce commentaire.",
+    "errorLike": "Impossible d’enregistrer ce like.",
     "like": "Aimer ce commentaire",
     "callAria": "Appel à témoigner",
     "callQuote": "Vous avez expérimenté la grâce de Dieu ? Partagez votre témoignage pour édifier l'église."
@@ -196,6 +254,54 @@
     "callAria": "Appel à témoigner",
     "callQuote": "Vous avez expérimenté la grâce de Dieu ? Partagez votre témoignage pour édifier l'église."
   },
+  "gallery": {
+    "badge": "Galerie",
+    "title": "Vivre l'expérience VOF",
+    "description": "Nos cultes, temps de prière et temps forts en images.",
+    "listLabel": "Photos de la galerie",
+    "empty": "Les photos apparaîtront ici dès qu'elles seront ajoutées depuis l'administration."
+  },
+  "departments": {
+    "badge": "Servir",
+    "title": "Les départements VOF",
+    "description": "Une place pour chacun. Découvrez les équipes, les responsables, les horaires, puis envoyez votre demande pour rejoindre un département.",
+    "listLabel": "Liste des départements",
+    "empty": "Les départements apparaîtront ici dès qu'ils seront publiés depuis l'administration.",
+    "join": "Rejoindre ce département",
+    "joinTitle": "Rejoindre {name}",
+    "joinFallback": "Rejoindre un département",
+    "joinHint": "Laissez vos coordonnées. Un responsable VOF vous écrira pour la suite.",
+    "joinSuccess": "Votre demande a bien été enregistrée. L'équipe vous recontactera.",
+    "close": "Fermer",
+    "fullName": "Nom complet",
+    "phone": "Téléphone",
+    "phonePlaceholder": "07 00 00 00 00",
+    "email": "E-mail",
+    "availability": "Disponibilités / message",
+    "availabilityPlaceholder": "Indiquez vos disponibilités ou une brève motivation.",
+    "sendRequest": "Envoyer ma demande"
+  },
+  "shareTestimony": {
+    "badge": "Témoignage",
+    "title": "Partagez ce que Dieu a fait",
+    "description": "Votre histoire peut redonner espoir et fortifier la foi de toute l'église. Écrivez-nous quelques lignes : notre équipe les lira avec joie.",
+    "fullName": "Nom complet",
+    "contact": "E-mail ou numéro de téléphone",
+    "contactPlaceholder": "vous@exemple.com ou 90 00 00 00",
+    "contactHint": "Visible uniquement par l'équipe, pour vous recontacter si besoin.",
+    "content": "Votre témoignage",
+    "contentPlaceholder": "Racontez-nous ce que Dieu a fait dans votre vie…",
+    "submit": "Envoyer mon témoignage",
+    "sending": "Envoi en cours…",
+    "success": "Merci d'avoir partagé votre témoignage. Il a été transmis à notre équipe.",
+    "honeypot": "Ne pas remplir",
+    "errorRequired": "Tous les champs sont obligatoires.",
+    "errorName": "Le nom est trop long.",
+    "errorContact": "Indiquez une adresse e-mail ou un numéro de téléphone valide.",
+    "errorShort": "Votre témoignage est un peu court. Dites-nous-en davantage.",
+    "errorLong": "Votre témoignage est trop long (5 000 caractères maximum).",
+    "errorFailed": "Impossible d'envoyer votre témoignage pour le moment. Réessayez plus tard."
+  },
   "contact": {
     "badge": "Nous rejoindre",
     "title": "Contact",
@@ -208,7 +314,14 @@
     "fullName": "Nom complet",
     "email": "E-mail",
     "phone": "Téléphone",
-    "phonePlaceholder": "07 00 00 00 00",
+    "phonePlaceholder": "90 00 00 00",
+    "phoneInvalid": "Le numéro doit être au format international, par exemple +22790000000.",
+    "sending": "Envoi en cours…",
+    "errorName": "Indiquez votre nom.",
+    "errorEmail": "Indiquez une adresse e-mail valide.",
+    "errorSubject": "Choisissez un motif.",
+    "errorMessage": "Écrivez votre message.",
+    "errorFailed": "Impossible d'envoyer votre message pour le moment.",
     "subject": "Motif",
     "message": "Message",
     "messagePlaceholder": "Comment pouvons-nous vous servir ?",
@@ -232,6 +345,11 @@
     "transferPhone": "Numéro de téléphone utilisé pour le transfert",
     "transferPhoneHint": "Indispensable pour que l'église retrouve votre transfert.",
     "phoneInvalid": "Le numéro doit être au format international, par exemple +22790000000.",
+    "heroBadge": "Partenaires",
+    "heroTitle": "Soutenir VOF",
+    "heroDescription": "Tous les montants sont en FCFA. Soutenez-nous par Mobile Money, carte ou virement.",
+    "quote": "« Que chacun donne comme il l'a résolu en son cœur. »",
+    "quoteAttribution": "2 Corinthiens 9.7 · Église Voice of Freedom",
     "modalTitle": "Soutenir l'œuvre VOF",
     "modalDescription": "Trois étapes : montant, coordonnées, puis enregistrement de la promesse en FCFA.",
     "paymentTitle": "Enregistrement du don",

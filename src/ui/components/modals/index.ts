@@ -1,2 +1,2 @@
 export { DonateModal } from "./DonateModal";
-export { JoinDepartmentModal } from "./JoinDepartmentModal";
+export { JoinDepartmentModal, type DepartmentJoinLabels } from "./JoinDepartmentModal";

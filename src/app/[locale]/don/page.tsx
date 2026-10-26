@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { donateHero, donateQuote } from "@/datas/pageCopy";
+import { isLocale } from "@/i18n/config";
+import { getDictionary } from "@/i18n/getDictionary";
 import { metadataLocale, staticPageMetadata } from "@/i18n/metadata";
 import { excerptRichText } from "@/lib/richText";
 import { getActivePublicProjects, getPublicProjectBySlug } from "@/lib/publicContent";
@@ -39,13 +40,17 @@ export async function generateMetadata({
   };
 }
 
-export default async function DonatePage({ searchParams }: DonatePageProps) {
-  const [{ projet }, paymentConfig, projects, settings] = await Promise.all([
-    searchParams,
-    getPublicPaymentConfig(),
-    getActivePublicProjects(),
-    getLocalizedSiteSettings(),
-  ]);
+export default async function DonatePage({ params, searchParams }: DonatePageProps) {
+  const [{ locale: localeParam }, { projet }, paymentConfig, projects, settings] =
+    await Promise.all([
+      params,
+      searchParams,
+      getPublicPaymentConfig(),
+      getActivePublicProjects(),
+      getLocalizedSiteSettings(),
+    ]);
+  const locale = isLocale(localeParam) ? localeParam : "fr";
+  const { donate } = getDictionary(locale);
   const contact = contactFromSettings(settings);
   const initialProjectId =
     projects.find((project) => project.slug === projet)?.id ?? "";
@@ -55,9 +60,19 @@ export default async function DonatePage({ searchParams }: DonatePageProps) {
 
   return (
     <MainLayout>
-      <PageHero {...donateHero} />
+      <PageHero
+        badge={donate.heroBadge}
+        title={donate.heroTitle}
+        description={donate.heroDescription}
+        glow="amber"
+        width="narrow"
+      />
       <ContentSection width="narrow" padding="compact" align="center">
-        <QuoteBlock {...donateQuote} />
+        <QuoteBlock
+          quote={donate.quote}
+          attribution={donate.quoteAttribution}
+          align="center"
+        />
         <SoftPanel>
           <DonateFlow
             layout="page"

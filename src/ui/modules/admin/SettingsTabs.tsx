@@ -7,37 +7,37 @@ import { cn } from "@/utils/cn";
 
 const tabs = [
   {
-    href: "/admin/parametres/general",
+    href: "/sacristie/parametres/general",
     label: "Général",
     icon: Building,
   },
   {
-    href: "/admin/parametres/a-propos",
+    href: "/sacristie/parametres/a-propos",
     label: "À propos",
     icon: Heart,
   },
   {
-    href: "/admin/parametres/contacts",
+    href: "/sacristie/parametres/contacts",
     label: "Contacts & Réseaux",
     icon: MapPin,
   },
   {
-    href: "/admin/parametres/medias",
+    href: "/sacristie/parametres/medias",
     label: "Direct & Médias",
     icon: Video,
   },
   {
-    href: "/admin/parametres/paiements",
+    href: "/sacristie/parametres/paiements",
     label: "Paiements & Dons",
     icon: Wallet,
   },
   {
-    href: "/admin/parametres/footer",
+    href: "/sacristie/parametres/footer",
     label: "Pied de page",
     icon: Columns3,
   },
   {
-    href: "/admin/parametres/impression",
+    href: "/sacristie/parametres/impression",
     label: "Impression & Documents",
     icon: Printer,
   },

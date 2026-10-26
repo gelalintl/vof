@@ -1,6 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { isLocale } from "@/i18n/config";
+import { getDictionary } from "@/i18n/getDictionary";
+import { getRequestLocale } from "@/i18n/localized";
 import { prisma } from "@/lib/prisma";
 
 export interface SubmitTestimonialInput {
@@ -9,6 +12,7 @@ export interface SubmitTestimonialInput {
   content: string;
   /** Champ piège anti-spam : doit rester vide. */
   website?: string;
+  locale?: string;
 }
 
 export type SubmitTestimonialResult = { ok: true } | { ok: false; error: string };
@@ -27,7 +31,7 @@ function isValidContact(value: string) {
 
 /**
  * Dépôt public d'un témoignage : enregistré masqué (isPublished = false),
- * puis modéré depuis /admin/temoignages.
+ * puis modéré depuis /sacristie/temoignages.
  */
 export async function submitTestimonial(
   input: SubmitTestimonialInput,
@@ -40,36 +44,32 @@ export async function submitTestimonial(
   const authorName = input.authorName.trim();
   const contactInfo = input.contactInfo.trim();
   const content = input.content.trim();
+  const locale = isLocale(input.locale) ? input.locale : await getRequestLocale();
+  const errors = getDictionary(locale).shareTestimony;
 
   if (!authorName || !contactInfo || !content) {
-    return { ok: false, error: "Tous les champs sont obligatoires." };
+    return { ok: false, error: errors.errorRequired };
   }
   if (authorName.length > 120) {
-    return { ok: false, error: "Le nom est trop long." };
+    return { ok: false, error: errors.errorName };
   }
   if (!isValidContact(contactInfo)) {
-    return {
-      ok: false,
-      error: "Indiquez une adresse e-mail ou un numéro de téléphone valide.",
-    };
+    return { ok: false, error: errors.errorContact };
   }
   if (content.length < MIN_CONTENT_LENGTH) {
-    return { ok: false, error: "Votre témoignage est un peu court. Dites-nous-en davantage." };
+    return { ok: false, error: errors.errorShort };
   }
   if (content.length > MAX_CONTENT_LENGTH) {
-    return { ok: false, error: "Votre témoignage est trop long (5 000 caractères maximum)." };
+    return { ok: false, error: errors.errorLong };
   }
 
   try {
     await prisma.testimonial.create({
       data: { authorName, contactInfo, content, isPublished: false },
     });
-    revalidatePath("/admin/temoignages");
+    revalidatePath("/sacristie/temoignages");
     return { ok: true };
   } catch {
-    return {
-      ok: false,
-      error: "Impossible d’envoyer votre témoignage pour le moment. Réessayez plus tard.",
-    };
+    return { ok: false, error: errors.errorFailed };
   }
 }

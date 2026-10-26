@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import { createProject, deleteProject, updateProject } from "@/app/admin/actions";
+import { createProject, deleteProject, updateProject } from "@/app/sacristie/actions";
 import type { AdminProjectRecord } from "@/types";
 import { projectStatusLabels } from "@/lib/donations";
 import { formatFcfa } from "@/utils/formatters/currency";

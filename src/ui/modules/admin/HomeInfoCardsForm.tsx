@@ -1,6 +1,6 @@
 "use client";
 
-import { updateSiteSettings } from "@/app/admin/actions";
+import { updateSiteSettings } from "@/app/sacristie/actions";
 import {
   HOME_ADDRESS_KEY,
   WHATSAPP_CHANNEL_URL_KEY,

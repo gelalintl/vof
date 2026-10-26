@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Pencil, Trash2 } from "lucide-react";
-import { deletePastor } from "@/app/admin/actions";
+import { deletePastor } from "@/app/sacristie/actions";
 import type { AdminPastorRecord } from "@/types";
 import { AdminBadge } from "./AdminBadge";
 import { AdminConfirmDialog } from "./AdminDrawer";
@@ -69,7 +69,7 @@ export function PastorManager({ pastors }: PastorManagerProps) {
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1.5">
                       <Link
-                        href={`/admin/pasteurs/${pastor.id}/edit`}
+                        href={`/sacristie/pasteurs/${pastor.id}/edit`}
                         className="inline-flex size-9 items-center justify-center border border-slate-200 text-[#6d28d9] transition-colors hover:bg-[#6d28d9] hover:text-white"
                         aria-label={`Éditer ${pastor.name}`}
                       >

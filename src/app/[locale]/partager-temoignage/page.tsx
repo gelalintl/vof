@@ -1,27 +1,53 @@
 import type { Metadata } from "next";
+import { isLocale } from "@/i18n/config";
+import { getDictionary } from "@/i18n/getDictionary";
+import { staticPageMetadata } from "@/i18n/metadata";
 import { ContentSection, PageHero } from "@/ui/components/layout";
 import { TestimonialForm } from "@/ui/components/testimonials";
 import { MainLayout } from "@/ui/layouts/MainLayout";
 
-export const metadata: Metadata = {
-  title: "Partager mon témoignage",
-  description:
-    "Partagez ce que Dieu a fait dans votre vie pour édifier la famille Voice Of Freedom.",
-};
+interface ShareTestimonialPageProps {
+  params: Promise<{ locale: string }>;
+}
 
-export default function ShareTestimonialPage() {
+export async function generateMetadata({
+  params,
+}: ShareTestimonialPageProps): Promise<Metadata> {
+  const { locale } = await params;
+  return staticPageMetadata(locale, "shareTestimony");
+}
+
+export default async function ShareTestimonialPage({ params }: ShareTestimonialPageProps) {
+  const { locale: localeParam } = await params;
+  const locale = isLocale(localeParam) ? localeParam : "fr";
+  const { shareTestimony } = getDictionary(locale);
+
   return (
     <MainLayout>
       <PageHero
-        badge="Témoignage"
-        title="Partagez ce que Dieu a fait"
-        description="Votre histoire peut redonner espoir et fortifier la foi de toute l'église. Écrivez-nous quelques lignes : notre équipe les lira avec joie."
+        badge={shareTestimony.badge}
+        title={shareTestimony.title}
+        description={shareTestimony.description}
       />
       <ContentSection width="narrow" labelledBy="formulaire-temoignage">
         <h2 id="formulaire-temoignage" className="sr-only">
-          Formulaire de témoignage
+          {shareTestimony.title}
         </h2>
-        <TestimonialForm />
+        <TestimonialForm
+          locale={locale}
+          labels={{
+            fullName: shareTestimony.fullName,
+            contact: shareTestimony.contact,
+            contactPlaceholder: shareTestimony.contactPlaceholder,
+            contactHint: shareTestimony.contactHint,
+            content: shareTestimony.content,
+            contentPlaceholder: shareTestimony.contentPlaceholder,
+            submit: shareTestimony.submit,
+            sending: shareTestimony.sending,
+            success: shareTestimony.success,
+            honeypot: shareTestimony.honeypot,
+          }}
+        />
       </ContentSection>
     </MainLayout>
   );

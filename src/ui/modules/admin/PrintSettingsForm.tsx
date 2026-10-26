@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { updateSiteSettings } from "@/app/admin/actions";
+import { updateSiteSettings } from "@/app/sacristie/actions";
 import {
   PRINT_HEADER_SUBTITLE_KEY,
   PRINT_HEADER_TITLE_KEY,

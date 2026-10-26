@@ -1,6 +1,6 @@
 "use client";
 
-import { updateSiteSettings } from "@/app/admin/actions";
+import { updateSiteSettings } from "@/app/sacristie/actions";
 import {
   CHURCH_NAME_KEY,
   CHURCH_TAGLINE_KEY,

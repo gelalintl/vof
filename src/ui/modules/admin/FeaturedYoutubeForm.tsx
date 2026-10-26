@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { updateSiteSettings } from "@/app/admin/actions";
+import { updateSiteSettings } from "@/app/sacristie/actions";
 import { FEATURED_YOUTUBE_URL_KEY, type ManagedSettingKey } from "@/lib/siteSettingsKeys";
 import { extractYoutubeId, normalizeYoutubeUrl } from "@/lib/youtube";
 import { AdminSubmitButton } from "./AdminSubmitButton";

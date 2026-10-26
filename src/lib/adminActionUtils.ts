@@ -43,9 +43,9 @@ export function requireRecordId(id: string, message = "Identifiant manquant.") {
 }
 
 function revalidateAdminPath(path: string) {
-  revalidatePath("/admin");
+  revalidatePath("/sacristie");
   revalidatePath(path);
-  revalidatePath("/admin", "layout");
+  revalidatePath("/sacristie", "layout");
 }
 
 /** Rafraîchit une page publique dans les deux langues (/fr/... et /en/...). */
@@ -63,8 +63,8 @@ export function revalidateEventContent(slug?: string) {
   if (slug) {
     revalidatePublicPath(`/vie-de-leglise/${slug}`);
   }
-  revalidateAdminPath("/admin/evenements");
-  revalidatePath("/admin/evenements", "layout");
+  revalidateAdminPath("/sacristie/evenements");
+  revalidatePath("/sacristie/evenements", "layout");
 }
 
 export function revalidateArticleContent(slug?: string) {
@@ -73,35 +73,35 @@ export function revalidateArticleContent(slug?: string) {
   if (slug) {
     revalidatePublicPath(`/enseignements/${slug}`);
   }
-  revalidateAdminPath("/admin/enseignements");
+  revalidateAdminPath("/sacristie/enseignements");
 }
 
 export function revalidateMediaContent() {
   revalidateTag(PUBLIC_MEDIA_CACHE_TAG, "max");
   revalidatePublicPath("/");
   revalidatePublicPath("/galerie");
-  revalidateAdminPath("/admin/medias");
-  revalidatePath("/admin/medias", "layout");
+  revalidateAdminPath("/sacristie/medias");
+  revalidatePath("/sacristie/medias", "layout");
 }
 
 export function revalidatePastorContent() {
   revalidateTag(PUBLIC_PASTORS_CACHE_TAG, "max");
   revalidatePublicPath("/a-propos");
-  revalidateAdminPath("/admin/pasteurs");
-  revalidatePath("/admin/pasteurs", "layout");
+  revalidateAdminPath("/sacristie/pasteurs");
+  revalidatePath("/sacristie/pasteurs", "layout");
 }
 
 export function revalidateDepartmentContent() {
   revalidateTag(PUBLIC_DEPARTMENTS_CACHE_TAG, "max");
   revalidatePublicPath("/departements");
-  revalidateAdminPath("/admin/departements");
+  revalidateAdminPath("/sacristie/departements");
 }
 
 export function revalidateTestimonialContent() {
   revalidateTag(PUBLIC_TESTIMONIALS_CACHE_TAG, "max");
   revalidatePublicPath("/");
   revalidatePublicPath("/temoignages");
-  revalidateAdminPath("/admin/temoignages");
+  revalidateAdminPath("/sacristie/temoignages");
 }
 
 export function revalidateProjectContent() {
@@ -109,8 +109,8 @@ export function revalidateProjectContent() {
   revalidatePublicPath("/");
   revalidatePublicPath("/projets");
   revalidatePublicPath("/don");
-  revalidateAdminPath("/admin/projets");
-  revalidateAdminPath("/admin/dons");
+  revalidateAdminPath("/sacristie/projets");
+  revalidateAdminPath("/sacristie/dons");
 }
 
 export function revalidateDonationContent() {
@@ -118,8 +118,8 @@ export function revalidateDonationContent() {
   revalidatePublicPath("/");
   revalidatePublicPath("/projets");
   revalidatePublicPath("/don");
-  revalidateAdminPath("/admin/dons");
-  revalidateAdminPath("/admin/projets");
+  revalidateAdminPath("/sacristie/dons");
+  revalidateAdminPath("/sacristie/projets");
 }
 
 export function revalidateSettingsContent() {
@@ -131,6 +131,6 @@ export function revalidateSettingsContent() {
   revalidatePublicPath("/contact");
   revalidatePublicPath("/don");
   revalidatePublicPath("/a-propos");
-  revalidateAdminPath("/admin/parametres");
-  revalidatePath("/admin/parametres", "layout");
+  revalidateAdminPath("/sacristie/parametres");
+  revalidatePath("/sacristie/parametres", "layout");
 }

@@ -5,8 +5,8 @@ import {
   decryptSession,
 } from "@/lib/session";
 
-const LOGIN_PATH = "/admin/login";
-const ADMIN_HOME_PATH = "/admin/evenements";
+const LOGIN_PATH = "/sacristie/login";
+const ADMIN_HOME_PATH = "/sacristie/evenements";
 
 function isLoginPath(pathname: string) {
   return pathname === LOGIN_PATH || pathname.startsWith(`${LOGIN_PATH}/`);
@@ -35,7 +35,7 @@ export async function protectAdminRoutes(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (!pathname.startsWith("/admin")) {
+  if (!pathname.startsWith("/sacristie")) {
     return NextResponse.next();
   }
 

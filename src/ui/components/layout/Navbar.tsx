@@ -156,7 +156,7 @@ export function Navbar({
             className="inline-flex size-10 items-center justify-center rounded-full border border-violet-200 text-violet-700 lg:hidden"
             aria-expanded={isDrawerOpen}
             aria-controls="vof-mobile-drawer"
-            aria-label={isDrawerOpen ? "Fermer le menu" : "Ouvrir le menu"}
+            aria-label={isDrawerOpen ? dictionary.nav.closeMenu : dictionary.nav.openMenu}
             onClick={() => setIsDrawerOpen((open) => !open)}
           >
             {isDrawerOpen ? <X className="size-5" /> : <Menu className="size-5" />}
@@ -169,7 +169,7 @@ export function Navbar({
           <button
             type="button"
             className="fixed inset-0 z-40 bg-slate-900/40"
-            aria-label="Fermer le menu"
+            aria-label={dictionary.nav.closeMenu}
             onClick={closeDrawer}
           />
           <div

@@ -1,6 +1,6 @@
 "use client";
 
-import { deleteChurchLogo, uploadChurchLogo } from "@/app/admin/actions";
+import { deleteChurchLogo, uploadChurchLogo } from "@/app/sacristie/actions";
 import { Logo } from "@/ui/design-system/logo";
 import { AdminPanel } from "./AdminPageHeader";
 import { AdminSubmitButton } from "./AdminSubmitButton";

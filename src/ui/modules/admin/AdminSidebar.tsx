@@ -23,17 +23,17 @@ import { cn } from "@/utils/cn";
 import { logoutAction } from "@/lib/auth";
 
 const icons = {
-  "/admin": LayoutDashboard,
-  "/admin/evenements": Calendar,
-  "/admin/pasteurs": Users,
-  "/admin/departements": Building2,
-  "/admin/medias": ImageIcon,
-  "/admin/enseignements": BookOpen,
-  "/admin/temoignages": MessageSquareQuote,
-  "/admin/projets": FolderHeart,
-  "/admin/dons": HandHeart,
-  "/admin/utilisateurs": Users,
-  "/admin/parametres": Settings,
+  "/sacristie": LayoutDashboard,
+  "/sacristie/evenements": Calendar,
+  "/sacristie/pasteurs": Users,
+  "/sacristie/departements": Building2,
+  "/sacristie/medias": ImageIcon,
+  "/sacristie/enseignements": BookOpen,
+  "/sacristie/temoignages": MessageSquareQuote,
+  "/sacristie/projets": FolderHeart,
+  "/sacristie/dons": HandHeart,
+  "/sacristie/utilisateurs": Users,
+  "/sacristie/parametres": Settings,
 } as const;
 
 interface AdminSidebarProps {
@@ -47,7 +47,7 @@ export function AdminSidebar({ logoSrc, userEmail }: AdminSidebarProps) {
   return (
     <aside className="border-b border-slate-200 bg-white text-slate-800 lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-72 lg:shrink-0 lg:flex-col lg:border-b-0 lg:border-r lg:border-r-slate-200">
       <div className="flex items-center justify-between gap-4 px-5 py-5 lg:block lg:border-b lg:border-slate-100">
-        <Link href="/admin" className="inline-flex items-center gap-3">
+        <Link href="/sacristie" className="inline-flex items-center gap-3">
           {logoSrc ? (
             <Logo imageSrc={logoSrc} showWordmark={false} markClassName="size-11" />
           ) : (
@@ -76,8 +76,8 @@ export function AdminSidebar({ logoSrc, userEmail }: AdminSidebarProps) {
         {adminNavigation.map((item) => {
           const Icon = icons[item.href as keyof typeof icons];
           const isActive =
-            item.href === "/admin"
-              ? pathname === "/admin"
+            item.href === "/sacristie"
+              ? pathname === "/sacristie"
               : pathname.startsWith(item.href);
 
           return (

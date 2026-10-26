@@ -3,13 +3,33 @@
 import { useState, useTransition, type FormEvent } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { submitTestimonial } from "@/app/[locale]/partager-temoignage/actions";
+import type { Locale } from "@/i18n/config";
 import { Button } from "@/ui/design-system/button";
 
 const fieldClass =
   "mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 font-sans text-sm text-slate-800 outline-none ring-violet-700 focus:ring-2";
 const labelClass = "font-heading text-sm font-bold text-slate-800";
 
-export function TestimonialForm() {
+export interface TestimonialFormLabels {
+  fullName: string;
+  contact: string;
+  contactPlaceholder: string;
+  contactHint: string;
+  content: string;
+  contentPlaceholder: string;
+  submit: string;
+  sending: string;
+  success: string;
+  honeypot: string;
+}
+
+export function TestimonialForm({
+  labels,
+  locale,
+}: {
+  labels: TestimonialFormLabels;
+  locale: Locale;
+}) {
   const [isSubmitting, startTransition] = useTransition();
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,6 +45,7 @@ export function TestimonialForm() {
         contactInfo: String(formData.get("contactInfo") ?? ""),
         content: String(formData.get("content") ?? ""),
         website: String(formData.get("website") ?? ""),
+        locale,
       });
 
       if (!result.ok) {
@@ -43,7 +64,7 @@ export function TestimonialForm() {
       >
         <CheckCircle2 className="mx-auto size-10 text-violet-700" aria-hidden />
         <p className="mt-4 font-heading text-lg font-bold tracking-tight text-violet-700">
-          Merci d&apos;avoir partagé votre témoignage. Il a été transmis à notre équipe.
+          {labels.success}
         </p>
       </div>
     );
@@ -54,7 +75,7 @@ export function TestimonialForm() {
       {/* Champ piège anti-spam, invisible pour les visiteurs. */}
       <div aria-hidden className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
         <label>
-          Ne pas remplir
+          {labels.honeypot}
           <input type="text" name="website" tabIndex={-1} autoComplete="off" />
         </label>
       </div>
@@ -69,7 +90,7 @@ export function TestimonialForm() {
       ) : null}
 
       <label className="block">
-        <span className={labelClass}>Nom complet</span>
+        <span className={labelClass}>{labels.fullName}</span>
         <input
           name="authorName"
           required
@@ -80,35 +101,35 @@ export function TestimonialForm() {
       </label>
 
       <label className="block">
-        <span className={labelClass}>E-mail ou numéro de téléphone</span>
+        <span className={labelClass}>{labels.contact}</span>
         <input
           name="contactInfo"
           required
           maxLength={160}
           autoComplete="email"
-          placeholder="vous@exemple.com ou 90 00 00 00"
+          placeholder={labels.contactPlaceholder}
           className={fieldClass}
         />
         <span className="mt-1 block font-sans text-xs text-slate-500">
-          Visible uniquement par l&apos;équipe, pour vous recontacter si besoin.
+          {labels.contactHint}
         </span>
       </label>
 
       <label className="block">
-        <span className={labelClass}>Votre témoignage</span>
+        <span className={labelClass}>{labels.content}</span>
         <textarea
           name="content"
           required
           rows={8}
           minLength={20}
           maxLength={5000}
-          placeholder="Racontez-nous ce que Dieu a fait dans votre vie…"
+          placeholder={labels.contentPlaceholder}
           className={fieldClass}
         />
       </label>
 
       <Button type="submit" variant="primary" size="lg" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? "Envoi en cours…" : "Envoyer mon témoignage"}
+        {isSubmitting ? labels.sending : labels.submit}
       </Button>
     </form>
   );

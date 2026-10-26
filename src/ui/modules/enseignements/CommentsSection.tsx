@@ -35,7 +35,8 @@ function persistLikedIds(ids: string[]) {
 }
 
 interface CommentsSectionProps {
-  articleId: string;
+  articleId?: string;
+  eventId?: string;
   initialComments?: PublicArticleComment[];
   locale?: Locale;
   labels: {
@@ -58,6 +59,7 @@ interface CommentsSectionProps {
 
 export function CommentsSection({
   articleId,
+  eventId,
   initialComments = [],
   locale = "fr",
   labels,
@@ -86,9 +88,11 @@ export function CommentsSection({
     startTransition(async () => {
       const result = await addComment({
         articleId,
+        eventId,
         authorName,
         authorEmail,
         content,
+        locale,
       });
 
       if (!result.ok) {
@@ -96,7 +100,6 @@ export function CommentsSection({
         return;
       }
 
-      setComments((current) => [...current, result.comment]);
       setAuthorName("");
       setAuthorEmail("");
       setContent("");
@@ -125,7 +128,7 @@ export function CommentsSection({
     );
 
     startTransition(async () => {
-      const result = await likeComment(commentId);
+      const result = await likeComment(commentId, locale);
       setPendingLikeId(null);
       if (!result.ok) {
         setComments(previous);

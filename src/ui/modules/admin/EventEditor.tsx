@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { createEventFromForm, updateEventFromForm } from "@/app/admin/actions";
+import { createEventFromForm, updateEventFromForm } from "@/app/sacristie/actions";
 import type { AdminEventRecord } from "@/types";
 import { EventForm } from "./EventForm";
 import { notifyAdminAction } from "./notifyAdminAction";
@@ -16,12 +16,12 @@ export function EventEditor({ event }: EventEditorProps) {
   const action = event
     ? notifyAdminAction(async (formData) => {
         await updateEventFromForm(formData);
-        router.push("/admin/evenements");
+        router.push("/sacristie/evenements");
         router.refresh();
       }, "Événement mis à jour.")
     : notifyAdminAction(async (formData) => {
         await createEventFromForm(formData);
-        router.push("/admin/evenements");
+        router.push("/sacristie/evenements");
         router.refresh();
       }, "Événement créé.");
 

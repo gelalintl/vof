@@ -44,6 +44,7 @@ export default async function ContactPage({
         width="narrow"
       />
       <ContactStack
+        locale={locale}
         contact={siteContact}
         gatherings={siteConfig.worship.gatherings.map((gathering) => ({
           id: gathering.id,

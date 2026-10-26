@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { confirmDonationPromise } from "@/app/admin/actions";
+import { useEffect, useMemo, useState } from "react";
+import { CheckCircle, XCircle } from "lucide-react";
+import { cancelDonationPromise, confirmDonationPromise } from "@/app/sacristie/actions";
 import type { AdminDonationRecord, AdminProjectRecord, DonationPromiseStatus } from "@/types";
 import {
   donationPaymentLabels,
@@ -11,8 +12,9 @@ import {
   isDonationPromiseType,
 } from "@/lib/donations";
 import { formatFcfa } from "@/utils/formatters/currency";
+import { AdminConfirmDialog } from "./AdminDrawer";
 import { AdminEmptyState } from "./AdminPageHeader";
-import { adminFieldClass, adminPrimaryButtonClass } from "./adminStyles";
+import { adminFieldClass } from "./adminStyles";
 import { notifyAdminConfirm } from "./notifyAdminAction";
 
 interface DonationManagerProps {
@@ -28,12 +30,24 @@ const STATUS_FILTERS: Array<DonationPromiseStatus | "ALL"> = [
 ];
 
 export function DonationManager({ donations, projects }: DonationManagerProps) {
+  const [rows, setRows] = useState(donations);
   const [status, setStatus] = useState<DonationPromiseStatus | "ALL">("ALL");
   const [projectId, setProjectId] = useState("");
+  const [pendingCancel, setPendingCancel] = useState<AdminDonationRecord | null>(null);
+
+  useEffect(() => {
+    setRows(donations);
+  }, [donations]);
+
+  function markStatus(id: string, nextStatus: DonationPromiseStatus) {
+    setRows((current) =>
+      current.map((row) => (row.id === id ? { ...row, status: nextStatus } : row)),
+    );
+  }
 
   const filtered = useMemo(
     () =>
-      donations.filter((donation) => {
+      rows.filter((donation) => {
         if (status !== "ALL" && donation.status !== status) {
           return false;
         }
@@ -42,7 +56,7 @@ export function DonationManager({ donations, projects }: DonationManagerProps) {
         }
         return true;
       }),
-    [donations, projectId, status],
+    [projectId, rows, status],
   );
 
   return (
@@ -145,17 +159,31 @@ export function DonationManager({ donations, projects }: DonationManagerProps) {
                   </td>
                   <td className="px-4 py-3 text-right">
                     {donation.status === "PENDING" ? (
-                      <button
-                        type="button"
-                        className={adminPrimaryButtonClass}
-                        onClick={() =>
-                          notifyAdminConfirm(async () => {
-                            await confirmDonationPromise(donation.id);
-                          }, "Réception confirmée. La jauge du projet a été mise à jour.")
-                        }
-                      >
-                        Confirmer la réception
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          title="Confirmer la réception"
+                          aria-label="Confirmer la réception"
+                          className="rounded-md p-2 text-emerald-600 hover:bg-emerald-50"
+                          onClick={() =>
+                            notifyAdminConfirm(async () => {
+                              await confirmDonationPromise(donation.id);
+                              markStatus(donation.id, "CONFIRMED");
+                            }, "Réception confirmée. La jauge du projet a été mise à jour.")
+                          }
+                        >
+                          <CheckCircle className="size-5" aria-hidden />
+                        </button>
+                        <button
+                          type="button"
+                          title="Annuler la promesse"
+                          aria-label="Annuler la promesse"
+                          className="rounded-md p-2 text-red-600 hover:bg-red-50"
+                          onClick={() => setPendingCancel(donation)}
+                        >
+                          <XCircle className="size-5" aria-hidden />
+                        </button>
+                      </div>
                     ) : (
                       <span className="text-xs text-slate-400">—</span>
                     )}
@@ -166,6 +194,27 @@ export function DonationManager({ donations, projects }: DonationManagerProps) {
           </table>
         </div>
       )}
+
+      <AdminConfirmDialog
+        isOpen={Boolean(pendingCancel)}
+        title="Annuler la promesse"
+        message="Êtes-vous sûr de vouloir annuler cette promesse de don ?"
+        cancelLabel="Retour"
+        confirmLabel="Confirmer"
+        pendingLabel="Annulation…"
+        onClose={() => setPendingCancel(null)}
+        onConfirm={async () => {
+          if (!pendingCancel) {
+            return;
+          }
+          const donationId = pendingCancel.id;
+          await notifyAdminConfirm(async () => {
+            await cancelDonationPromise(donationId);
+            markStatus(donationId, "CANCELLED");
+          }, "Promesse de don annulée.");
+          setPendingCancel(null);
+        }}
+      />
     </>
   );
 }

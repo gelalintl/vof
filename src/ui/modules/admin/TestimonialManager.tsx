@@ -8,7 +8,7 @@ import {
   deleteTestimonial,
   togglePublishTestimonial,
   updateTestimonial,
-} from "@/app/admin/temoignages/actions";
+} from "@/app/sacristie/temoignages/actions";
 import type { AdminTestimonialRecord } from "@/types";
 import { formatPublicationDate } from "@/utils/date/format";
 import { cn } from "@/utils/cn";

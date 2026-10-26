@@ -4,7 +4,7 @@ import {
   deletePastorWelcomeImage,
   updateSiteSettings,
   uploadPastorWelcomeImage,
-} from "@/app/admin/actions";
+} from "@/app/sacristie/actions";
 import {
   PASTOR_WELCOME_IMAGE_KEY,
   WELCOME_AUTHOR_KEY,

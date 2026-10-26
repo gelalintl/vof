@@ -5,7 +5,7 @@ import {
   deletePaymentQr,
   updateSiteSettings,
   uploadPaymentQr,
-} from "@/app/admin/actions";
+} from "@/app/sacristie/actions";
 import { isSettingEnabled, type PaymentSettingKey } from "@/lib/siteSettingsKeys";
 import { cn } from "@/utils/cn";
 import { AdminSubmitButton } from "./AdminSubmitButton";

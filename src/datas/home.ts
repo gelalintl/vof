@@ -1,4 +1,4 @@
-import type { PageHeroData, QuoteBlockData, SectionHeaderData } from "@/types";
+import type { QuoteBlockData, SectionHeaderData } from "@/types";
 import { siteConfig } from "@/config/site";
 
 export const homeWelcomeHeader: SectionHeaderData = {
@@ -22,12 +22,6 @@ export const homeGalleryHeader: SectionHeaderData = {
   titleId: "galerie-vof",
   description:
     "Un aperçu de nos cultes, prières et temps forts. Touchez une image pour l'afficher en grand.",
-};
-
-export const galleryPageHero: PageHeroData = {
-  badge: "Galerie",
-  title: "Vivre l'expérience VOF",
-  description: "Nos cultes, temps de prière et temps forts en images.",
 };
 
 /** Nombre maximal d'images réelles affichées sur l'accueil (1 grande + 6 miniatures). */

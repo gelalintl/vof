@@ -1,19 +1,36 @@
 "use client";
 
 import { useState } from "react";
+import { formatMessage } from "@/i18n/getDictionary";
 import type { Department } from "@/types";
 import { Button } from "@/ui/design-system/button";
 import { Modal } from "@/ui/design-system/modal";
+export interface DepartmentJoinLabels {
+  joinTitle: string;
+  joinFallback: string;
+  joinHint: string;
+  joinSuccess: string;
+  close: string;
+  fullName: string;
+  phone: string;
+  phonePlaceholder: string;
+  email: string;
+  availability: string;
+  availabilityPlaceholder: string;
+  sendRequest: string;
+}
 
 interface JoinDepartmentModalProps {
   department: Department | null;
   isOpen: boolean;
+  labels: DepartmentJoinLabels;
   onClose: () => void;
 }
 
 export function JoinDepartmentModal({
   department,
   isOpen,
+  labels,
   onClose,
 }: JoinDepartmentModalProps) {
   const [submitted, setSubmitted] = useState(false);
@@ -27,16 +44,16 @@ export function JoinDepartmentModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={department ? `Rejoindre ${department.name}` : "Rejoindre un département"}
-      description={
-        submitted
-          ? "Votre demande a bien été enregistrée. L'équipe vous recontactera."
-          : "Laissez vos coordonnées. Un responsable VOF vous écrira pour la suite."
+      title={
+        department
+          ? formatMessage(labels.joinTitle, { name: department.name })
+          : labels.joinFallback
       }
+      description={submitted ? labels.joinSuccess : labels.joinHint}
     >
       {submitted ? (
         <Button variant="primary" className="w-full" onClick={handleClose}>
-          Fermer
+          {labels.close}
         </Button>
       ) : (
         <form
@@ -46,17 +63,17 @@ export function JoinDepartmentModal({
             setSubmitted(true);
           }}
         >
-          <Field label="Nom complet" name="name" required autoComplete="name" />
+          <Field label={labels.fullName} name="name" required autoComplete="name" />
           <Field
-            label="Téléphone"
+            label={labels.phone}
             name="phone"
             type="tel"
             required
             autoComplete="tel"
-            placeholder="07 00 00 00 00"
+            placeholder={labels.phonePlaceholder}
           />
           <Field
-            label="E-mail"
+            label={labels.email}
             name="email"
             type="email"
             required
@@ -64,17 +81,17 @@ export function JoinDepartmentModal({
           />
           <label className="block">
             <span className="font-heading text-sm font-bold text-slate-800">
-              Disponibilités / message
+              {labels.availability}
             </span>
             <textarea
               name="message"
               rows={4}
               className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 font-sans text-sm text-slate-800 outline-none ring-violet-700 focus:ring-2"
-              placeholder="Indiquez vos disponibilités ou une brève motivation."
+              placeholder={labels.availabilityPlaceholder}
             />
           </label>
           <Button type="submit" variant="accent" className="w-full">
-            Envoyer ma demande
+            {labels.sendRequest}
           </Button>
         </form>
       )}

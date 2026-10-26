@@ -19,7 +19,7 @@ import type { Department, EventColorToken } from "@/types";
 import { cn } from "@/utils/cn";
 import { Button } from "@/ui/design-system/button";
 import { Typography } from "@/ui/design-system/typography";
-import { JoinDepartmentModal } from "@/ui/components/modals";
+import { JoinDepartmentModal, type DepartmentJoinLabels } from "@/ui/components/modals";
 
 const icons = {
   music: Music,
@@ -44,18 +44,24 @@ const panelTransition = {
   ease: [0.22, 1, 0.36, 1] as const,
 };
 
-interface DepartmentAccordionProps {
-  departments: Department[];
+export interface DepartmentAccordionLabels extends DepartmentJoinLabels {
+  listLabel: string;
+  join: string;
 }
 
-export function DepartmentAccordion({ departments }: DepartmentAccordionProps) {
+interface DepartmentAccordionProps {
+  departments: Department[];
+  labels: DepartmentAccordionLabels;
+}
+
+export function DepartmentAccordion({ departments, labels }: DepartmentAccordionProps) {
   const [openId, setOpenId] = useState<string | null>(departments[0]?.id ?? null);
   const [joining, setJoining] = useState<Department | null>(null);
 
   return (
     <>
       <Typography id="liste-departements" variant="h2" className="sr-only">
-        Liste des départements
+        {labels.listLabel}
       </Typography>
       <ul className="space-y-3">
         {departments.map((department) => (
@@ -63,6 +69,7 @@ export function DepartmentAccordion({ departments }: DepartmentAccordionProps) {
             key={department.id}
             department={department}
             isOpen={openId === department.id}
+            joinLabel={labels.join}
             onToggle={() =>
               setOpenId((current) =>
                 current === department.id ? null : department.id,
@@ -75,6 +82,7 @@ export function DepartmentAccordion({ departments }: DepartmentAccordionProps) {
       <JoinDepartmentModal
         department={joining}
         isOpen={Boolean(joining)}
+        labels={labels}
         onClose={() => setJoining(null)}
       />
     </>
@@ -84,11 +92,13 @@ export function DepartmentAccordion({ departments }: DepartmentAccordionProps) {
 function DepartmentItem({
   department,
   isOpen,
+  joinLabel,
   onToggle,
   onJoin,
 }: {
   department: Department;
   isOpen: boolean;
+  joinLabel: string;
   onToggle: () => void;
   onJoin: () => void;
 }) {
@@ -193,7 +203,7 @@ function DepartmentItem({
                 ) : null}
               </ul>
               <Button variant="accent" size="sm" className="mt-4" onClick={onJoin}>
-                Rejoindre ce département
+                {joinLabel}
               </Button>
             </div>
           </motion.div>

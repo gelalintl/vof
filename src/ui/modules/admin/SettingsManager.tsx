@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { deleteSiteSetting, upsertSiteSettingFromForm } from "@/app/admin/actions";
+import { deleteSiteSetting, upsertSiteSettingFromForm } from "@/app/sacristie/actions";
 import type { AdminSettingRecord } from "@/types";
 import { formatAdminDateTime } from "@/utils/date/format";
 import { AdminActionBar } from "./AdminActionBar";

@@ -89,6 +89,9 @@ interface AdminConfirmDialogProps {
   isOpen: boolean;
   title: string;
   message: string;
+  cancelLabel?: string;
+  confirmLabel?: string;
+  pendingLabel?: string;
   onClose: () => void;
   onConfirm: () => void | Promise<void>;
 }
@@ -97,6 +100,9 @@ export function AdminConfirmDialog({
   isOpen,
   title,
   message,
+  cancelLabel = "Annuler",
+  confirmLabel = "Supprimer",
+  pendingLabel = "Suppression…",
   onClose,
   onConfirm,
 }: AdminConfirmDialogProps) {
@@ -138,7 +144,7 @@ export function AdminConfirmDialog({
             disabled={isSubmitting}
             className="h-10 border border-slate-200 px-4 font-heading text-sm font-bold text-slate-800 disabled:opacity-50"
           >
-            Annuler
+            {cancelLabel}
           </button>
           <button
             type="button"
@@ -153,7 +159,7 @@ export function AdminConfirmDialog({
             }}
             className={cn(adminPrimaryButtonClass, "h-10 px-4")}
           >
-            {isSubmitting ? "Suppression…" : "Supprimer"}
+            {isSubmitting ? pendingLabel : confirmLabel}
           </button>
         </div>
       </div>

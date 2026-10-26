@@ -1,31 +1,42 @@
 import type { Metadata } from "next";
-import { galleryPageHero } from "@/datas/home";
+import { isLocale } from "@/i18n/config";
+import { getDictionary } from "@/i18n/getDictionary";
+import { staticPageMetadata } from "@/i18n/metadata";
 import { getAllGalleryMedia } from "@/lib/publicContent";
 import { GalleryGrid } from "@/ui/components/media";
 import { ContentSection, PageHero } from "@/ui/components/layout";
 import { MainLayout } from "@/ui/layouts/MainLayout";
 
-export const metadata: Metadata = {
-  title: "Galerie",
-  description: "Les cultes, temps de prière et temps forts de l'Église Voice Of Freedom en images.",
-};
+interface GalleryPageProps {
+  params: Promise<{ locale: string }>;
+}
 
-export default async function GalleryPage() {
+export async function generateMetadata({ params }: GalleryPageProps): Promise<Metadata> {
+  const { locale } = await params;
+  return staticPageMetadata(locale, "gallery");
+}
+
+export default async function GalleryPage({ params }: GalleryPageProps) {
+  const { locale: localeParam } = await params;
+  const locale = isLocale(localeParam) ? localeParam : "fr";
+  const { gallery } = getDictionary(locale);
   const images = await getAllGalleryMedia();
 
   return (
     <MainLayout>
-      <PageHero {...galleryPageHero} />
+      <PageHero
+        badge={gallery.badge}
+        title={gallery.title}
+        description={gallery.description}
+      />
       <ContentSection labelledBy="liste-galerie">
         <h2 id="liste-galerie" className="sr-only">
-          Photos de la galerie
+          {gallery.listLabel}
         </h2>
         {images.length > 0 ? (
           <GalleryGrid images={images} />
         ) : (
-          <p className="font-sans text-sm text-slate-600">
-            Les photos apparaîtront ici dès qu’elles seront ajoutées depuis l’administration.
-          </p>
+          <p className="font-sans text-sm text-slate-600">{gallery.empty}</p>
         )}
       </ContentSection>
     </MainLayout>

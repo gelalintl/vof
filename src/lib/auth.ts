@@ -75,7 +75,7 @@ export async function loginAction(formData: FormData): Promise<{ error: string }
     return { error: "Impossible de se connecter pour le moment. Réessayez." };
   }
 
-  redirect("/admin/evenements");
+  redirect("/sacristie/evenements");
 }
 
 export async function logoutAction() {
@@ -83,11 +83,11 @@ export async function logoutAction() {
   clearSessionCookie(cookieStore);
 
   revalidatePath("/", "layout");
-  revalidatePath("/admin", "layout");
-  revalidatePath("/admin/login");
-  revalidatePath("/admin/evenements");
+  revalidatePath("/sacristie", "layout");
+  revalidatePath("/sacristie/login");
+  revalidatePath("/sacristie/evenements");
 
-  redirect("/admin/login");
+  redirect("/sacristie/login");
 }
 
 export const getCurrentUser = cache(async (): Promise<AdminSessionUser | null> => {
@@ -128,7 +128,7 @@ export async function requireAdmin(): Promise<AdminSessionUser> {
   if (!user) {
     const cookieStore = await cookies();
     clearSessionCookie(cookieStore);
-    redirect("/admin/login");
+    redirect("/sacristie/login");
   }
   return user;
 }

@@ -6,7 +6,7 @@ import {
   deleteMedia,
   updateMediaFromForm,
   uploadAdminImageFromForm,
-} from "@/app/admin/actions";
+} from "@/app/sacristie/actions";
 import { mediaKindFromUrl, mediaThumbSrc } from "@/lib/mediaKind";
 import type { AdminMediaRecord } from "@/types";
 import { cn } from "@/utils/cn";

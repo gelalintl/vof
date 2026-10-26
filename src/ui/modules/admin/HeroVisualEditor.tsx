@@ -5,7 +5,7 @@ import {
   deleteHeroBgImage,
   updateSiteSettings,
   uploadHeroBgImage,
-} from "@/app/admin/actions";
+} from "@/app/sacristie/actions";
 import { pageHeroFromDraft } from "@/lib/homeHero";
 import {
   FEATURED_YOUTUBE_URL_KEY,

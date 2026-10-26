@@ -1,17 +1,17 @@
 import type { NavItem } from "@/types";
 
 export const adminNavigation: NavItem[] = [
-  { label: "Vue d'ensemble", href: "/admin" },
-  { label: "Événements", href: "/admin/evenements" },
-  { label: "Équipe Pastorale", href: "/admin/pasteurs" },
-  { label: "Départements", href: "/admin/departements" },
-  { label: "Médias", href: "/admin/medias" },
-  { label: "Enseignements", href: "/admin/enseignements" },
-  { label: "Témoignages", href: "/admin/temoignages" },
-  { label: "Projets", href: "/admin/projets" },
-  { label: "Suivi des Dons", href: "/admin/dons" },
-  { label: "Administrateurs", href: "/admin/utilisateurs" },
-  { label: "Paramètres", href: "/admin/parametres" },
+  { label: "Vue d'ensemble", href: "/sacristie" },
+  { label: "Événements", href: "/sacristie/evenements" },
+  { label: "Équipe Pastorale", href: "/sacristie/pasteurs" },
+  { label: "Départements", href: "/sacristie/departements" },
+  { label: "Médias", href: "/sacristie/medias" },
+  { label: "Enseignements", href: "/sacristie/enseignements" },
+  { label: "Témoignages", href: "/sacristie/temoignages" },
+  { label: "Projets", href: "/sacristie/projets" },
+  { label: "Suivi des Dons", href: "/sacristie/dons" },
+  { label: "Administrateurs", href: "/sacristie/utilisateurs" },
+  { label: "Paramètres", href: "/sacristie/parametres" },
 ];
 
 export const mainNavigation: NavItem[] = [

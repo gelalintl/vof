@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { createPastorFromForm, updatePastorFromForm } from "@/app/admin/actions";
+import { createPastorFromForm, updatePastorFromForm } from "@/app/sacristie/actions";
 import type { AdminPastorRecord } from "@/types";
 import { PastorForm } from "./PastorForm";
 import { notifyAdminAction } from "./notifyAdminAction";
@@ -16,12 +16,12 @@ export function PastorEditor({ pastor }: PastorEditorProps) {
   const action = pastor
     ? notifyAdminAction(async (formData) => {
         await updatePastorFromForm(formData);
-        router.push("/admin/pasteurs");
+        router.push("/sacristie/pasteurs");
         router.refresh();
       }, "Membre mis à jour.")
     : notifyAdminAction(async (formData) => {
         await createPastorFromForm(formData);
-        router.push("/admin/pasteurs");
+        router.push("/sacristie/pasteurs");
         router.refresh();
       }, "Membre ajouté à l’équipe.");
 

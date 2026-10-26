@@ -144,7 +144,21 @@ export async function Footer({ logoSrc, contact, identity, content }: FooterProp
           ) : null}
         </div>
       </div>
-      <div className="border-t border-violet-100 py-4 text-center font-sans text-xs text-slate-600">
+      <div className="border-t border-violet-100 px-4 py-4 text-center font-sans text-xs text-slate-600">
+        <nav className="mb-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+          <Link
+            href={withLocale(locale, "/mentions-legales")}
+            className="hover:text-sky-600"
+          >
+            {dictionary.footer.legalNotice}
+          </Link>
+          <Link
+            href={withLocale(locale, "/politique-de-confidentialite")}
+            className="hover:text-sky-600"
+          >
+            {dictionary.footer.privacy}
+          </Link>
+        </nav>
         <p>{content.copyright}</p>
       </div>
       <div className="bg-slate-900 py-4 text-center">

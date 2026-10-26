@@ -1,6 +1,6 @@
 "use client";
 
-import { updateSiteSettings } from "@/app/admin/actions";
+import { updateSiteSettings } from "@/app/sacristie/actions";
 import type { ManagedSettingKey } from "@/lib/siteSettingsKeys";
 import {
   FacebookMark,

@@ -5,7 +5,7 @@ import {
   createArticleFromForm,
   deleteArticle,
   updateArticleFromForm,
-} from "@/app/admin/actions";
+} from "@/app/sacristie/actions";
 import type { AdminArticleRecord } from "@/types";
 import { formatPublicationDate } from "@/utils/date/format";
 import { AdminActionBar } from "./AdminActionBar";

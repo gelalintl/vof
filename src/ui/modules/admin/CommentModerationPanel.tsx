@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Star } from "lucide-react";
 import { toast } from "sonner";
-import { deleteComment, toggleCommentApproval } from "@/app/admin/actions";
+import { deleteComment, toggleCommentApproval } from "@/app/sacristie/actions";
 import type { AdminCommentRecord } from "@/types";
 import { excerpt } from "@/ui/modules/enseignements/excerpt";
 import { formatAdminDateTime } from "@/utils/date/format";
@@ -35,6 +35,9 @@ export function CommentModerationPanel({ comments }: CommentModerationPanelProps
       if (comment.articleId && comment.articleTitle) {
         map.set(comment.articleId, comment.articleTitle);
       }
+      if (comment.eventId && comment.eventTitle) {
+        map.set(`event:${comment.eventId}`, comment.eventTitle);
+      }
     }
     return [...map.entries()].sort((left, right) => left[1].localeCompare(right[1], "fr"));
   }, [rows]);
@@ -45,6 +48,9 @@ export function CommentModerationPanel({ comments }: CommentModerationPanelProps
     }
     if (statusFilter === "pending" && comment.isApproved) {
       return false;
+    }
+    if (articleFilter.startsWith("event:")) {
+      return comment.eventId === articleFilter.slice("event:".length);
     }
     if (articleFilter !== "all" && comment.articleId !== articleFilter) {
       return false;
@@ -77,14 +83,14 @@ export function CommentModerationPanel({ comments }: CommentModerationPanelProps
         </div>
         <label className="block min-w-56">
           <span className="mb-1.5 block font-heading text-xs font-bold uppercase tracking-wide text-slate-600">
-            Enseignement
+            Contenu
           </span>
           <select
             value={articleFilter}
             onChange={(change) => setArticleFilter(change.target.value)}
             className={adminFieldClass}
           >
-            <option value="all">Tous les enseignements</option>
+            <option value="all">Tous les contenus</option>
             {articles.map(([id, title]) => (
               <option key={id} value={id}>
                 {title}
@@ -102,7 +108,7 @@ export function CommentModerationPanel({ comments }: CommentModerationPanelProps
             <thead className="border-b border-slate-100 bg-slate-50 font-heading text-[11px] font-bold uppercase tracking-[0.16em] text-slate-900">
               <tr>
                 <th className="px-4 py-3">Auteur</th>
-                <th className="px-4 py-3">Enseignement</th>
+                <th className="px-4 py-3">Publication</th>
                 <th className="px-4 py-3">Message</th>
                 <th className="px-4 py-3">Date</th>
                 <th className="px-4 py-3">Étoiles</th>
@@ -120,7 +126,7 @@ export function CommentModerationPanel({ comments }: CommentModerationPanelProps
                     </p>
                   </td>
                   <td className="px-4 py-3 text-slate-600">
-                    {comment.articleTitle || "Enseignement retiré"}
+                    {comment.articleTitle || comment.eventTitle || "Contenu retiré"}
                   </td>
                   <td className="max-w-xs px-4 py-3 text-slate-700">
                     {excerpt(comment.content, 90)}

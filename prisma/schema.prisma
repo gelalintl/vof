@@ -66,6 +66,7 @@ model Event {
   createdAt         DateTime       @default(now())
   media             Media[]
   themes            EventTheme[]
+  comments          Comment[]
 }
 
 /// Thème d'une série récurrente sur une période (ex. « Le mois de la faveur »).
@@ -115,11 +116,15 @@ model Comment {
   authorName  String
   authorEmail String?
   content     String   @db.Text
-  isApproved  Boolean  @default(true)
+  isApproved  Boolean  @default(false)
   likesCount  Int      @default(0)
   articleId   String?
   article     Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  eventId     String?
+  event       Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
+
+  @@index([eventId])
 }
 
 // Textes anglais facultatifs : clés parallèles `address_en` et `location_address_en`.

@@ -1,6 +1,6 @@
 "use client";
 
-import { updateSiteSettings } from "@/app/admin/actions";
+import { updateSiteSettings } from "@/app/sacristie/actions";
 import {
   ABOUT_ANNUAL_VERSE_REF_KEY,
   ABOUT_ANNUAL_VERSE_TEXT_KEY,
