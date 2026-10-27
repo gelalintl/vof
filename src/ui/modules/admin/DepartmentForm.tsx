@@ -80,7 +80,7 @@ export function DepartmentForm({ action, department, submitLabel }: DepartmentFo
           Photo d’illustration
         </legend>
         <p className="font-sans text-xs text-slate-600">
-          Téléversement local vers <code className="font-mono">/uploads/</code>.
+          10 Mo maximum. L’image est enregistrée dans la médiathèque.
         </p>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <AdminThumb

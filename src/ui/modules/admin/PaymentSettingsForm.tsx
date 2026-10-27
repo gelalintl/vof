@@ -11,6 +11,7 @@ import { cn } from "@/utils/cn";
 import { AdminSubmitButton } from "./AdminSubmitButton";
 import { AdminLabel, AdminPanel } from "./AdminPageHeader";
 import { adminFieldClass, adminFileClass, adminGhostButtonClass } from "./adminStyles";
+import { isPersistedMediaUrl } from "@/lib/storage/mediaUrl";
 import { notifyAdminAction } from "./notifyAdminAction";
 
 interface PaymentSettingsFormProps {
@@ -78,7 +79,7 @@ export function PaymentSettingsForm({ values }: PaymentSettingsFormProps) {
       </h2>
       <p className="mt-1 text-sm text-slate-600">
         Activez les moyens visibles sur le site public. Les QR codes sont
-        enregistrés dans <code className="font-mono text-xs">public/uploads</code>.
+        enregistrés dans la médiathèque publique.
       </p>
 
       <div className="mt-6 space-y-8">
@@ -92,7 +93,7 @@ export function PaymentSettingsForm({ values }: PaymentSettingsFormProps) {
           <div className="mt-3 grid gap-4 lg:grid-cols-3">
             {operators.map((operator) => {
               const qrSrc = values[operator.qrKey];
-              const hasUpload = Boolean(qrSrc && qrSrc.startsWith("/uploads/"));
+              const hasUpload = isPersistedMediaUrl(qrSrc);
 
               return (
                 <div

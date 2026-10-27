@@ -26,6 +26,7 @@ import { AdminSubmitButton } from "./AdminSubmitButton";
 import { AdminEnglishSection } from "./AdminEnglishSection";
 import { AdminLabel } from "./AdminPageHeader";
 import { adminFieldClass, adminFileClass, adminGhostButtonClass } from "./adminStyles";
+import { isPersistedMediaUrl } from "@/lib/storage/mediaUrl";
 import { notifyAdminAction } from "./notifyAdminAction";
 
 interface HeroVisualEditorProps {
@@ -36,7 +37,7 @@ interface HeroVisualEditorProps {
 
 export function HeroVisualEditor({ values, catalog, fallbackTime }: HeroVisualEditorProps) {
   const [draft, setDraft] = useState<HomeHeroDraft>(values);
-  const savedBgImage = draft.hero_bg_image.startsWith("/uploads/")
+  const savedBgImage = isPersistedMediaUrl(draft.hero_bg_image)
     ? draft.hero_bg_image
     : values.hero_bg_image;
 
@@ -92,15 +93,16 @@ export function HeroVisualEditor({ values, catalog, fallbackTime }: HeroVisualEd
   }, "Hero d'accueil mis à jour avec succès !");
 
   const handleUpload = notifyAdminAction(async (formData) => {
-    const url = await uploadHeroBgImage(formData);
-    if (typeof url === "string") {
+    const result = await uploadHeroBgImage(formData);
+    if (result.success) {
       setDraft((current) => {
         if (current.hero_bg_image.startsWith("blob:")) {
           URL.revokeObjectURL(current.hero_bg_image);
         }
-        return { ...current, hero_bg_image: url };
+        return { ...current, hero_bg_image: result.url };
       });
     }
+    return result;
   }, "Image de fond du Hero mise à jour.");
 
   const handleDelete = notifyAdminAction(async () => {

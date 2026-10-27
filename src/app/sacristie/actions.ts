@@ -1,5 +1,6 @@
 "use server";
 
+import { unstable_rethrow } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import {
   requireRecordId,
@@ -26,7 +27,18 @@ import {
   type PaymentOperatorSlug,
 } from "@/lib/siteSettings";
 import { logoutAction, requireAdmin } from "@/lib/auth";
-import { deleteLocalFile, uploadLocalFile } from "@/lib/storage/localUpload";
+import {
+  deleteSupabaseFile,
+  isUploadFailure,
+  uploadSupabaseFile,
+} from "@/lib/storage/supabaseUpload";
+
+function actionErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+  return "Une erreur est survenue.";
+}
 import { isEmptyRichText, sanitizeRichText } from "@/lib/richText";
 import { normalizeYoutubeUrl } from "@/lib/youtube";
 import type {
@@ -377,7 +389,11 @@ async function uniqueEventSlug(base: string, excludeId?: string) {
 async function optionalUploadedUrl(formData: FormData, field = "file") {
   const file = formData.get(field);
   if (file instanceof File && file.size > 0) {
-    return uploadLocalFile(file);
+    const uploaded = await uploadSupabaseFile(file);
+    if (!uploaded.success) {
+      return { success: false as const, error: uploaded.error };
+    }
+    return uploaded.url;
   }
   return null;
 }
@@ -386,7 +402,11 @@ async function uploadedUrlsFromForm(formData: FormData, field: string) {
   const urls: string[] = [];
   for (const entry of formData.getAll(field)) {
     if (entry instanceof File && entry.size > 0) {
-      urls.push(await uploadLocalFile(entry));
+      const uploaded = await uploadSupabaseFile(entry);
+      if (!uploaded.success) {
+        return { success: false as const, error: uploaded.error };
+      }
+      urls.push(uploaded.url);
     }
   }
   return urls;
@@ -411,7 +431,7 @@ async function replaceArticleGallery(articleId: string, nextImages: string[]) {
   const uniqueNext = [...new Set(nextImages)];
   for (const url of current.galleryImages) {
     if (!uniqueNext.includes(url)) {
-      await deleteLocalFile(url);
+      await deleteSupabaseFile(url);
     }
   }
 
@@ -551,6 +571,9 @@ export async function createEventFromForm(formData: FormData) {
   await requireAdmin();
   const category = parseEventCategory(readString(formData, "category"));
   const uploaded = await optionalUploadedUrl(formData, "imageFile");
+  if (isUploadFailure(uploaded)) {
+    return uploaded;
+  }
 
   await createEvent({
     title: readString(formData, "title"),
@@ -656,10 +679,13 @@ export async function updateEventFromForm(formData: FormData) {
 
   const category = parseEventCategory(readString(formData, "category"));
   const uploaded = await optionalUploadedUrl(formData, "imageFile");
+  if (isUploadFailure(uploaded)) {
+    return uploaded;
+  }
   const nextImage = uploaded || readString(formData, "image") || null;
 
   if (uploaded && current.image && current.image !== nextImage) {
-    await deleteLocalFile(current.image);
+    await deleteSupabaseFile(current.image);
   }
 
   await updateEvent(id, {
@@ -695,42 +721,63 @@ export async function deleteEvent(formData: FormData) {
     select: { image: true },
   });
   if (current?.image) {
-    await deleteLocalFile(current.image);
+    await deleteSupabaseFile(current.image);
   }
 
   await prisma.event.deleteMany({ where: { id } });
   revalidateEventContent(id);
 }
 
-export async function uploadAdminImage(file: File) {
-  await requireAdmin();
-  const url = await uploadLocalFile(file);
-  revalidateMediaContent();
-  return url;
+export async function uploadAdminImage(
+  file: File,
+): Promise<{ success: true; url: string } | { success: false; error: string }> {
+  try {
+    await requireAdmin();
+    const uploaded = await uploadSupabaseFile(file);
+    if (!uploaded.success) {
+      return uploaded;
+    }
+    revalidateMediaContent();
+    return { success: true, url: uploaded.url };
+  } catch (error) {
+    unstable_rethrow(error);
+    return { success: false, error: actionErrorMessage(error) };
+  }
 }
 
-export async function uploadAdminImageFromForm(formData: FormData) {
-  await requireAdmin();
-  const uploaded = await optionalUploadedUrl(formData, "file");
-  const existingUrl = readString(formData, "url");
-  const videoUrl = readString(formData, "videoUrl");
-  const url = uploaded || videoUrl || existingUrl;
+export async function uploadAdminImageFromForm(
+  formData: FormData,
+): Promise<{ success: true } | { success: false; error: string }> {
+  try {
+    await requireAdmin();
+    const uploaded = await optionalUploadedUrl(formData, "file");
+    if (isUploadFailure(uploaded)) {
+      return uploaded;
+    }
+    const existingUrl = readString(formData, "url");
+    const videoUrl = readString(formData, "videoUrl");
+    const url = uploaded || videoUrl || existingUrl;
 
-  if (!url) {
-    throw new Error("Fournissez une image ou un lien vidéo.");
+    if (!url) {
+      return { success: false, error: "Fournissez une image ou un lien vidéo." };
+    }
+
+    await prisma.media.create({
+      data: {
+        title: readString(formData, "title") || "Média",
+        url,
+        category: readString(formData, "category") || "galerie",
+        eventId: readString(formData, "eventId") || null,
+        isFeaturedHome: formData.get("isFeaturedHome") === "on",
+      },
+    });
+
+    revalidateMediaContent();
+    return { success: true };
+  } catch (error) {
+    unstable_rethrow(error);
+    return { success: false, error: actionErrorMessage(error) };
   }
-
-  await prisma.media.create({
-    data: {
-      title: readString(formData, "title") || "Média",
-      url,
-      category: readString(formData, "category") || "galerie",
-      eventId: readString(formData, "eventId") || null,
-      isFeaturedHome: formData.get("isFeaturedHome") === "on",
-    },
-  });
-
-  revalidateMediaContent();
 }
 
 export async function updateMediaFromForm(formData: FormData) {
@@ -743,11 +790,14 @@ export async function updateMediaFromForm(formData: FormData) {
   }
 
   const uploaded = await optionalUploadedUrl(formData, "file");
+  if (isUploadFailure(uploaded)) {
+    return uploaded;
+  }
   const videoUrl = readString(formData, "videoUrl");
   const nextUrl = uploaded || videoUrl || readString(formData, "url") || current.url;
 
   if (uploaded && current.url !== nextUrl) {
-    await deleteLocalFile(current.url);
+    await deleteSupabaseFile(current.url);
   }
 
   await runPrismaWrite(
@@ -777,7 +827,7 @@ export async function deleteMedia(formData: FormData) {
     select: { url: true },
   });
   if (current) {
-    await deleteLocalFile(current.url);
+    await deleteSupabaseFile(current.url);
     await prisma.media.deleteMany({ where: { id } });
   }
 
@@ -796,10 +846,14 @@ export async function createArticleFromForm(formData: FormData) {
   }
 
   const uploaded = await optionalUploadedUrl(formData, "coverFile");
-  const galleryImages = [
-    ...readStringList(formData, "galleryImages"),
-    ...(await uploadedUrlsFromForm(formData, "galleryFiles")),
-  ];
+  if (isUploadFailure(uploaded)) {
+    return uploaded;
+  }
+  const galleryUpload = await uploadedUrlsFromForm(formData, "galleryFiles");
+  if (isUploadFailure(galleryUpload)) {
+    return galleryUpload;
+  }
+  const galleryImages = [...readStringList(formData, "galleryImages"), ...galleryUpload];
   const isFeatured = formData.get("isFeatured") === "on";
   const publishedAt = parsePublishedAt(readString(formData, "publishedAt"));
 
@@ -837,10 +891,13 @@ export async function updateArticleFromForm(formData: FormData) {
   }
 
   const uploaded = await optionalUploadedUrl(formData, "coverFile");
+  if (isUploadFailure(uploaded)) {
+    return uploaded;
+  }
   const nextCover = uploaded || readString(formData, "coverImage") || null;
 
   if (uploaded && current.coverImage && current.coverImage !== nextCover) {
-    await deleteLocalFile(current.coverImage);
+    await deleteSupabaseFile(current.coverImage);
   }
 
   const isFeatured = formData.get("isFeatured") === "on";
@@ -876,9 +933,14 @@ export async function updateArticleFromForm(formData: FormData) {
     "Article introuvable.",
   );
 
+  const galleryUpload = await uploadedUrlsFromForm(formData, "galleryFiles");
+  if (isUploadFailure(galleryUpload)) {
+    return galleryUpload;
+  }
+
   await replaceArticleGallery(id, [
     ...readStringList(formData, "galleryImages"),
-    ...(await uploadedUrlsFromForm(formData, "galleryFiles")),
+    ...galleryUpload,
   ]);
 
   revalidateArticleContent(readString(formData, "slug"));
@@ -890,10 +952,10 @@ export async function deleteArticle(formData: FormData) {
 
   const current = await prisma.article.findUnique({ where: { id } });
   if (current?.coverImage) {
-    await deleteLocalFile(current.coverImage);
+    await deleteSupabaseFile(current.coverImage);
   }
   for (const url of current?.galleryImages ?? []) {
-    await deleteLocalFile(url);
+    await deleteSupabaseFile(url);
   }
 
   await prisma.article.deleteMany({ where: { id } });
@@ -958,7 +1020,7 @@ export async function deleteComment(commentId: string) {
   }
 }
 
-export async function updateSiteSettings(settings: Record<string, string>) {
+async function persistSiteSettings(settings: Record<string, string>) {
   await requireAdmin();
   const allowed = new Set<string>(UPSERTABLE_SETTING_KEYS);
   const entries = Object.entries(settings).filter(([key]) => allowed.has(key));
@@ -979,6 +1041,18 @@ export async function updateSiteSettings(settings: Record<string, string>) {
   );
 
   revalidateSettingsContent();
+}
+
+export async function updateSiteSettings(
+  settings: Record<string, string>,
+): Promise<{ success: true } | { success: false; error: string }> {
+  try {
+    await persistSiteSettings(settings);
+    return { success: true };
+  } catch (error) {
+    unstable_rethrow(error);
+    return { success: false, error: actionErrorMessage(error) };
+  }
 }
 
 export async function upsertSiteSettingFromForm(formData: FormData) {
@@ -1018,34 +1092,46 @@ export async function deleteSiteSetting(formData: FormData) {
   const current = await prisma.siteSettings.findUnique({ where: { id } });
   const qrKeys = new Set<string>(PAYMENT_QR_KEYS);
   if (current && (current.key === CHURCH_LOGO_KEY || current.key === PASTOR_WELCOME_IMAGE_KEY || current.key === HERO_BG_IMAGE_KEY || qrKeys.has(current.key))) {
-    await deleteLocalFile(jsonToDisplay(current.value));
+    await deleteSupabaseFile(jsonToDisplay(current.value));
   }
 
   await prisma.siteSettings.deleteMany({ where: { id } });
   revalidateSettingsContent();
 }
 
-export async function uploadChurchLogo(formData: FormData) {
-  await requireAdmin();
-  const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0) {
-    throw new Error("Aucun logo fourni.");
+export async function uploadChurchLogo(
+  formData: FormData,
+): Promise<{ success: true; url: string } | { success: false; error: string }> {
+  try {
+    await requireAdmin();
+    const file = formData.get("file");
+    if (!(file instanceof File) || file.size === 0) {
+      return { success: false, error: "Aucun logo fourni." };
+    }
+
+    const previous = await getChurchLogo();
+    const uploaded = await uploadSupabaseFile(file);
+    if (!uploaded.success) {
+      return uploaded;
+    }
+    const url = uploaded.url;
+
+    await prisma.siteSettings.upsert({
+      where: { key: CHURCH_LOGO_KEY },
+      create: { key: CHURCH_LOGO_KEY, value: url },
+      update: { value: url },
+    });
+
+    if (previous && previous !== url) {
+      await deleteSupabaseFile(previous);
+    }
+
+    revalidateSettingsContent();
+    return { success: true, url };
+  } catch (error) {
+    unstable_rethrow(error);
+    return { success: false, error: actionErrorMessage(error) };
   }
-
-  const previous = await getChurchLogo();
-  const url = await uploadLocalFile(file);
-
-  await prisma.siteSettings.upsert({
-    where: { key: CHURCH_LOGO_KEY },
-    create: { key: CHURCH_LOGO_KEY, value: url },
-    update: { value: url },
-  });
-
-  if (previous && previous !== url) {
-    await deleteLocalFile(previous);
-  }
-
-  revalidateSettingsContent();
 }
 
 const PAYMENT_OPERATORS: PaymentOperatorSlug[] = ["amana", "nita", "wave"];
@@ -1058,29 +1144,41 @@ function readPaymentOperator(formData: FormData): PaymentOperatorSlug {
   return operator as PaymentOperatorSlug;
 }
 
-export async function uploadPaymentQr(formData: FormData) {
-  await requireAdmin();
-  const operator = readPaymentOperator(formData);
-  const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0) {
-    throw new Error("Aucun QR code fourni.");
+export async function uploadPaymentQr(
+  formData: FormData,
+): Promise<{ success: true } | { success: false; error: string }> {
+  try {
+    await requireAdmin();
+    const operator = readPaymentOperator(formData);
+    const file = formData.get("file");
+    if (!(file instanceof File) || file.size === 0) {
+      return { success: false, error: "Aucun QR code fourni." };
+    }
+
+    const key = PAYMENT_QR_KEY_BY_OPERATOR[operator];
+    const previous = await prisma.siteSettings.findUnique({ where: { key } });
+    const uploaded = await uploadSupabaseFile(file);
+    if (!uploaded.success) {
+      return uploaded;
+    }
+    const url = uploaded.url;
+
+    await prisma.siteSettings.upsert({
+      where: { key },
+      create: { key, value: url },
+      update: { value: url },
+    });
+
+    if (previous) {
+      await deleteSupabaseFile(jsonToDisplay(previous.value));
+    }
+
+    revalidateSettingsContent();
+    return { success: true };
+  } catch (error) {
+    unstable_rethrow(error);
+    return { success: false, error: actionErrorMessage(error) };
   }
-
-  const key = PAYMENT_QR_KEY_BY_OPERATOR[operator];
-  const previous = await prisma.siteSettings.findUnique({ where: { key } });
-  const url = await uploadLocalFile(file);
-
-  await prisma.siteSettings.upsert({
-    where: { key },
-    create: { key, value: url },
-    update: { value: url },
-  });
-
-  if (previous) {
-    await deleteLocalFile(jsonToDisplay(previous.value));
-  }
-
-  revalidateSettingsContent();
 }
 
 export async function deletePaymentQr(formData: FormData) {
@@ -1090,7 +1188,7 @@ export async function deletePaymentQr(formData: FormData) {
   const current = await prisma.siteSettings.findUnique({ where: { key } });
 
   if (current) {
-    await deleteLocalFile(jsonToDisplay(current.value));
+    await deleteSupabaseFile(jsonToDisplay(current.value));
     await runPrismaWrite(
       () =>
         prisma.siteSettings.update({
@@ -1104,37 +1202,58 @@ export async function deletePaymentQr(formData: FormData) {
   revalidateSettingsContent();
 }
 
-export async function deleteChurchLogo() {
-  await requireAdmin();
-  const current = await prisma.siteSettings.findUnique({
-    where: { key: CHURCH_LOGO_KEY },
-  });
+export async function deleteChurchLogo(): Promise<
+  { success: true } | { success: false; error: string }
+> {
+  try {
+    await requireAdmin();
+    const current = await prisma.siteSettings.findUnique({
+      where: { key: CHURCH_LOGO_KEY },
+    });
 
-  if (current) {
-    await deleteLocalFile(jsonToDisplay(current.value));
-    await prisma.siteSettings.deleteMany({ where: { id: current.id } });
+    if (current) {
+      await deleteSupabaseFile(jsonToDisplay(current.value));
+      await prisma.siteSettings.deleteMany({ where: { id: current.id } });
+    }
+
+    revalidateSettingsContent();
+    return { success: true };
+  } catch (error) {
+    unstable_rethrow(error);
+    return { success: false, error: actionErrorMessage(error) };
   }
-
-  revalidateSettingsContent();
 }
 
-export async function uploadPastorWelcomeImage(formData: FormData) {
-  await requireAdmin();
-  const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0) {
-    throw new Error("Aucune image fournie.");
-  }
+export async function uploadPastorWelcomeImage(
+  formData: FormData,
+): Promise<{ success: true; url: string } | { success: false; error: string }> {
+  try {
+    await requireAdmin();
+    const file = formData.get("file");
+    if (!(file instanceof File) || file.size === 0) {
+      return { success: false, error: "Aucune image fournie." };
+    }
 
-  const current = await prisma.siteSettings.findUnique({
-    where: { key: PASTOR_WELCOME_IMAGE_KEY },
-  });
-  const previous = jsonToDisplay(current?.value);
-  const url = await uploadLocalFile(file);
+    const current = await prisma.siteSettings.findUnique({
+      where: { key: PASTOR_WELCOME_IMAGE_KEY },
+    });
+    const previous = jsonToDisplay(current?.value);
+    const uploaded = await uploadSupabaseFile(file);
+    if (!uploaded.success) {
+      return uploaded;
+    }
+    const url = uploaded.url;
 
-  await updateSiteSettings({ [PASTOR_WELCOME_IMAGE_KEY]: url });
+    await persistSiteSettings({ [PASTOR_WELCOME_IMAGE_KEY]: url });
 
-  if (previous && previous !== url) {
-    await deleteLocalFile(previous);
+    if (previous && previous !== url) {
+      await deleteSupabaseFile(previous);
+    }
+
+    return { success: true, url };
+  } catch (error) {
+    unstable_rethrow(error);
+    return { success: false, error: actionErrorMessage(error) };
   }
 }
 
@@ -1145,33 +1264,44 @@ export async function deletePastorWelcomeImage() {
   });
   const previous = jsonToDisplay(current?.value);
 
-  await updateSiteSettings({ [PASTOR_WELCOME_IMAGE_KEY]: "" });
+  await persistSiteSettings({ [PASTOR_WELCOME_IMAGE_KEY]: "" });
 
   if (previous) {
-    await deleteLocalFile(previous);
+    await deleteSupabaseFile(previous);
   }
 }
 
-export async function uploadHeroBgImage(formData: FormData) {
-  await requireAdmin();
-  const file = formData.get("file");
-  if (!(file instanceof File) || file.size === 0) {
-    throw new Error("Aucune image fournie.");
+export async function uploadHeroBgImage(
+  formData: FormData,
+): Promise<{ success: true; url: string } | { success: false; error: string }> {
+  try {
+    await requireAdmin();
+    const file = formData.get("file");
+    if (!(file instanceof File) || file.size === 0) {
+      return { success: false, error: "Aucune image fournie." };
+    }
+
+    const current = await prisma.siteSettings.findUnique({
+      where: { key: HERO_BG_IMAGE_KEY },
+    });
+    const previous = jsonToDisplay(current?.value);
+    const uploaded = await uploadSupabaseFile(file);
+    if (!uploaded.success) {
+      return uploaded;
+    }
+    const url = uploaded.url;
+
+    await persistSiteSettings({ [HERO_BG_IMAGE_KEY]: url });
+
+    if (previous && previous !== url) {
+      await deleteSupabaseFile(previous);
+    }
+
+    return { success: true, url };
+  } catch (error) {
+    unstable_rethrow(error);
+    return { success: false, error: actionErrorMessage(error) };
   }
-
-  const current = await prisma.siteSettings.findUnique({
-    where: { key: HERO_BG_IMAGE_KEY },
-  });
-  const previous = jsonToDisplay(current?.value);
-  const url = await uploadLocalFile(file);
-
-  await updateSiteSettings({ [HERO_BG_IMAGE_KEY]: url });
-
-  if (previous && previous !== url) {
-    await deleteLocalFile(previous);
-  }
-
-  return url;
 }
 
 export async function deleteHeroBgImage() {
@@ -1181,10 +1311,10 @@ export async function deleteHeroBgImage() {
   });
   const previous = jsonToDisplay(current?.value);
 
-  await updateSiteSettings({ [HERO_BG_IMAGE_KEY]: "" });
+  await persistSiteSettings({ [HERO_BG_IMAGE_KEY]: "" });
 
   if (previous) {
-    await deleteLocalFile(previous);
+    await deleteSupabaseFile(previous);
   }
 }
 
@@ -1377,6 +1507,9 @@ export async function createPastor(input: CreateAdminPastorInput) {
 export async function createPastorFromForm(formData: FormData) {
   await requireAdmin();
   const uploaded = await optionalUploadedUrl(formData, "imageFile");
+  if (isUploadFailure(uploaded)) {
+    return uploaded;
+  }
 
   await createPastor({
     name: readString(formData, "name"),
@@ -1439,10 +1572,13 @@ export async function updatePastorFromForm(formData: FormData) {
   }
 
   const uploaded = await optionalUploadedUrl(formData, "imageFile");
+  if (isUploadFailure(uploaded)) {
+    return uploaded;
+  }
   const nextImage = uploaded || readString(formData, "image") || null;
 
   if (uploaded && current.image && current.image !== nextImage) {
-    await deleteLocalFile(current.image);
+    await deleteSupabaseFile(current.image);
   }
 
   await updatePastor(id, {
@@ -1467,7 +1603,7 @@ export async function deletePastor(formData: FormData) {
     select: { image: true },
   });
   if (current?.image) {
-    await deleteLocalFile(current.image);
+    await deleteSupabaseFile(current.image);
   }
 
   await prisma.pastor.deleteMany({ where: { id } });
@@ -1551,6 +1687,9 @@ export async function createDepartment(formData: FormData) {
   }
 
   const uploaded = await optionalUploadedUrl(formData, "imageFile");
+  if (isUploadFailure(uploaded)) {
+    return uploaded;
+  }
 
   const department = await prisma.department.create({
     data: {
@@ -1582,10 +1721,13 @@ export async function updateDepartment(id: string, formData: FormData) {
   const name = readString(formData, "name") || current.name;
   const description = readString(formData, "description") || current.description;
   const uploaded = await optionalUploadedUrl(formData, "imageFile");
+  if (isUploadFailure(uploaded)) {
+    return uploaded;
+  }
   const nextImage = uploaded || readString(formData, "image") || null;
 
   if (uploaded && current.image && current.image !== nextImage) {
-    await deleteLocalFile(current.image);
+    await deleteSupabaseFile(current.image);
   }
 
   const slug =
@@ -1622,7 +1764,7 @@ export async function deleteDepartment(id: string) {
 
   const current = await prisma.department.findUnique({ where: { id: departmentId } });
   if (current?.image) {
-    await deleteLocalFile(current.image);
+    await deleteSupabaseFile(current.image);
   }
 
   await prisma.department.deleteMany({ where: { id: departmentId } });
@@ -1731,6 +1873,9 @@ export async function createProject(formData: FormData) {
   }
 
   const uploaded = await optionalUploadedUrl(formData, "imageFile");
+  if (isUploadFailure(uploaded)) {
+    return uploaded;
+  }
   const requestedSlug = readString(formData, "slug");
   const isFeatured = readString(formData, "isFeatured") === "on";
   const status = readString(formData, "status") || "IN_PROGRESS";
@@ -1780,6 +1925,9 @@ export async function updateProject(id: string, formData: FormData) {
   const title = readString(formData, "title") || current.title;
   const description = readString(formData, "description") || current.description;
   const uploaded = await optionalUploadedUrl(formData, "imageFile");
+  if (isUploadFailure(uploaded)) {
+    return uploaded;
+  }
   const nextImage = uploaded || readString(formData, "image") || null;
   const requestedSlug = readString(formData, "slug");
   const isFeatured = readString(formData, "isFeatured") === "on";
@@ -1789,7 +1937,7 @@ export async function updateProject(id: string, formData: FormData) {
   }
 
   if (uploaded && current.image && current.image !== nextImage) {
-    await deleteLocalFile(current.image);
+    await deleteSupabaseFile(current.image);
   }
 
   if (isFeatured) {
@@ -1840,7 +1988,7 @@ export async function deleteProject(id: string) {
   const projectId = requireRecordId(id);
   const current = await prisma.project.findUnique({ where: { id: projectId } });
   if (current?.image) {
-    await deleteLocalFile(current.image);
+    await deleteSupabaseFile(current.image);
   }
   await prisma.project.deleteMany({ where: { id: projectId } });
   revalidateProjectContent();

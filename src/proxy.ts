@@ -8,6 +8,7 @@ import {
   LOCALE_HEADER,
 } from "@/i18n/config";
 import { localeFromAcceptLanguage } from "@/i18n/routing";
+import { refreshSession } from "@/utils/supabase/middleware";
 
 function isLocaleExempt(pathname: string) {
   if (
@@ -35,32 +36,32 @@ function preferredLocale(request: NextRequest) {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  let response: NextResponse;
 
   if (request.headers.has("next-action") || request.headers.has("Next-Action")) {
-    return NextResponse.next();
+    response = NextResponse.next();
+  } else if (isLocaleExempt(pathname)) {
+    response = await protectAdminRoutes(request);
+  } else {
+    const segment = pathname.split("/")[1] ?? "";
+    if (isLocale(segment)) {
+      const headers = new Headers(request.headers);
+      headers.set(LOCALE_HEADER, segment);
+      response = NextResponse.next({ request: { headers } });
+    } else {
+      const locale = preferredLocale(request) || defaultLocale;
+      const url = request.nextUrl.clone();
+      url.pathname = pathname === "/" ? `/${locale}` : `/${locale}${pathname}`;
+      response = NextResponse.redirect(url);
+      response.cookies.set(LOCALE_COOKIE, locale, {
+        path: "/",
+        maxAge: LOCALE_COOKIE_MAX_AGE,
+        sameSite: "lax",
+      });
+    }
   }
 
-  if (isLocaleExempt(pathname)) {
-    return protectAdminRoutes(request);
-  }
-
-  const segment = pathname.split("/")[1] ?? "";
-  if (isLocale(segment)) {
-    const headers = new Headers(request.headers);
-    headers.set(LOCALE_HEADER, segment);
-    return NextResponse.next({ request: { headers } });
-  }
-
-  const locale = preferredLocale(request) || defaultLocale;
-  const url = request.nextUrl.clone();
-  url.pathname = pathname === "/" ? `/${locale}` : `/${locale}${pathname}`;
-  const response = NextResponse.redirect(url);
-  response.cookies.set(LOCALE_COOKIE, locale, {
-    path: "/",
-    maxAge: LOCALE_COOKIE_MAX_AGE,
-    sameSite: "lax",
-  });
-  return response;
+  return refreshSession(request, response);
 }
 
 export const config = {

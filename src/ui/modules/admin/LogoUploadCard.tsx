@@ -16,8 +16,8 @@ export function LogoUploadCard({ logoSrc }: LogoUploadCardProps) {
     <AdminPanel>
       <h2 className="font-heading text-lg font-bold text-slate-900">Logo de l’église</h2>
       <p className="mt-1 text-sm text-slate-600">
-        Téléversé localement dans <code className="font-mono text-xs">public/uploads</code>, puis
-        enregistré sous la clé <code className="font-mono text-xs">church_logo</code>.
+        Enregistré dans la médiathèque publique, puis sous la clé{" "}
+        <code className="font-mono text-xs">church_logo</code>.
       </p>
 
       <div className="mt-6 flex flex-col items-start gap-6 sm:flex-row sm:items-center">

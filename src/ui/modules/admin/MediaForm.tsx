@@ -84,7 +84,7 @@ export function MediaForm({ action, media, submitLabel }: MediaFormProps) {
             }}
           />
           <p className="mt-1 font-sans text-xs text-slate-500">
-            Enregistré localement dans <code className="font-mono">/uploads/</code>.
+            Enregistré dans la médiathèque publique.
           </p>
         </label>
       ) : (

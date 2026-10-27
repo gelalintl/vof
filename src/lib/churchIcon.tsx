@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { ImageResponse } from "next/og";
+import { publicMediaPrefix } from "@/lib/storage/mediaUrl";
 import { getChurchLogo } from "@/lib/siteSettings";
 
 export function churchIconCacheId(logoSrc: string | null): string {
@@ -33,18 +34,31 @@ function mimeFromFilename(filename: string): string {
 
 async function churchLogoDataUri(): Promise<string | null> {
   const logoSrc = await getChurchLogo();
-  if (!logoSrc?.startsWith("/uploads/")) {
-    return null;
-  }
-
-  const filename = path.basename(logoSrc);
-  if (!filename || filename === "." || filename === "..") {
+  if (!logoSrc) {
     return null;
   }
 
   try {
-    const buffer = await readFile(path.join(process.cwd(), "public", "uploads", filename));
-    return `data:${mimeFromFilename(filename)};base64,${buffer.toString("base64")}`;
+    if (logoSrc.startsWith("/uploads/")) {
+      const filename = path.basename(logoSrc);
+      if (!filename || filename === "." || filename === "..") {
+        return null;
+      }
+      const buffer = await readFile(path.join(process.cwd(), "public", "uploads", filename));
+      return `data:${mimeFromFilename(filename)};base64,${buffer.toString("base64")}`;
+    }
+
+    const prefix = publicMediaPrefix();
+    if (!prefix || !logoSrc.startsWith(prefix)) {
+      return null;
+    }
+    const response = await fetch(logoSrc);
+    if (!response.ok) {
+      return null;
+    }
+    const type = response.headers.get("content-type")?.split(";")[0] || "image/png";
+    const buffer = Buffer.from(await response.arrayBuffer());
+    return `data:${type};base64,${buffer.toString("base64")}`;
   } catch {
     return null;
   }

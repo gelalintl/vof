@@ -11,7 +11,11 @@ import {
   runPrismaWrite,
 } from "@/lib/adminActionUtils";
 import { requireAdmin } from "@/lib/auth";
-import { deleteLocalFile, uploadLocalFile } from "@/lib/storage/localUpload";
+import {
+  deleteSupabaseFile,
+  isUploadFailure,
+  uploadSupabaseFile,
+} from "@/lib/storage/supabaseUpload";
 import type { AdminTestimonialRecord } from "@/types";
 
 const MAX_AUTHOR_LENGTH = 120;
@@ -29,7 +33,11 @@ function readCheckbox(formData: FormData, key: string) {
 async function optionalUploadedUrl(formData: FormData, field: string) {
   const file = formData.get(field);
   if (file instanceof File && file.size > 0) {
-    return uploadLocalFile(file);
+    const uploaded = await uploadSupabaseFile(file);
+    if (!uploaded.success) {
+      return { success: false as const, error: uploaded.error };
+    }
+    return uploaded.url;
   }
   return null;
 }
@@ -108,6 +116,9 @@ export async function createTestimonial(formData: FormData) {
   const fields = parseTestimonialFields(formData);
 
   const uploaded = await optionalUploadedUrl(formData, "imageFile");
+  if (isUploadFailure(uploaded)) {
+    return uploaded;
+  }
 
   const testimonial = await prisma.testimonial.create({
     data: {
@@ -137,10 +148,13 @@ export async function updateTestimonial(id: string, formData: FormData) {
   const fields = parseTestimonialFields(formData);
 
   const uploaded = await optionalUploadedUrl(formData, "imageFile");
+  if (isUploadFailure(uploaded)) {
+    return uploaded;
+  }
   const nextImage = uploaded || readString(formData, "imagePath") || null;
 
   if (current.imagePath && current.imagePath !== nextImage) {
-    await deleteLocalFile(current.imagePath);
+    await deleteSupabaseFile(current.imagePath);
   }
 
   const testimonial = await runPrismaWrite(
@@ -170,7 +184,7 @@ export async function deleteTestimonial(id: string) {
 
   const current = await prisma.testimonial.findUnique({ where: { id: testimonialId } });
   if (current?.imagePath) {
-    await deleteLocalFile(current.imagePath);
+    await deleteSupabaseFile(current.imagePath);
   }
 
   await prisma.testimonial.deleteMany({ where: { id: testimonialId } });

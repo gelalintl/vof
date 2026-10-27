@@ -13,7 +13,18 @@ export function notifyAdminAction(
 ) {
   return async (formData: FormData) => {
     try {
-      await action(formData);
+      const result = await action(formData);
+      if (
+        result &&
+        typeof result === "object" &&
+        "success" in result &&
+        result.success === false &&
+        "error" in result &&
+        typeof result.error === "string"
+      ) {
+        toast.error(result.error);
+        return;
+      }
       onSuccess?.();
       toast.success(successMessage);
     } catch (error) {

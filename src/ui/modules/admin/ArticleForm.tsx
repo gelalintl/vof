@@ -97,8 +97,7 @@ export function ArticleForm({ action, article, submitLabel }: ArticleFormProps) 
           Image principale
         </legend>
         <p className="font-sans text-xs text-slate-600">
-          Téléversement local vers <code className="font-mono">/uploads/</code> — 10 Mo maximum par
-          fichier.
+          10 Mo maximum par fichier.
         </p>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <AdminThumb src={coverPreview} alt={article?.title ?? "Aperçu de couverture"} className="size-20" />
@@ -124,8 +123,8 @@ export function ArticleForm({ action, article, submitLabel }: ArticleFormProps) 
           Galerie de l’événement
         </legend>
         <p className="font-sans text-xs text-slate-600">
-          Ajoutez plusieurs photos (10 Mo maximum par fichier). Elles seront enregistrées dans{" "}
-          <code className="font-mono">/uploads/</code> à la sauvegarde.
+          Ajoutez plusieurs photos (10 Mo maximum par fichier). Elles sont enregistrées dans la
+          médiathèque à la sauvegarde.
         </p>
         <label className="block">
           <AdminLabel>Ajouter des images</AdminLabel>
