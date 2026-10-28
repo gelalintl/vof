@@ -18,6 +18,7 @@ export interface ProjectedMonthlyEvent {
   image: string | null;
   recurrenceType: AdminRecurrenceType;
   theme?: string;
+  slug: string | null;
 }
 
 interface EventThemePeriod {
@@ -38,6 +39,7 @@ export interface RecurringEventRow {
   isSpecial: boolean;
   isExclusive: boolean;
   image: string | null;
+  slug?: string | null;
   recurrenceType: AdminRecurrenceType;
   daysOfWeek: number[];
   recurrenceEndDate: Date | null;
@@ -263,6 +265,7 @@ function projectOccurrenceDay(row: RecurringEventRow, day: Date, locale: Locale)
     image: row.image,
     recurrenceType: row.recurrenceType ?? "NONE",
     theme: resolveOccurrenceTheme(day, row, locale),
+    slug: row.slug ?? null,
   };
 }
 
@@ -428,6 +431,7 @@ export async function getMonthlyEvents(
         isSpecial: true,
         isExclusive: true,
         image: true,
+        slug: true,
         recurrenceType: true,
         daysOfWeek: true,
         recurrenceEndDate: true,

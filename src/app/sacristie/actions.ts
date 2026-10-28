@@ -23,15 +23,53 @@ import {
   HERO_BG_IMAGE_KEY,
   PAYMENT_QR_KEY_BY_OPERATOR,
   PAYMENT_QR_KEYS,
+  PAYMENT_SETTING_KEYS,
   UPSERTABLE_SETTING_KEYS,
   type PaymentOperatorSlug,
 } from "@/lib/siteSettings";
-import { logoutAction, requireAdmin } from "@/lib/auth";
+import { logAction } from "@/lib/audit";
+import { logoutAction, requireAdmin, requireRole } from "@/lib/auth";
+import { ACCOUNTING_ROLES, CONTENT_ROLES } from "@/lib/roles";
 import {
   deleteSupabaseFile,
   isUploadFailure,
   uploadSupabaseFile,
 } from "@/lib/storage/supabaseUpload";
+
+const paymentSettingKeys = new Set<string>(PAYMENT_SETTING_KEYS);
+
+function requireContentAccess() {
+  return requireRole(CONTENT_ROLES);
+}
+
+function requireAccountingAccess() {
+  return requireRole(ACCOUNTING_ROLES);
+}
+
+function recordAudit(
+  userId: string,
+  action: "CRÉATION" | "MODIFICATION" | "SUPPRESSION",
+  entity: string,
+  entityName: string,
+) {
+  return logAction({ userId, action, entity, entityName });
+}
+
+function donationAuditName(row: { donorName: string | null; amount: number }) {
+  const who = row.donorName?.trim() || "Anonyme";
+  return `${who} · ${formatFcfa(row.amount)}`;
+}
+
+async function authorizeSettingKeys(keys: string[]) {
+  const touchesPayment = keys.some((key) => paymentSettingKeys.has(key));
+  const touchesEditorial = keys.some((key) => !paymentSettingKeys.has(key));
+  if (touchesPayment) {
+    await requireAccountingAccess();
+  }
+  if (touchesEditorial || keys.length === 0) {
+    await requireContentAccess();
+  }
+}
 
 function actionErrorMessage(error: unknown) {
   if (error instanceof Error && error.message.trim()) {
@@ -67,6 +105,7 @@ import {
 import { z } from "zod";
 import { parseProjectAmounts } from "@/lib/projectSchema";
 import { parseIsoDate, toDateKey } from "@/utils/date/format";
+import { formatFcfa } from "@/utils/formatters/currency";
 import { parseExcludedDateList, slugifyEventTitle } from "@/lib/eventRecurrence";
 
 const ADMIN_EVENT_CATEGORIES: AdminEventCategory[] = [
@@ -516,7 +555,7 @@ function serializeEvent(event: {
 }
 
 export async function createEvent(input: CreateAdminEventInput) {
-  await requireAdmin();
+  const actor = await requireContentAccess();
   const title = input.title.trim();
   const description = sanitizeRichText(input.description.trim());
   const location = input.location.trim();
@@ -564,11 +603,12 @@ export async function createEvent(input: CreateAdminEventInput) {
   });
 
   revalidateEventContent(event.slug ?? event.id);
+  await recordAudit(actor.id, "CRÉATION", "Événement", event.title);
   return serializeEvent(event);
 }
 
 export async function createEventFromForm(formData: FormData) {
-  await requireAdmin();
+  await requireContentAccess();
   const category = parseEventCategory(readString(formData, "category"));
   const uploaded = await optionalUploadedUrl(formData, "imageFile");
   if (isUploadFailure(uploaded)) {
@@ -600,7 +640,7 @@ export async function createEventFromForm(formData: FormData) {
 }
 
 export async function updateEvent(id: string, input: CreateAdminEventInput) {
-  await requireAdmin();
+  const actor = await requireContentAccess();
 
   const title = input.title.trim();
   const description = sanitizeRichText(input.description.trim());
@@ -662,11 +702,12 @@ export async function updateEvent(id: string, input: CreateAdminEventInput) {
   );
 
   revalidateEventContent(event.slug ?? event.id);
+  await recordAudit(actor.id, "MODIFICATION", "Événement", event.title);
   return serializeEvent(event);
 }
 
 export async function updateEventFromForm(formData: FormData) {
-  await requireAdmin();
+  await requireContentAccess();
   const id = readString(formData, "id");
   if (!id) {
     throw new Error("Identifiant manquant.");
@@ -713,18 +754,21 @@ export async function updateEventFromForm(formData: FormData) {
 }
 
 export async function deleteEvent(formData: FormData) {
-  await requireAdmin();
+  const actor = await requireContentAccess();
   const id = requireRecordId(readString(formData, "id"));
 
   const current = await prisma.event.findUnique({
     where: { id },
-    select: { image: true },
+    select: { image: true, title: true },
   });
   if (current?.image) {
     await deleteSupabaseFile(current.image);
   }
 
   await prisma.event.deleteMany({ where: { id } });
+  if (current) {
+    await recordAudit(actor.id, "SUPPRESSION", "Événement", current.title);
+  }
   revalidateEventContent(id);
 }
 
@@ -732,7 +776,7 @@ export async function uploadAdminImage(
   file: File,
 ): Promise<{ success: true; url: string } | { success: false; error: string }> {
   try {
-    await requireAdmin();
+    await requireContentAccess();
     const uploaded = await uploadSupabaseFile(file);
     if (!uploaded.success) {
       return uploaded;
@@ -749,7 +793,7 @@ export async function uploadAdminImageFromForm(
   formData: FormData,
 ): Promise<{ success: true } | { success: false; error: string }> {
   try {
-    await requireAdmin();
+    const actor = await requireContentAccess();
     const uploaded = await optionalUploadedUrl(formData, "file");
     if (isUploadFailure(uploaded)) {
       return uploaded;
@@ -762,9 +806,10 @@ export async function uploadAdminImageFromForm(
       return { success: false, error: "Fournissez une image ou un lien vidéo." };
     }
 
+    const title = readString(formData, "title") || "Média";
     await prisma.media.create({
       data: {
-        title: readString(formData, "title") || "Média",
+        title,
         url,
         category: readString(formData, "category") || "galerie",
         eventId: readString(formData, "eventId") || null,
@@ -772,6 +817,7 @@ export async function uploadAdminImageFromForm(
       },
     });
 
+    await recordAudit(actor.id, "CRÉATION", "Média", title);
     revalidateMediaContent();
     return { success: true };
   } catch (error) {
@@ -781,7 +827,7 @@ export async function uploadAdminImageFromForm(
 }
 
 export async function updateMediaFromForm(formData: FormData) {
-  await requireAdmin();
+  const actor = await requireContentAccess();
   const id = requireRecordId(readString(formData, "id"));
 
   const current = await prisma.media.findUnique({ where: { id } });
@@ -800,12 +846,13 @@ export async function updateMediaFromForm(formData: FormData) {
     await deleteSupabaseFile(current.url);
   }
 
+  const title = readString(formData, "title") || current.title;
   await runPrismaWrite(
     () =>
       prisma.media.update({
         where: { id },
         data: {
-          title: readString(formData, "title") || current.title,
+          title,
           url: nextUrl,
           category: readString(formData, "category") || current.category,
           eventId: readString(formData, "eventId") || null,
@@ -815,27 +862,29 @@ export async function updateMediaFromForm(formData: FormData) {
     "Média introuvable.",
   );
 
+  await recordAudit(actor.id, "MODIFICATION", "Média", title);
   revalidateMediaContent();
 }
 
 export async function deleteMedia(formData: FormData) {
-  await requireAdmin();
+  const actor = await requireContentAccess();
   const id = requireRecordId(readString(formData, "id"));
 
   const current = await prisma.media.findUnique({
     where: { id },
-    select: { url: true },
+    select: { url: true, title: true },
   });
   if (current) {
     await deleteSupabaseFile(current.url);
     await prisma.media.deleteMany({ where: { id } });
+    await recordAudit(actor.id, "SUPPRESSION", "Média", current.title);
   }
 
   revalidateMediaContent();
 }
 
 export async function createArticleFromForm(formData: FormData) {
-  await requireAdmin();
+  const actor = await requireContentAccess();
   const title = readString(formData, "title");
   const slug = readString(formData, "slug");
   const content = sanitizeRichText(readString(formData, "content"));
@@ -878,11 +927,12 @@ export async function createArticleFromForm(formData: FormData) {
     },
   });
 
+  await recordAudit(actor.id, "CRÉATION", "Article", title);
   revalidateArticleContent();
 }
 
 export async function updateArticleFromForm(formData: FormData) {
-  await requireAdmin();
+  const actor = await requireContentAccess();
   const id = requireRecordId(readString(formData, "id"));
 
   const current = await prisma.article.findUnique({ where: { id } });
@@ -933,6 +983,8 @@ export async function updateArticleFromForm(formData: FormData) {
     "Article introuvable.",
   );
 
+  await recordAudit(actor.id, "MODIFICATION", "Article", readString(formData, "title"));
+
   const galleryUpload = await uploadedUrlsFromForm(formData, "galleryFiles");
   if (isUploadFailure(galleryUpload)) {
     return galleryUpload;
@@ -947,7 +999,7 @@ export async function updateArticleFromForm(formData: FormData) {
 }
 
 export async function deleteArticle(formData: FormData) {
-  await requireAdmin();
+  const actor = await requireContentAccess();
   const id = requireRecordId(readString(formData, "id"));
 
   const current = await prisma.article.findUnique({ where: { id } });
@@ -959,27 +1011,31 @@ export async function deleteArticle(formData: FormData) {
   }
 
   await prisma.article.deleteMany({ where: { id } });
+  if (current) {
+    await recordAudit(actor.id, "SUPPRESSION", "Article", current.title);
+  }
   revalidateArticleContent();
 }
 
 export async function updateArticleGallery(articleId: string, galleryImages: string[]) {
-  await requireAdmin();
+  const actor = await requireContentAccess();
   const id = requireRecordId(articleId);
 
   const article = await prisma.article.findUnique({
     where: { id },
-    select: { slug: true },
+    select: { slug: true, title: true },
   });
   if (!article) {
     throw new Error("Article introuvable.");
   }
 
   await replaceArticleGallery(id, galleryImages);
+  await recordAudit(actor.id, "MODIFICATION", "Article", article.title);
   revalidateArticleContent(article.slug);
 }
 
 export async function toggleCommentApproval(commentId: string, isApproved: boolean) {
-  await requireAdmin();
+  const actor = await requireContentAccess();
   const id = requireRecordId(commentId);
 
   const comment = await runPrismaWrite(
@@ -988,6 +1044,7 @@ export async function toggleCommentApproval(commentId: string, isApproved: boole
         where: { id },
         data: { isApproved },
         select: {
+          authorName: true,
           article: { select: { slug: true } },
           event: { select: { id: true, slug: true } },
         },
@@ -995,6 +1052,7 @@ export async function toggleCommentApproval(commentId: string, isApproved: boole
     "Commentaire introuvable.",
   );
 
+  await recordAudit(actor.id, "MODIFICATION", "Commentaire", comment.authorName);
   revalidateArticleContent(comment.article?.slug ?? undefined);
   if (comment.event) {
     revalidateEventContent(comment.event.slug ?? comment.event.id);
@@ -1002,7 +1060,7 @@ export async function toggleCommentApproval(commentId: string, isApproved: boole
 }
 
 export async function deleteComment(commentId: string) {
-  await requireAdmin();
+  const actor = await requireContentAccess();
   const id = requireRecordId(commentId);
 
   const comment = await prisma.comment.findUnique({
@@ -1014,6 +1072,9 @@ export async function deleteComment(commentId: string) {
   });
 
   await prisma.comment.deleteMany({ where: { id } });
+  if (comment) {
+    await recordAudit(actor.id, "SUPPRESSION", "Commentaire", comment.authorName);
+  }
   revalidateArticleContent(comment?.article?.slug ?? undefined);
   if (comment?.event) {
     revalidateEventContent(comment.event.slug ?? comment.event.id);
@@ -1021,9 +1082,9 @@ export async function deleteComment(commentId: string) {
 }
 
 async function persistSiteSettings(settings: Record<string, string>) {
-  await requireAdmin();
   const allowed = new Set<string>(UPSERTABLE_SETTING_KEYS);
   const entries = Object.entries(settings).filter(([key]) => allowed.has(key));
+  await authorizeSettingKeys(entries.map(([key]) => key));
   for (const [key, value] of entries) {
     if (key === "address_en" || key === "location_address_en") {
       addressEnglishSchema.parse(value.trim());
@@ -1039,6 +1100,16 @@ async function persistSiteSettings(settings: Record<string, string>) {
       }),
     ),
   );
+
+  if (entries.length > 0) {
+    const actor = await requireAdmin();
+    await recordAudit(
+      actor.id,
+      "MODIFICATION",
+      "Paramètre",
+      entries.map(([key]) => key).join(", "),
+    );
+  }
 
   revalidateSettingsContent();
 }
@@ -1056,11 +1127,12 @@ export async function updateSiteSettings(
 }
 
 export async function upsertSiteSettingFromForm(formData: FormData) {
-  await requireAdmin();
   const key = readString(formData, "key");
   if (!key) {
     throw new Error("La clé est obligatoire.");
   }
+  await authorizeSettingKeys([key]);
+  const actor = await requireAdmin();
 
   const value = parseSettingValue(readString(formData, "value"));
   const id = readString(formData, "id");
@@ -1082,20 +1154,25 @@ export async function upsertSiteSettingFromForm(formData: FormData) {
     });
   }
 
+  await recordAudit(actor.id, id ? "MODIFICATION" : "CRÉATION", "Paramètre", key);
   revalidateSettingsContent();
 }
 
 export async function deleteSiteSetting(formData: FormData) {
-  await requireAdmin();
   const id = requireRecordId(readString(formData, "id"));
 
   const current = await prisma.siteSettings.findUnique({ where: { id } });
+  await authorizeSettingKeys(current ? [current.key] : []);
+  const actor = await requireAdmin();
   const qrKeys = new Set<string>(PAYMENT_QR_KEYS);
   if (current && (current.key === CHURCH_LOGO_KEY || current.key === PASTOR_WELCOME_IMAGE_KEY || current.key === HERO_BG_IMAGE_KEY || qrKeys.has(current.key))) {
     await deleteSupabaseFile(jsonToDisplay(current.value));
   }
 
   await prisma.siteSettings.deleteMany({ where: { id } });
+  if (current) {
+    await recordAudit(actor.id, "SUPPRESSION", "Paramètre", current.key);
+  }
   revalidateSettingsContent();
 }
 
@@ -1103,7 +1180,7 @@ export async function uploadChurchLogo(
   formData: FormData,
 ): Promise<{ success: true; url: string } | { success: false; error: string }> {
   try {
-    await requireAdmin();
+    const actor = await requireContentAccess();
     const file = formData.get("file");
     if (!(file instanceof File) || file.size === 0) {
       return { success: false, error: "Aucun logo fourni." };
@@ -1126,6 +1203,7 @@ export async function uploadChurchLogo(
       await deleteSupabaseFile(previous);
     }
 
+    await recordAudit(actor.id, "MODIFICATION", "Paramètre", "Logo");
     revalidateSettingsContent();
     return { success: true, url };
   } catch (error) {
@@ -1148,7 +1226,7 @@ export async function uploadPaymentQr(
   formData: FormData,
 ): Promise<{ success: true } | { success: false; error: string }> {
   try {
-    await requireAdmin();
+    const actor = await requireAccountingAccess();
     const operator = readPaymentOperator(formData);
     const file = formData.get("file");
     if (!(file instanceof File) || file.size === 0) {
@@ -1173,6 +1251,7 @@ export async function uploadPaymentQr(
       await deleteSupabaseFile(jsonToDisplay(previous.value));
     }
 
+    await recordAudit(actor.id, "MODIFICATION", "Paramètre", `QR ${operator}`);
     revalidateSettingsContent();
     return { success: true };
   } catch (error) {
@@ -1182,7 +1261,7 @@ export async function uploadPaymentQr(
 }
 
 export async function deletePaymentQr(formData: FormData) {
-  await requireAdmin();
+  const actor = await requireAccountingAccess();
   const operator = readPaymentOperator(formData);
   const key = PAYMENT_QR_KEY_BY_OPERATOR[operator];
   const current = await prisma.siteSettings.findUnique({ where: { key } });
@@ -1197,6 +1276,7 @@ export async function deletePaymentQr(formData: FormData) {
         }),
       "Paramètre introuvable.",
     );
+    await recordAudit(actor.id, "SUPPRESSION", "Paramètre", `QR ${operator}`);
   }
 
   revalidateSettingsContent();
@@ -1206,7 +1286,7 @@ export async function deleteChurchLogo(): Promise<
   { success: true } | { success: false; error: string }
 > {
   try {
-    await requireAdmin();
+    const actor = await requireContentAccess();
     const current = await prisma.siteSettings.findUnique({
       where: { key: CHURCH_LOGO_KEY },
     });
@@ -1214,6 +1294,7 @@ export async function deleteChurchLogo(): Promise<
     if (current) {
       await deleteSupabaseFile(jsonToDisplay(current.value));
       await prisma.siteSettings.deleteMany({ where: { id: current.id } });
+      await recordAudit(actor.id, "SUPPRESSION", "Paramètre", "Logo");
     }
 
     revalidateSettingsContent();
@@ -1228,7 +1309,7 @@ export async function uploadPastorWelcomeImage(
   formData: FormData,
 ): Promise<{ success: true; url: string } | { success: false; error: string }> {
   try {
-    await requireAdmin();
+    await requireContentAccess();
     const file = formData.get("file");
     if (!(file instanceof File) || file.size === 0) {
       return { success: false, error: "Aucune image fournie." };
@@ -1258,7 +1339,7 @@ export async function uploadPastorWelcomeImage(
 }
 
 export async function deletePastorWelcomeImage() {
-  await requireAdmin();
+  await requireContentAccess();
   const current = await prisma.siteSettings.findUnique({
     where: { key: PASTOR_WELCOME_IMAGE_KEY },
   });
@@ -1275,7 +1356,7 @@ export async function uploadHeroBgImage(
   formData: FormData,
 ): Promise<{ success: true; url: string } | { success: false; error: string }> {
   try {
-    await requireAdmin();
+    await requireContentAccess();
     const file = formData.get("file");
     if (!(file instanceof File) || file.size === 0) {
       return { success: false, error: "Aucune image fournie." };
@@ -1305,7 +1386,7 @@ export async function uploadHeroBgImage(
 }
 
 export async function deleteHeroBgImage() {
-  await requireAdmin();
+  await requireContentAccess();
   const current = await prisma.siteSettings.findUnique({
     where: { key: HERO_BG_IMAGE_KEY },
   });
@@ -1319,7 +1400,7 @@ export async function deleteHeroBgImage() {
 }
 
 export async function getEvents(): Promise<AdminEventRecord[]> {
-  await requireAdmin();
+  await requireContentAccess();
   const events = await prisma.event.findMany({
     orderBy: { startDate: "desc" },
     include: { themes: { orderBy: { startDate: "asc" } } },
@@ -1328,7 +1409,7 @@ export async function getEvents(): Promise<AdminEventRecord[]> {
 }
 
 export async function getEvent(id: string): Promise<AdminEventRecord | null> {
-  await requireAdmin();
+  await requireContentAccess();
   const event = await prisma.event.findUnique({
     where: { id },
     include: { themes: { orderBy: { startDate: "asc" } } },
@@ -1337,7 +1418,7 @@ export async function getEvent(id: string): Promise<AdminEventRecord | null> {
 }
 
 export async function getMedia(): Promise<AdminMediaRecord[]> {
-  await requireAdmin();
+  await requireContentAccess();
   const media = await prisma.media.findMany({
     orderBy: { createdAt: "desc" },
     include: {
@@ -1360,7 +1441,7 @@ export async function getMedia(): Promise<AdminMediaRecord[]> {
 }
 
 export async function getArticles(): Promise<AdminArticleRecord[]> {
-  await requireAdmin();
+  await requireContentAccess();
   const articles = await prisma.article.findMany({
     orderBy: { publishedAt: "desc" },
   });
@@ -1384,7 +1465,7 @@ export async function getArticles(): Promise<AdminArticleRecord[]> {
 }
 
 export async function getComments(): Promise<AdminCommentRecord[]> {
-  await requireAdmin();
+  await requireContentAccess();
   const comments = await prisma.comment.findMany({
     select: {
       id: true,
@@ -1480,7 +1561,7 @@ function parseDisplayOrder(value: string | number | undefined) {
 }
 
 export async function createPastor(input: CreateAdminPastorInput) {
-  await requireAdmin();
+  const actor = await requireContentAccess();
   const name = input.name.trim();
   const role = input.role.trim();
 
@@ -1501,11 +1582,12 @@ export async function createPastor(input: CreateAdminPastorInput) {
   });
 
   revalidatePastorContent();
+  await recordAudit(actor.id, "CRÉATION", "Pasteur", pastor.name);
   return serializePastor(pastor);
 }
 
 export async function createPastorFromForm(formData: FormData) {
-  await requireAdmin();
+  await requireContentAccess();
   const uploaded = await optionalUploadedUrl(formData, "imageFile");
   if (isUploadFailure(uploaded)) {
     return uploaded;
@@ -1525,7 +1607,7 @@ export async function createPastorFromForm(formData: FormData) {
 }
 
 export async function updatePastor(id: string, input: CreateAdminPastorInput) {
-  await requireAdmin();
+  const actor = await requireContentAccess();
   const name = input.name.trim();
   const role = input.role.trim();
 
@@ -1556,11 +1638,12 @@ export async function updatePastor(id: string, input: CreateAdminPastorInput) {
   );
 
   revalidatePastorContent();
+  await recordAudit(actor.id, "MODIFICATION", "Pasteur", pastor.name);
   return serializePastor(pastor);
 }
 
 export async function updatePastorFromForm(formData: FormData) {
-  await requireAdmin();
+  await requireContentAccess();
   const id = readString(formData, "id");
   if (!id) {
     throw new Error("Identifiant manquant.");
@@ -1595,23 +1678,26 @@ export async function updatePastorFromForm(formData: FormData) {
 }
 
 export async function deletePastor(formData: FormData) {
-  await requireAdmin();
+  const actor = await requireContentAccess();
   const id = requireRecordId(readString(formData, "id"));
 
   const current = await prisma.pastor.findUnique({
     where: { id },
-    select: { image: true },
+    select: { image: true, name: true },
   });
   if (current?.image) {
     await deleteSupabaseFile(current.image);
   }
 
   await prisma.pastor.deleteMany({ where: { id } });
+  if (current) {
+    await recordAudit(actor.id, "SUPPRESSION", "Pasteur", current.name);
+  }
   revalidatePastorContent();
 }
 
 export async function getPastors(): Promise<AdminPastorRecord[]> {
-  await requireAdmin();
+  await requireContentAccess();
   const pastors = await prisma.pastor.findMany({
     orderBy: [{ order: "asc" }, { name: "asc" }],
   });
@@ -1619,7 +1705,7 @@ export async function getPastors(): Promise<AdminPastorRecord[]> {
 }
 
 export async function getPastor(id: string): Promise<AdminPastorRecord | null> {
-  await requireAdmin();
+  await requireContentAccess();
   const pastor = await prisma.pastor.findUnique({ where: { id } });
   return pastor ? serializePastor(pastor) : null;
 }
@@ -1678,7 +1764,7 @@ async function uniqueDepartmentSlug(base: string, excludeId?: string) {
 }
 
 export async function createDepartment(formData: FormData) {
-  await requireAdmin();
+  const actor = await requireContentAccess();
   const name = readString(formData, "name");
   const description = readString(formData, "description");
 
@@ -1706,11 +1792,12 @@ export async function createDepartment(formData: FormData) {
   });
 
   revalidateDepartmentContent();
+  await recordAudit(actor.id, "CRÉATION", "Département", department.name);
   return serializeDepartment(department);
 }
 
 export async function updateDepartment(id: string, formData: FormData) {
-  await requireAdmin();
+  const actor = await requireContentAccess();
   const departmentId = requireRecordId(id);
 
   const current = await prisma.department.findUnique({ where: { id: departmentId } });
@@ -1755,11 +1842,12 @@ export async function updateDepartment(id: string, formData: FormData) {
   );
 
   revalidateDepartmentContent();
+  await recordAudit(actor.id, "MODIFICATION", "Département", department.name);
   return serializeDepartment(department);
 }
 
 export async function deleteDepartment(id: string) {
-  await requireAdmin();
+  const actor = await requireContentAccess();
   const departmentId = requireRecordId(id);
 
   const current = await prisma.department.findUnique({ where: { id: departmentId } });
@@ -1768,11 +1856,14 @@ export async function deleteDepartment(id: string) {
   }
 
   await prisma.department.deleteMany({ where: { id: departmentId } });
+  if (current) {
+    await recordAudit(actor.id, "SUPPRESSION", "Département", current.name);
+  }
   revalidateDepartmentContent();
 }
 
 export async function getDepartments(): Promise<AdminDepartmentRecord[]> {
-  await requireAdmin();
+  await requireContentAccess();
   const departments = await prisma.department.findMany({
     orderBy: { order: "asc" },
   });
@@ -1780,12 +1871,22 @@ export async function getDepartments(): Promise<AdminDepartmentRecord[]> {
 }
 
 export async function getSettings(): Promise<AdminSettingRecord[]> {
-  await requireAdmin();
+  const user = await requireAdmin();
   const settings = await prisma.siteSettings.findMany({
     orderBy: { key: "asc" },
   });
+  const visible = settings.filter((setting) => {
+    const payment = paymentSettingKeys.has(setting.key);
+    if (user.role === "SUPERADMIN" || user.role === "ADMIN") {
+      return true;
+    }
+    if (user.role === "COMPTABLE") {
+      return payment;
+    }
+    return !payment;
+  });
 
-  return settings.map((setting) => ({
+  return visible.map((setting) => ({
     id: setting.id,
     key: setting.key,
     value: jsonToDisplay(setting.value),
@@ -1857,7 +1958,7 @@ async function exclusiveProjectFeatured(excludeId?: string) {
 }
 
 export async function getProjects(): Promise<AdminProjectRecord[]> {
-  await requireAdmin();
+  await requireAccountingAccess();
   const projects = await prisma.project.findMany({
     orderBy: [{ order: "asc" }, { createdAt: "desc" }],
   });
@@ -1865,7 +1966,7 @@ export async function getProjects(): Promise<AdminProjectRecord[]> {
 }
 
 export async function createProject(formData: FormData) {
-  await requireAdmin();
+  const actor = await requireAccountingAccess();
   const title = readString(formData, "title");
   const description = readString(formData, "description");
   if (!title || !description) {
@@ -1911,11 +2012,12 @@ export async function createProject(formData: FormData) {
   });
 
   revalidateProjectContent();
+  await recordAudit(actor.id, "CRÉATION", "Projet", project.title);
   return serializeProject(project);
 }
 
 export async function updateProject(id: string, formData: FormData) {
-  await requireAdmin();
+  const actor = await requireAccountingAccess();
   const projectId = requireRecordId(id);
   const current = await prisma.project.findUnique({ where: { id: projectId } });
   if (!current) {
@@ -1980,17 +2082,21 @@ export async function updateProject(id: string, formData: FormData) {
   );
 
   revalidateProjectContent();
+  await recordAudit(actor.id, "MODIFICATION", "Projet", project.title);
   return serializeProject(project);
 }
 
 export async function deleteProject(id: string) {
-  await requireAdmin();
+  const actor = await requireAccountingAccess();
   const projectId = requireRecordId(id);
   const current = await prisma.project.findUnique({ where: { id: projectId } });
   if (current?.image) {
     await deleteSupabaseFile(current.image);
   }
   await prisma.project.deleteMany({ where: { id: projectId } });
+  if (current) {
+    await recordAudit(actor.id, "SUPPRESSION", "Projet", current.title);
+  }
   revalidateProjectContent();
 }
 
@@ -2027,7 +2133,7 @@ function serializeDonation(row: {
 export async function getDonationsList(
   filters: DonationListFilters = {},
 ): Promise<AdminDonationRecord[]> {
-  await requireAdmin();
+  await requireAccountingAccess();
   const status =
     filters.status && filters.status !== "ALL" && isDonationStatus(filters.status)
       ? filters.status
@@ -2046,17 +2152,17 @@ export async function getDonationsList(
 }
 
 export async function confirmDonationPromise(donationId: string) {
-  await requireAdmin();
+  const actor = await requireAccountingAccess();
   const id = requireRecordId(donationId);
 
-  const updated = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const current = await tx.donationPromise.findUnique({ where: { id } });
     if (!current) {
       throw new Error("Promesse de don introuvable.");
     }
 
     if (current.status === "CONFIRMED") {
-      return current;
+      return { donation: current, changed: false as const };
     }
 
     const donation = await tx.donationPromise.update({
@@ -2071,15 +2177,18 @@ export async function confirmDonationPromise(donationId: string) {
       });
     }
 
-    return donation;
+    return { donation, changed: true as const };
   });
 
+  if (result.changed) {
+    await recordAudit(actor.id, "MODIFICATION", "Don", donationAuditName(result.donation));
+  }
   revalidateDonationContent();
-  return { id: updated.id, status: updated.status as DonationPromiseStatus };
+  return { id: result.donation.id, status: result.donation.status as DonationPromiseStatus };
 }
 
 export async function cancelDonationPromise(donationId: string) {
-  await requireAdmin();
+  const actor = await requireAccountingAccess();
   const id = requireRecordId(donationId);
 
   const current = await prisma.donationPromise.findUnique({ where: { id } });
@@ -2095,6 +2204,7 @@ export async function cancelDonationPromise(donationId: string) {
     data: { status: "CANCELLED" },
   });
 
+  await recordAudit(actor.id, "MODIFICATION", "Don", donationAuditName(updated));
   revalidateDonationContent();
   return { id: updated.id, status: updated.status as DonationPromiseStatus };
 }

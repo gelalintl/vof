@@ -55,6 +55,7 @@ const PUBLIC_EVENT_SELECT = {
   isFeatured: true,
   image: true,
   youtubeUrl: true,
+  recurrenceType: true,
 } as const;
 
 interface EventRow {
@@ -75,6 +76,7 @@ interface EventRow {
   isFeatured: boolean;
   image: string | null;
   youtubeUrl: string | null;
+  recurrenceType?: AdminRecurrenceType;
 }
 
 function toPublicEvent(row: EventRow): Event {
@@ -97,6 +99,7 @@ function toPublicEvent(row: EventRow): Event {
     imageUrl: row.image ?? undefined,
     youtubeId: extractYoutubeId(row.youtubeUrl) ?? undefined,
     isFeatured: row.isFeatured,
+    isRecurring: Boolean(row.recurrenceType && row.recurrenceType !== "NONE"),
   };
 }
 
@@ -123,7 +126,7 @@ async function loadPublicEvents(): Promise<Event[]> {
   }
 }
 
-export const getPublicEvents = unstable_cache(loadPublicEvents, ["public-events"], {
+export const getPublicEvents = unstable_cache(loadPublicEvents, ["public-events-v2"], {
   tags: [PUBLIC_EVENTS_CACHE_TAG],
   revalidate: 60,
 });
@@ -483,6 +486,9 @@ export async function getMonthlyEvents(
       kind: categoryToKind(event.category, event.isSpecial),
       imageUrl: event.image ?? undefined,
       theme: event.theme || undefined,
+      slug:
+        event.recurrenceType === "NONE" ? event.slug || event.sourceId : undefined,
+      isRecurring: event.recurrenceType !== "NONE",
     };
   });
 }

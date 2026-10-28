@@ -76,6 +76,7 @@ export default async function ChurchLifePage({
           emptyPeriod: calendar.emptyPeriod,
           fastingPostponed: calendar.fastingPostponed,
           fastingRange: calendar.fastingRange,
+          seeAnnouncement: common.seeAnnouncement,
         }}
         typeLabels={calendar.types}
         kindLabels={common.eventKinds}

@@ -10,7 +10,8 @@ datasource db {
 enum UserRole {
   SUPERADMIN
   ADMIN
-  EDITOR
+  REDACTEUR
+  COMPTABLE
 }
 
 enum EventCategory {
@@ -34,9 +35,25 @@ model User {
   name         String?
   email        String   @unique
   passwordHash String
-  role         UserRole @default(EDITOR)
+  role         UserRole @default(REDACTEUR)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  auditLogs    AuditLog[]
+}
+
+// userId est optionnel : supprimer un compte ne supprime pas ses traces.
+// userName conserve le nom affiché après cette suppression.
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String
+  entity     String
+  entityName String
+  userName   String
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
 }
 
 model Event {

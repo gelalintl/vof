@@ -22,7 +22,9 @@ import {
   hydrateCalendarEvents,
   shiftCalendarMonth,
 } from "@/utils/date/getMonthlyEvents";
+import { showsEventAnnouncement } from "@/lib/eventPresentation";
 import { Badge } from "@/ui/design-system/badge";
+import { Button } from "@/ui/design-system/button";
 import { Typography } from "@/ui/design-system/typography";
 import { interactiveCardClass } from "@/utils/theme/interactiveCard";
 
@@ -60,6 +62,7 @@ interface CalendarWidgetProps {
     emptyPeriod: string;
     fastingPostponed: string;
     fastingRange: string;
+    seeAnnouncement: string;
   };
   typeLabels: Record<MonthlyEventType, string>;
   kindLabels: Record<EventKind, string>;
@@ -311,6 +314,16 @@ export function CalendarWidget({
                       <MapPin className="size-4 text-sky-600" />
                       {event.location}
                     </p>
+                    {showsEventAnnouncement(event) ? (
+                      <Button
+                        href={`/vie-de-leglise/${event.slug}`}
+                        variant="accent"
+                        size="sm"
+                        className="mt-4"
+                      >
+                        {labels.seeAnnouncement}
+                      </Button>
+                    ) : null}
                   </div>
                 </article>
               );

@@ -1,3 +1,5 @@
+import { requirePageRole } from "@/lib/auth";
+import { CONTENT_ROLES } from "@/lib/roles";
 import { getChurchLogo, getManagedSettings } from "@/lib/siteSettings";
 import { getSiteSettings } from "@/lib/settings";
 import {
@@ -9,6 +11,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsGeneralPage() {
+  await requirePageRole(CONTENT_ROLES);
   const [logoSrc, managed, catalog] = await Promise.all([
     getChurchLogo(),
     getManagedSettings(),

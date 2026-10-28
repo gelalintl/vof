@@ -8,6 +8,7 @@ import {
   updateUser,
   updateUserPassword,
 } from "@/app/sacristie/utilisateurs/actions";
+import { ASSIGNABLE_USER_ROLES, USER_ROLE_LABELS } from "@/lib/roles";
 import type { AdminUserRecord, AdminUserRole } from "@/types";
 import { formatPublicationDate } from "@/utils/date/format";
 import { AdminConfirmDialog, AdminDrawer } from "./AdminDrawer";
@@ -19,8 +20,28 @@ import { notifyAdminAction, notifyAdminConfirm } from "./notifyAdminAction";
 
 interface UserManagerProps {
   users: AdminUserRecord[];
-  /** Rôle du compte connecté : seul le SUPERADMIN peut ajouter / supprimer des comptes. */
+  /** Rôle du compte connecté. SUPERADMIN et ADMIN gèrent les comptes. */
   currentRole: AdminUserRole;
+}
+
+function roleChoices(currentRole: AdminUserRole) {
+  const options: AdminUserRole[] = ["SUPERADMIN", ...ASSIGNABLE_USER_ROLES];
+  const withoutSuperAdmin =
+    currentRole === "ADMIN" ? options.filter((role) => role !== "SUPERADMIN") : options;
+  return withoutSuperAdmin.filter((role) => role !== "SUPERADMIN");
+}
+
+function readRequestedRole(formData: FormData): AdminUserRole | undefined {
+  const value = String(formData.get("role") ?? "");
+  if (
+    value === "SUPERADMIN" ||
+    value === "ADMIN" ||
+    value === "REDACTEUR" ||
+    value === "COMPTABLE"
+  ) {
+    return value;
+  }
+  return undefined;
 }
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -34,12 +55,13 @@ export function UserManager({ users, currentRole }: UserManagerProps) {
   const [passwordTarget, setPasswordTarget] = useState<AdminUserRecord | null>(null);
   const [pendingDelete, setPendingDelete] = useState<AdminUserRecord | null>(null);
 
-  const isSuperAdmin = currentRole === "SUPERADMIN";
+  const canManageUsers = currentRole === "SUPERADMIN" || currentRole === "ADMIN";
+  const choices = roleChoices(currentRole);
   const isLastUser = users.length <= 1;
 
   return (
     <>
-      {isSuperAdmin ? (
+      {canManageUsers ? (
         <div className="mb-6 flex justify-end">
           <button
             type="button"
@@ -47,7 +69,7 @@ export function UserManager({ users, currentRole }: UserManagerProps) {
             onClick={() => setCreating(true)}
           >
             <Plus className="mr-2 size-4" aria-hidden />
-            Ajouter un administrateur
+            Ajouter un compte
           </button>
         </div>
       ) : null}
@@ -61,7 +83,7 @@ export function UserManager({ users, currentRole }: UserManagerProps) {
               <tr>
                 <th className="px-4 py-3">Nom</th>
                 <th className="px-4 py-3">Email</th>
-                {isSuperAdmin ? <th className="px-4 py-3">Rôle</th> : null}
+                {canManageUsers ? <th className="px-4 py-3">Rôle</th> : null}
                 <th className="px-4 py-3">Date de création</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
@@ -83,9 +105,9 @@ export function UserManager({ users, currentRole }: UserManagerProps) {
                       ) : null}
                     </td>
                     <td className="px-4 py-3 font-mono text-xs text-slate-600">{user.email}</td>
-                    {isSuperAdmin ? (
+                    {canManageUsers ? (
                       <td className="px-4 py-3 text-slate-600">
-                        {user.role === "SUPERADMIN" ? "Super-administrateur" : "Administrateur"}
+                        {USER_ROLE_LABELS[user.role]}
                       </td>
                     ) : null}
                     <td className="whitespace-nowrap px-4 py-3 text-slate-600">
@@ -117,7 +139,7 @@ export function UserManager({ users, currentRole }: UserManagerProps) {
                         >
                           <KeyRound className="size-4" />
                         </button>
-                        {isSuperAdmin ? (
+                        {canManageUsers ? (
                           <button
                             type="button"
                             disabled={deleteDisabled}
@@ -149,8 +171,8 @@ export function UserManager({ users, currentRole }: UserManagerProps) {
 
       <AdminDrawer
         isOpen={creating}
-        title="Ajouter un administrateur"
-        description="Le nouveau compte aura accès à tout le back-office."
+        title="Ajouter un compte"
+        description="Administrateur : accès complet hors comptes super-administrateur. Rédacteur : contenu. Comptable : dons, projets et paiements."
         onClose={() => setCreating(false)}
       >
         <form
@@ -161,9 +183,10 @@ export function UserManager({ users, currentRole }: UserManagerProps) {
                 name: String(formData.get("name") ?? ""),
                 email: String(formData.get("email") ?? ""),
                 password: String(formData.get("password") ?? ""),
+                role: readRequestedRole(formData),
               });
             },
-            "Administrateur ajouté.",
+            "Compte ajouté.",
             () => setCreating(false),
           )}
           className="grid gap-4"
@@ -187,6 +210,16 @@ export function UserManager({ users, currentRole }: UserManagerProps) {
               autoComplete="off"
               className={adminFieldClass}
             />
+          </label>
+          <label className="block">
+            <AdminLabel>Rôle</AdminLabel>
+            <select name="role" defaultValue="REDACTEUR" className={adminFieldClass}>
+              {choices.map((role) => (
+                <option key={role} value={role}>
+                  {USER_ROLE_LABELS[role]}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="block">
             <AdminLabel>Mot de passe</AdminLabel>
@@ -218,9 +251,11 @@ export function UserManager({ users, currentRole }: UserManagerProps) {
             key={editTarget.id}
             action={notifyAdminAction(
               async (formData) => {
+                const requestedRole = readRequestedRole(formData);
                 await updateUser(editTarget.id, {
                   name: String(formData.get("name") ?? ""),
                   email: String(formData.get("email") ?? ""),
+                  ...(requestedRole ? { role: requestedRole } : {}),
                 });
               },
               "Compte mis à jour.",
@@ -255,6 +290,28 @@ export function UserManager({ users, currentRole }: UserManagerProps) {
                 </span>
               ) : null}
             </label>
+            {canManageUsers && editTarget.role !== "SUPERADMIN" ? (
+              <label className="block">
+                <AdminLabel>Rôle</AdminLabel>
+                <select
+                  name="role"
+                  defaultValue={
+                    editTarget.role === "ADMIN" ||
+                    editTarget.role === "COMPTABLE" ||
+                    editTarget.role === "REDACTEUR"
+                      ? editTarget.role
+                      : "REDACTEUR"
+                  }
+                  className={adminFieldClass}
+                >
+                  {choices.map((role) => (
+                    <option key={role} value={role}>
+                      {USER_ROLE_LABELS[role]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
             <div>
               <AdminSubmitButton>Enregistrer les modifications</AdminSubmitButton>
             </div>

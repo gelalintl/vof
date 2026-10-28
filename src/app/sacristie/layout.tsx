@@ -23,7 +23,7 @@ export default async function AdminLayout({
 
   const logoSrc = await getChurchLogo();
   return (
-    <AdminShell logoSrc={logoSrc} userEmail={user.email}>
+    <AdminShell logoSrc={logoSrc} userEmail={user.email} userRole={user.role}>
       {children}
     </AdminShell>
   );

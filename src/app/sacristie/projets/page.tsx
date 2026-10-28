@@ -1,9 +1,12 @@
 import { getProjects } from "@/app/sacristie/actions";
+import { requirePageRole } from "@/lib/auth";
+import { ACCOUNTING_ROLES } from "@/lib/roles";
 import { AdminPageHeader, ProjectManager } from "@/ui/modules/admin";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminProjectsPage() {
+  await requirePageRole(ACCOUNTING_ROLES);
   const projects = await getProjects().catch(() => []);
 
   return (

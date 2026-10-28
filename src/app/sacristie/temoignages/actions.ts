@@ -5,12 +5,10 @@
 
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import {
-  requireRecordId,
-  revalidateTestimonialContent,
-  runPrismaWrite,
-} from "@/lib/adminActionUtils";
-import { requireAdmin } from "@/lib/auth";
+import { requireRecordId, revalidateTestimonialContent, runPrismaWrite } from "@/lib/adminActionUtils";
+import { logAction } from "@/lib/audit";
+import { requireRole } from "@/lib/auth";
+import { CONTENT_ROLES } from "@/lib/roles";
 import {
   deleteSupabaseFile,
   isUploadFailure,
@@ -104,7 +102,7 @@ function serializeTestimonial(testimonial: {
 }
 
 export async function getTestimonials(): Promise<AdminTestimonialRecord[]> {
-  await requireAdmin();
+  await requireRole(CONTENT_ROLES);
   const testimonials = await prisma.testimonial.findMany({
     orderBy: { createdAt: "desc" },
   });
@@ -112,7 +110,7 @@ export async function getTestimonials(): Promise<AdminTestimonialRecord[]> {
 }
 
 export async function createTestimonial(formData: FormData) {
-  await requireAdmin();
+  const actor = await requireRole(CONTENT_ROLES);
   const fields = parseTestimonialFields(formData);
 
   const uploaded = await optionalUploadedUrl(formData, "imageFile");
@@ -133,11 +131,17 @@ export async function createTestimonial(formData: FormData) {
   });
 
   revalidateTestimonialContent();
+  await logAction({
+    userId: actor.id,
+    action: "CRÉATION",
+    entity: "Témoignage",
+    entityName: testimonial.authorName,
+  });
   return serializeTestimonial(testimonial);
 }
 
 export async function updateTestimonial(id: string, formData: FormData) {
-  await requireAdmin();
+  const actor = await requireRole(CONTENT_ROLES);
   const testimonialId = requireRecordId(id);
 
   const current = await prisma.testimonial.findUnique({ where: { id: testimonialId } });
@@ -175,11 +179,17 @@ export async function updateTestimonial(id: string, formData: FormData) {
   );
 
   revalidateTestimonialContent();
+  await logAction({
+    userId: actor.id,
+    action: "MODIFICATION",
+    entity: "Témoignage",
+    entityName: testimonial.authorName,
+  });
   return serializeTestimonial(testimonial);
 }
 
 export async function deleteTestimonial(id: string) {
-  await requireAdmin();
+  const actor = await requireRole(CONTENT_ROLES);
   const testimonialId = requireRecordId(id);
 
   const current = await prisma.testimonial.findUnique({ where: { id: testimonialId } });
@@ -188,16 +198,24 @@ export async function deleteTestimonial(id: string) {
   }
 
   await prisma.testimonial.deleteMany({ where: { id: testimonialId } });
+  if (current) {
+    await logAction({
+      userId: actor.id,
+      action: "SUPPRESSION",
+      entity: "Témoignage",
+      entityName: current.authorName,
+    });
+  }
   revalidateTestimonialContent();
 }
 
 export async function togglePublishTestimonial(id: string) {
-  await requireAdmin();
+  const actor = await requireRole(CONTENT_ROLES);
   const testimonialId = requireRecordId(id);
 
   const current = await prisma.testimonial.findUnique({
     where: { id: testimonialId },
-    select: { isPublished: true },
+    select: { isPublished: true, authorName: true },
   });
   if (!current) {
     throw new Error("Témoignage introuvable.");
@@ -213,5 +231,11 @@ export async function togglePublishTestimonial(id: string) {
   );
 
   revalidateTestimonialContent();
+  await logAction({
+    userId: actor.id,
+    action: "MODIFICATION",
+    entity: "Témoignage",
+    entityName: current.authorName,
+  });
   return serializeTestimonial(testimonial);
 }

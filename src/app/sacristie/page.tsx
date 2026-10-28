@@ -1,12 +1,16 @@
 import { getAdminOverview } from "@/app/sacristie/actions";
 import { adminNavigation } from "@/config/navigation";
+import { requirePageRole } from "@/lib/auth";
+import { ACCOUNT_ROLES } from "@/lib/roles";
 import { AdminPageHeader } from "@/ui/modules/admin";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminOverviewPage() {
+  const user = await requirePageRole(ACCOUNT_ROLES);
   const overview = await getAdminOverview();
+  const links = adminNavigation.filter((item) => item.allowedRoles.includes(user.role));
 
   const stats = [
     { label: "Événements", value: overview.events, href: "/sacristie/evenements" },
@@ -16,7 +20,7 @@ export default async function AdminOverviewPage() {
     { label: "Enseignements", value: overview.articles, href: "/sacristie/enseignements" },
     { label: "Projets", value: overview.projects, href: "/sacristie/projets" },
     { label: "Dons en attente", value: overview.pendingDonations, href: "/sacristie/dons" },
-  ];
+  ].filter((stat) => links.some((item) => item.href === stat.href));
 
   return (
     <div>
@@ -50,8 +54,8 @@ export default async function AdminOverviewPage() {
       </div>
 
       <ul className="mt-10 divide-y divide-slate-100 border-y border-slate-200">
-        {adminNavigation.slice(1).map((item) => (
-          <li key={item.href}>
+        {links.filter((item) => item.href !== "/sacristie").map((item) => (
+            <li key={item.label}>
             <Link
               href={item.href}
               className="flex items-center justify-between py-4 font-heading text-lg font-bold text-slate-900 hover:text-[#6d28d9]"

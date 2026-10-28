@@ -25,6 +25,8 @@ export function hydrateCalendarEvents(
     kind: item.kind,
     imageUrl: item.imageUrl,
     theme: item.theme,
+    slug: item.slug,
+    isRecurring: item.isRecurring,
   }));
 }
 

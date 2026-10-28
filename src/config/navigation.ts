@@ -1,17 +1,22 @@
-import type { NavItem } from "@/types";
+import type { AdminNavItem, AdminUserRole, NavItem } from "@/types";
+import { ACCOUNT_ROLES, ACCOUNTING_ROLES, CONTENT_ROLES } from "@/lib/roles";
 
-export const adminNavigation: NavItem[] = [
-  { label: "Vue d'ensemble", href: "/sacristie" },
-  { label: "Événements", href: "/sacristie/evenements" },
-  { label: "Équipe Pastorale", href: "/sacristie/pasteurs" },
-  { label: "Départements", href: "/sacristie/departements" },
-  { label: "Médias", href: "/sacristie/medias" },
-  { label: "Enseignements", href: "/sacristie/enseignements" },
-  { label: "Témoignages", href: "/sacristie/temoignages" },
-  { label: "Projets", href: "/sacristie/projets" },
-  { label: "Suivi des Dons", href: "/sacristie/dons" },
-  { label: "Administrateurs", href: "/sacristie/utilisateurs" },
-  { label: "Paramètres", href: "/sacristie/parametres" },
+const ALL_ROLES: AdminUserRole[] = [...ACCOUNT_ROLES];
+
+export const adminNavigation: AdminNavItem[] = [
+  { label: "Vue d'ensemble", href: "/sacristie", allowedRoles: ALL_ROLES },
+  { label: "Événements", href: "/sacristie/evenements", allowedRoles: [...CONTENT_ROLES] },
+  { label: "Équipe Pastorale", href: "/sacristie/pasteurs", allowedRoles: [...CONTENT_ROLES] },
+  { label: "Départements", href: "/sacristie/departements", allowedRoles: [...CONTENT_ROLES] },
+  { label: "Médias", href: "/sacristie/medias", allowedRoles: [...CONTENT_ROLES] },
+  { label: "Enseignements", href: "/sacristie/enseignements", allowedRoles: [...CONTENT_ROLES] },
+  { label: "Témoignages", href: "/sacristie/temoignages", allowedRoles: [...CONTENT_ROLES] },
+  { label: "Projets", href: "/sacristie/projets", allowedRoles: [...ACCOUNTING_ROLES] },
+  { label: "Suivi des Dons", href: "/sacristie/dons", allowedRoles: [...ACCOUNTING_ROLES] },
+  { label: "Administrateurs", href: "/sacristie/utilisateurs", allowedRoles: ["SUPERADMIN", "ADMIN"] },
+  { label: "Rapports", href: "/sacristie/rapports", allowedRoles: ["SUPERADMIN", "ADMIN"] },
+  { label: "Mon compte", href: "/sacristie/utilisateurs", allowedRoles: ["REDACTEUR", "COMPTABLE"] },
+  { label: "Paramètres", href: "/sacristie/parametres", allowedRoles: ALL_ROLES },
 ];
 
 export const mainNavigation: NavItem[] = [

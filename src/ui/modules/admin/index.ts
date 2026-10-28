@@ -1,6 +1,9 @@
 export { AdminShell } from "./AdminShell";
 export { AdminSidebar } from "./AdminSidebar";
 export { AdminPageHeader } from "./AdminPageHeader";
+export { AuditReportList } from "./AuditReportList";
+export { AuditFilterBar } from "./AuditFilterBar";
+export { AuditPagination } from "./AuditPagination";
 export { EventForm } from "./EventForm";
 export { EventEditor } from "./EventEditor";
 export { EventManager } from "./EventManager";

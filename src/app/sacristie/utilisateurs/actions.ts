@@ -2,13 +2,15 @@
 
 // Rôles :
 //  - SUPERADMIN : voit et gère tous les comptes (création, édition, mot de passe, suppression).
-//  - ADMIN      : ne voit et ne peut modifier QUE son propre compte (nom, email, mot de passe).
-// Le compte SUPERADMIN n'est donc jamais visible ni atteignable par un ADMIN.
+//  - ADMIN : mêmes droits, sauf les comptes SUPERADMIN (invisibles, non modifiables, non supprimables).
+//  - REDACTEUR et COMPTABLE : ne voient et ne modifient QUE leur propre compte
+//    (nom, email, mot de passe).
 
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { requireRecordId } from "@/lib/adminActionUtils";
-import { requireAdmin } from "@/lib/auth";
+import { logAction } from "@/lib/audit";
+import { requireAdmin, requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import type {
   AdminSessionUser,
@@ -35,6 +37,16 @@ const userSelect = {
 
 function isSuperAdmin(user: AdminSessionUser) {
   return user.role === "SUPERADMIN";
+}
+
+function canManageUsers(user: AdminSessionUser) {
+  return user.role === "SUPERADMIN" || user.role === "ADMIN";
+}
+
+const ASSIGNABLE_ROLES = ["ADMIN", "REDACTEUR", "COMPTABLE"] as const;
+
+function isAssignableRole(role: string): role is (typeof ASSIGNABLE_ROLES)[number] {
+  return ASSIGNABLE_ROLES.some((candidate) => candidate === role);
 }
 
 function validatePassword(password: string) {
@@ -81,12 +93,18 @@ async function assertNameAvailable(name: string, excludeId?: string) {
 }
 
 /**
- * Un ADMIN ne peut cibler que son propre compte ; pour tout autre compte on répond
+ * Un rédacteur ou un comptable ne peut cibler que son propre compte ; pour tout autre compte on répond
  * « introuvable » afin de ne pas révéler son existence.
  */
 function assertCanTarget(actor: AdminSessionUser, targetId: string) {
-  if (!isSuperAdmin(actor) && targetId !== actor.id) {
+  if (!canManageUsers(actor) && targetId !== actor.id) {
     throw new Error(NOT_FOUND);
+  }
+}
+
+function assertAdminLeavesSuperAdmin(actor: AdminSessionUser, targetRole: string) {
+  if (actor.role === "ADMIN" && targetRole === "SUPERADMIN") {
+    throw new Error("Impossible de modifier un Super Administrateur");
   }
 }
 
@@ -116,14 +134,20 @@ function revalidateUsers() {
 
 /**
  * Liste des comptes visibles par l'utilisateur connecté.
- * SUPERADMIN : tous les comptes. ADMIN : uniquement le sien.
+ * SUPERADMIN : tous les comptes. ADMIN : tous sauf SUPERADMIN.
+ * REDACTEUR et COMPTABLE : uniquement le leur.
  * Le hash du mot de passe n'est JAMAIS sélectionné ni renvoyé.
  */
 export async function getUsers(): Promise<AdminUserRecord[]> {
   const actor = await requireAdmin();
 
   const users = await prisma.user.findMany({
-    where: isSuperAdmin(actor) ? undefined : { id: actor.id },
+    where:
+      actor.role === "SUPERADMIN"
+        ? undefined
+        : actor.role === "ADMIN"
+          ? { role: { not: "SUPERADMIN" } }
+          : { id: actor.id },
     select: userSelect,
     orderBy: { createdAt: "asc" },
   });
@@ -131,12 +155,14 @@ export async function getUsers(): Promise<AdminUserRecord[]> {
   return users.map((user) => toRecord(user, actor));
 }
 
-/** Création réservée au SUPERADMIN ; les comptes créés ont toujours le rôle ADMIN. */
+/** Création réservée au SUPERADMIN et à l'ADMIN. Un ADMIN ne peut pas créer un SUPERADMIN. */
 export async function createUser(data: CreateAdminUserInput): Promise<AdminUserRecord> {
-  const actor = await requireAdmin();
-  if (!isSuperAdmin(actor)) {
-    throw new Error("Seul le super-administrateur peut créer des comptes.");
+  const actor = await requireRole(["SUPERADMIN", "ADMIN"]);
+  const requested = String(data.role ?? "");
+  if (requested === "SUPERADMIN") {
+    throw new Error("Non autorisé");
   }
+  const role = isAssignableRole(requested) ? requested : "REDACTEUR";
 
   const { name, email } = normalizeProfile(data);
   const password = String(data?.password ?? "");
@@ -154,10 +180,16 @@ export async function createUser(data: CreateAdminUserInput): Promise<AdminUserR
   const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
   const user = await prisma.user.create({
-    data: { name, email, passwordHash, role: "ADMIN" },
+    data: { name, email, passwordHash, role },
     select: userSelect,
   });
 
+  await logAction({
+    userId: actor.id,
+    action: "CRÉATION",
+    entity: "Utilisateur",
+    entityName: user.name?.trim() || user.email,
+  });
   revalidateUsers();
   return toRecord(user, actor);
 }
@@ -190,19 +222,43 @@ export async function updateUser(
   }
   await assertNameAvailable(name, userId);
 
+  const current = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  });
+  if (!current) {
+    throw new Error(NOT_FOUND);
+  }
+  assertAdminLeavesSuperAdmin(actor, current.role);
+  if (actor.role === "ADMIN" && data.role === "SUPERADMIN") {
+    throw new Error("Non autorisé");
+  }
+  const nextRole =
+    canManageUsers(actor) &&
+    current.role !== "SUPERADMIN" &&
+    isAssignableRole(String(data.role ?? ""))
+      ? data.role
+      : undefined;
+
   const user = await prisma.user.update({
     where: { id: userId },
-    data: { name, email },
+    data: { name, email, ...(nextRole ? { role: nextRole } : {}) },
     select: userSelect,
   });
 
+  await logAction({
+    userId: actor.id,
+    action: "MODIFICATION",
+    entity: "Utilisateur",
+    entityName: user.name?.trim() || user.email,
+  });
   revalidateUsers();
   return toRecord(user, actor);
 }
 
 /**
  * - Son propre mot de passe : l'ancien mot de passe est OBLIGATOIRE (tous rôles, SUPERADMIN compris).
- * - Mot de passe d'un autre compte : réinitialisation réservée au SUPERADMIN, sans ancien mot de passe.
+ * - Mot de passe d'un autre compte : réinitialisation réservée au SUPERADMIN et à l'ADMIN, sans ancien mot de passe. Un ADMIN ne peut pas viser un SUPERADMIN.
  */
 export async function updateUserPassword(
   id: string,
@@ -216,11 +272,12 @@ export async function updateUserPassword(
 
   const existing = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, passwordHash: true },
+    select: { id: true, passwordHash: true, name: true, email: true, role: true },
   });
   if (!existing) {
     throw new Error(NOT_FOUND);
   }
+  assertAdminLeavesSuperAdmin(actor, existing.role);
 
   if (userId === actor.id) {
     const current = String(currentPassword ?? "");
@@ -234,7 +291,7 @@ export async function updateUserPassword(
     if (current === newPassword) {
       throw new Error("Le nouveau mot de passe doit être différent de l'ancien.");
     }
-  } else if (!isSuperAdmin(actor)) {
+  } else if (!canManageUsers(actor)) {
     // Garde-fou : normalement déjà bloqué par assertCanTarget.
     throw new Error(NOT_FOUND);
   }
@@ -245,15 +302,18 @@ export async function updateUserPassword(
     data: { passwordHash },
   });
 
+  await logAction({
+    userId: actor.id,
+    action: "MODIFICATION",
+    entity: "Utilisateur",
+    entityName: existing.name?.trim() || existing.email,
+  });
   revalidateUsers();
 }
 
-/** Suppression réservée au SUPERADMIN. Ni son propre compte, ni un SUPERADMIN, ni le dernier compte. */
+/** Suppression réservée au SUPERADMIN et à l'ADMIN. Ni son propre compte, ni un SUPERADMIN, ni le dernier compte. */
 export async function deleteUser(id: string) {
-  const actor = await requireAdmin();
-  if (!isSuperAdmin(actor)) {
-    throw new Error("Seul le super-administrateur peut supprimer des comptes.");
-  }
+  const actor = await requireRole(["SUPERADMIN", "ADMIN"]);
   const userId = requireRecordId(id);
 
   if (userId === actor.id) {
@@ -261,7 +321,7 @@ export async function deleteUser(id: string) {
   }
 
   // Vérifications et suppression dans la même transaction.
-  await prisma.$transaction(async (tx) => {
+  const removed = await prisma.$transaction(async (tx) => {
     const total = await tx.user.count();
     if (total <= 1) {
       throw new Error(
@@ -271,17 +331,27 @@ export async function deleteUser(id: string) {
 
     const target = await tx.user.findUnique({
       where: { id: userId },
-      select: { id: true, role: true },
+      select: { id: true, role: true, name: true, email: true },
     });
     if (!target) {
       throw new Error(NOT_FOUND);
+    }
+    if (actor.role === "ADMIN" && target.role === "SUPERADMIN") {
+      throw new Error("Impossible de modifier un Super Administrateur");
     }
     if (target.role === "SUPERADMIN") {
       throw new Error("Le compte super-administrateur ne peut pas être supprimé.");
     }
 
     await tx.user.delete({ where: { id: userId } });
+    return target;
   });
 
+  await logAction({
+    userId: actor.id,
+    action: "SUPPRESSION",
+    entity: "Utilisateur",
+    entityName: removed.name?.trim() || removed.email,
+  });
   revalidateUsers();
 }

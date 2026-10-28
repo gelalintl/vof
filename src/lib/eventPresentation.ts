@@ -63,6 +63,13 @@ export function categoryToMonthlyType(
   return "prayer";
 }
 
+export function showsEventAnnouncement(event: {
+  isRecurring?: boolean;
+  slug?: string | null;
+}) {
+  return !event.isRecurring && Boolean(event.slug);
+}
+
 export function toMediaCard(event: Event, locale: Locale): MediaCardData {
   const time = formatEventTime(event.startsAt, locale);
 

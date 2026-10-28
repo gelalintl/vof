@@ -13,7 +13,8 @@ import {
   encryptSession,
   sessionCookieOptions,
 } from "@/lib/session";
-import type { AdminSessionUser } from "@/types";
+import { roleIsAllowed } from "@/lib/roles";
+import type { AdminSessionUser, AdminUserRole } from "@/types";
 
 const INVALID_CREDENTIALS = "Identifiants invalides.";
 const DUMMY_HASH = "$2b$10$u33r75MtGavTTadPbKWkOeaE85ZhkZoYGFG6V7z/xBeIHgW7N2wNW";
@@ -129,6 +130,34 @@ export async function requireAdmin(): Promise<AdminSessionUser> {
     const cookieStore = await cookies();
     clearSessionCookie(cookieStore);
     redirect("/sacristie/login");
+  }
+  return user;
+}
+
+/**
+ * Exige une session et un rôle autorisé.
+ * SUPERADMIN passe toujours. Un refus lance une erreur sérialisable
+ * (les pages utilisent requirePageRole, qui redirige vers /sacristie).
+ */
+export async function requireRole(
+  allowedRoles: readonly AdminUserRole[],
+): Promise<AdminSessionUser> {
+  const user = await requireAdmin();
+  if (!roleIsAllowed(user.role, allowedRoles)) {
+    throw new Error("Accès refusé.");
+  }
+  return user;
+}
+
+export async function requirePageRole(
+  allowedRoles: readonly AdminUserRole[],
+): Promise<AdminSessionUser> {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/sacristie/login");
+  }
+  if (!roleIsAllowed(user.role, allowedRoles)) {
+    redirect("/sacristie");
   }
   return user;
 }

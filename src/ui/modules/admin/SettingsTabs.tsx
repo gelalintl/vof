@@ -3,55 +3,70 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Building, Columns3, Heart, MapPin, Printer, Video, Wallet } from "lucide-react";
+import { ACCOUNTING_ROLES, CONTENT_ROLES } from "@/lib/roles";
+import type { AdminUserRole } from "@/types";
 import { cn } from "@/utils/cn";
 
-const tabs = [
+const tabs: {
+  href: string;
+  label: string;
+  icon: typeof Building;
+  allowedRoles: readonly AdminUserRole[];
+}[] = [
   {
     href: "/sacristie/parametres/general",
     label: "Général",
     icon: Building,
+    allowedRoles: CONTENT_ROLES,
   },
   {
     href: "/sacristie/parametres/a-propos",
     label: "À propos",
     icon: Heart,
+    allowedRoles: CONTENT_ROLES,
   },
   {
     href: "/sacristie/parametres/contacts",
     label: "Contacts & Réseaux",
     icon: MapPin,
+    allowedRoles: CONTENT_ROLES,
   },
   {
     href: "/sacristie/parametres/medias",
     label: "Direct & Médias",
     icon: Video,
+    allowedRoles: CONTENT_ROLES,
   },
   {
     href: "/sacristie/parametres/paiements",
     label: "Paiements & Dons",
     icon: Wallet,
+    allowedRoles: ACCOUNTING_ROLES,
   },
   {
     href: "/sacristie/parametres/footer",
     label: "Pied de page",
     icon: Columns3,
+    allowedRoles: CONTENT_ROLES,
   },
   {
     href: "/sacristie/parametres/impression",
     label: "Impression & Documents",
     icon: Printer,
+    allowedRoles: CONTENT_ROLES,
   },
-] as const;
+];
 
-export function SettingsTabs() {
+export function SettingsTabs({ role }: { role: AdminUserRole }) {
   const pathname = usePathname();
+  const visibleTabs = tabs.filter((tab) => tab.allowedRoles.includes(role));
 
   return (
     <nav
       aria-label="Sous-sections des paramètres"
       className="mt-6 flex gap-2 overflow-x-auto border-b border-slate-200 pb-px"
     >
-      {tabs.map((tab) => {
+      {visibleTabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
 

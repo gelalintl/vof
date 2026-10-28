@@ -14,13 +14,15 @@ import {
   LayoutDashboard,
   LogOut,
   MessageSquareQuote,
+  ScrollText,
   Settings,
   Users,
 } from "lucide-react";
 import { adminNavigation } from "@/config/navigation";
+import { logoutAction } from "@/lib/auth";
+import type { AdminUserRole } from "@/types";
 import { Logo } from "@/ui/design-system/logo";
 import { cn } from "@/utils/cn";
-import { logoutAction } from "@/lib/auth";
 
 const icons = {
   "/sacristie": LayoutDashboard,
@@ -33,16 +35,19 @@ const icons = {
   "/sacristie/projets": FolderHeart,
   "/sacristie/dons": HandHeart,
   "/sacristie/utilisateurs": Users,
+  "/sacristie/rapports": ScrollText,
   "/sacristie/parametres": Settings,
 } as const;
 
 interface AdminSidebarProps {
   logoSrc?: string | null;
   userEmail?: string;
+  userRole: AdminUserRole;
 }
 
-export function AdminSidebar({ logoSrc, userEmail }: AdminSidebarProps) {
+export function AdminSidebar({ logoSrc, userEmail, userRole }: AdminSidebarProps) {
   const pathname = usePathname();
+  const navigation = adminNavigation.filter((item) => item.allowedRoles.includes(userRole));
 
   return (
     <aside className="border-b border-slate-200 bg-white text-slate-800 lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-72 lg:shrink-0 lg:flex-col lg:border-b-0 lg:border-r lg:border-r-slate-200">
@@ -73,7 +78,7 @@ export function AdminSidebar({ logoSrc, userEmail }: AdminSidebarProps) {
         aria-label="Navigation administration"
         className="flex gap-1 overflow-x-auto px-3 py-3 lg:flex-1 lg:flex-col lg:overflow-visible lg:px-3 lg:py-6"
       >
-        {adminNavigation.map((item) => {
+        {navigation.map((item) => {
           const Icon = icons[item.href as keyof typeof icons];
           const isActive =
             item.href === "/sacristie"
@@ -82,7 +87,7 @@ export function AdminSidebar({ logoSrc, userEmail }: AdminSidebarProps) {
 
           return (
             <Link
-              key={item.href}
+              key={item.label}
               href={item.href}
               className={cn(
                 "inline-flex items-center gap-3 whitespace-nowrap border-l-2 px-3 py-2.5 font-heading text-sm tracking-tight transition-colors",

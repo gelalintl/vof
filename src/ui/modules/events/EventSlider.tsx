@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { ContentSectionTone, Event, EventKind } from "@/types";
+import { showsEventAnnouncement } from "@/lib/eventPresentation";
 import { ContentSection } from "@/ui/components/layout/ContentSection";
 import { SectionHeader } from "@/ui/components/layout/SectionHeader";
 import type { Locale } from "@/i18n/config";
@@ -93,14 +94,16 @@ export function EventSlider({
                     {" · "}
                     {event.location}
                   </p>
-                  <Button
-                    href={`/vie-de-leglise/${event.slug}`}
-                    variant="accent"
-                    size="sm"
-                    className="mt-4"
-                  >
-                    {labels.seeAnnouncement}
-                  </Button>
+                  {showsEventAnnouncement(event) ? (
+                    <Button
+                      href={`/vie-de-leglise/${event.slug}`}
+                      variant="accent"
+                      size="sm"
+                      className="mt-4"
+                    >
+                      {labels.seeAnnouncement}
+                    </Button>
+                  ) : null}
                 </div>
               </article>
             ))}

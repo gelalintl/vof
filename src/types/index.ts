@@ -29,6 +29,8 @@ export interface MonthlyGeneratedEvent {
   imageUrl?: string;
   /** Thème localisé (sous-titre), vide quand aucun thème ne s'applique. */
   theme?: string;
+  slug?: string;
+  isRecurring?: boolean;
 }
 
 export interface CalendarEventPayload {
@@ -43,6 +45,8 @@ export interface CalendarEventPayload {
   kind?: EventKind;
   imageUrl?: string;
   theme?: string;
+  slug?: string;
+  isRecurring?: boolean;
 }
 
 export type EventRecurrence =
@@ -96,6 +100,8 @@ export interface Event {
   imageUrl?: string;
   youtubeId?: string;
   isFeatured?: boolean;
+  /** Vrai quand recurrenceType n'est pas NONE. */
+  isRecurring?: boolean;
   registrationRequired?: boolean;
   author?: EventAuthor;
   gallery?: EventGalleryItem[];
@@ -222,6 +228,10 @@ export interface NavItem {
   label: string;
   href: string;
   children?: NavItem[];
+}
+
+export interface AdminNavItem extends NavItem {
+  allowedRoles: AdminUserRole[];
 }
 
 export interface FooterLink {
@@ -414,12 +424,26 @@ export interface EventHeadlineData {
   colorToken?: EventColorToken;
 }
 
-export type AdminUserRole = "SUPERADMIN" | "ADMIN" | "EDITOR";
+export type AdminUserRole = "SUPERADMIN" | "ADMIN" | "REDACTEUR" | "COMPTABLE";
 
 export interface AdminSessionUser {
   id: string;
   email: string;
   role: AdminUserRole;
+}
+
+export interface AuditLogRecord {
+  id: string;
+  action: string;
+  entity: string;
+  entityName: string;
+  userName: string;
+  createdAt: string;
+}
+
+export interface AuditFilterUser {
+  id: string;
+  name: string;
 }
 
 export type AdminEventCategory = "ROUTINE" | "FASTING" | "VIGIL" | "SPECIAL";
@@ -600,11 +624,13 @@ export interface CreateAdminUserInput {
   name: string;
   email: string;
   password: string;
+  role?: AdminUserRole;
 }
 
 export interface UpdateAdminUserInput {
   name: string;
   email: string;
+  role?: AdminUserRole;
 }
 
 export interface AdminTestimonialRecord {
