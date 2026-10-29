@@ -67,6 +67,7 @@ export async function submitTestimonial(
     await prisma.testimonial.create({
       data: { authorName, contactInfo, content, isPublished: false },
     });
+    revalidatePath("/sacristie", "layout");
     revalidatePath("/sacristie/temoignages");
     return { ok: true };
   } catch {

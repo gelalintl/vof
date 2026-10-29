@@ -3,6 +3,7 @@
 // ⚠️ RAPPEL : le modèle `Testimonial` vient d'être ajouté à prisma/schema.prisma.
 //    Exécutez `npx prisma db push` (puis relancez `next dev`) pour créer la table.
 
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireRecordId, revalidateTestimonialContent, runPrismaWrite } from "@/lib/adminActionUtils";
@@ -130,6 +131,7 @@ export async function createTestimonial(formData: FormData) {
     },
   });
 
+  revalidatePath("/sacristie", "layout");
   revalidateTestimonialContent();
   await logAction({
     userId: actor.id,
@@ -178,6 +180,7 @@ export async function updateTestimonial(id: string, formData: FormData) {
     "Témoignage introuvable.",
   );
 
+  revalidatePath("/sacristie", "layout");
   revalidateTestimonialContent();
   await logAction({
     userId: actor.id,
@@ -206,6 +209,7 @@ export async function deleteTestimonial(id: string) {
       entityName: current.authorName,
     });
   }
+  revalidatePath("/sacristie", "layout");
   revalidateTestimonialContent();
 }
 
@@ -230,6 +234,7 @@ export async function togglePublishTestimonial(id: string) {
     "Témoignage introuvable.",
   );
 
+  revalidatePath("/sacristie", "layout");
   revalidateTestimonialContent();
   await logAction({
     userId: actor.id,

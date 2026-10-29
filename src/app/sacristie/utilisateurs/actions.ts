@@ -190,6 +190,7 @@ export async function createUser(data: CreateAdminUserInput): Promise<AdminUserR
     entity: "Utilisateur",
     entityName: user.name?.trim() || user.email,
   });
+  revalidatePath("/sacristie", "layout");
   revalidateUsers();
   return toRecord(user, actor);
 }
@@ -252,6 +253,7 @@ export async function updateUser(
     entity: "Utilisateur",
     entityName: user.name?.trim() || user.email,
   });
+  revalidatePath("/sacristie", "layout");
   revalidateUsers();
   return toRecord(user, actor);
 }
@@ -308,6 +310,7 @@ export async function updateUserPassword(
     entity: "Utilisateur",
     entityName: existing.name?.trim() || existing.email,
   });
+  revalidatePath("/sacristie", "layout");
   revalidateUsers();
 }
 
@@ -353,5 +356,6 @@ export async function deleteUser(id: string) {
     entity: "Utilisateur",
     entityName: removed.name?.trim() || removed.email,
   });
+  revalidatePath("/sacristie", "layout");
   revalidateUsers();
 }

@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { getDictionary } from "@/i18n/getDictionary";
 import { getRequestLocale } from "@/i18n/localized";
 import { prisma } from "@/lib/prisma";
@@ -79,6 +80,7 @@ export async function submitDonationPromise(
     });
 
     try {
+      revalidatePath("/sacristie", "layout");
       revalidateDonationContent();
     } catch {
       // L’écriture a réussi : la revalidation ne doit pas masquer le succès.

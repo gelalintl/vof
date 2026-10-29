@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/getDictionary";
 import { getRequestLocale } from "@/i18n/localized";
@@ -60,6 +60,7 @@ export async function addComment(
       await prisma.comment.create({
         data: { articleId, authorName, authorEmail, content },
       });
+      revalidatePath("/sacristie", "layout");
       revalidateTag(PUBLIC_ARTICLES_CACHE_TAG, "max");
       revalidatePublicPath("/enseignements");
       revalidatePublicPath(`/enseignements/${article.slug}`);
@@ -76,6 +77,7 @@ export async function addComment(
     await prisma.comment.create({
       data: { eventId, authorName, authorEmail, content },
     });
+    revalidatePath("/sacristie", "layout");
     revalidateEventContent(event.slug ?? event.id);
     return { ok: true };
   } catch {
@@ -111,6 +113,7 @@ export async function likeComment(
       },
     });
 
+    revalidatePath("/sacristie", "layout");
     revalidateTag(PUBLIC_ARTICLES_CACHE_TAG, "max");
     if (comment.article?.slug) {
       revalidatePublicPath(`/enseignements/${comment.article.slug}`);

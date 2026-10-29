@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { unstable_rethrow } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import {
@@ -483,6 +484,7 @@ async function replaceArticleGallery(articleId: string, nextImages: string[]) {
     "Article introuvable.",
   );
 
+  revalidatePath("/sacristie", "layout");
   return uniqueNext;
 }
 
@@ -602,6 +604,7 @@ export async function createEvent(input: CreateAdminEventInput) {
     },
   });
 
+  revalidatePath("/sacristie", "layout");
   revalidateEventContent(event.slug ?? event.id);
   await recordAudit(actor.id, "CRÉATION", "Événement", event.title);
   return serializeEvent(event);
@@ -701,6 +704,7 @@ export async function updateEvent(id: string, input: CreateAdminEventInput) {
     "Événement introuvable.",
   );
 
+  revalidatePath("/sacristie", "layout");
   revalidateEventContent(event.slug ?? event.id);
   await recordAudit(actor.id, "MODIFICATION", "Événement", event.title);
   return serializeEvent(event);
@@ -769,6 +773,7 @@ export async function deleteEvent(formData: FormData) {
   if (current) {
     await recordAudit(actor.id, "SUPPRESSION", "Événement", current.title);
   }
+  revalidatePath("/sacristie", "layout");
   revalidateEventContent(id);
 }
 
@@ -781,6 +786,7 @@ export async function uploadAdminImage(
     if (!uploaded.success) {
       return uploaded;
     }
+    revalidatePath("/sacristie", "layout");
     revalidateMediaContent();
     return { success: true, url: uploaded.url };
   } catch (error) {
@@ -818,6 +824,7 @@ export async function uploadAdminImageFromForm(
     });
 
     await recordAudit(actor.id, "CRÉATION", "Média", title);
+    revalidatePath("/sacristie", "layout");
     revalidateMediaContent();
     return { success: true };
   } catch (error) {
@@ -863,6 +870,7 @@ export async function updateMediaFromForm(formData: FormData) {
   );
 
   await recordAudit(actor.id, "MODIFICATION", "Média", title);
+  revalidatePath("/sacristie", "layout");
   revalidateMediaContent();
 }
 
@@ -880,6 +888,7 @@ export async function deleteMedia(formData: FormData) {
     await recordAudit(actor.id, "SUPPRESSION", "Média", current.title);
   }
 
+  revalidatePath("/sacristie", "layout");
   revalidateMediaContent();
 }
 
@@ -928,6 +937,7 @@ export async function createArticleFromForm(formData: FormData) {
   });
 
   await recordAudit(actor.id, "CRÉATION", "Article", title);
+  revalidatePath("/sacristie", "layout");
   revalidateArticleContent();
 }
 
@@ -995,6 +1005,7 @@ export async function updateArticleFromForm(formData: FormData) {
     ...galleryUpload,
   ]);
 
+  revalidatePath("/sacristie", "layout");
   revalidateArticleContent(readString(formData, "slug"));
 }
 
@@ -1014,6 +1025,7 @@ export async function deleteArticle(formData: FormData) {
   if (current) {
     await recordAudit(actor.id, "SUPPRESSION", "Article", current.title);
   }
+  revalidatePath("/sacristie", "layout");
   revalidateArticleContent();
 }
 
@@ -1031,6 +1043,7 @@ export async function updateArticleGallery(articleId: string, galleryImages: str
 
   await replaceArticleGallery(id, galleryImages);
   await recordAudit(actor.id, "MODIFICATION", "Article", article.title);
+  revalidatePath("/sacristie", "layout");
   revalidateArticleContent(article.slug);
 }
 
@@ -1053,8 +1066,10 @@ export async function toggleCommentApproval(commentId: string, isApproved: boole
   );
 
   await recordAudit(actor.id, "MODIFICATION", "Commentaire", comment.authorName);
+  revalidatePath("/sacristie", "layout");
   revalidateArticleContent(comment.article?.slug ?? undefined);
   if (comment.event) {
+    revalidatePath("/sacristie", "layout");
     revalidateEventContent(comment.event.slug ?? comment.event.id);
   }
 }
@@ -1075,8 +1090,10 @@ export async function deleteComment(commentId: string) {
   if (comment) {
     await recordAudit(actor.id, "SUPPRESSION", "Commentaire", comment.authorName);
   }
+  revalidatePath("/sacristie", "layout");
   revalidateArticleContent(comment?.article?.slug ?? undefined);
   if (comment?.event) {
+    revalidatePath("/sacristie", "layout");
     revalidateEventContent(comment.event.slug ?? comment.event.id);
   }
 }
@@ -1111,6 +1128,7 @@ async function persistSiteSettings(settings: Record<string, string>) {
     );
   }
 
+  revalidatePath("/sacristie", "layout");
   revalidateSettingsContent();
 }
 
@@ -1155,6 +1173,7 @@ export async function upsertSiteSettingFromForm(formData: FormData) {
   }
 
   await recordAudit(actor.id, id ? "MODIFICATION" : "CRÉATION", "Paramètre", key);
+  revalidatePath("/sacristie", "layout");
   revalidateSettingsContent();
 }
 
@@ -1173,6 +1192,7 @@ export async function deleteSiteSetting(formData: FormData) {
   if (current) {
     await recordAudit(actor.id, "SUPPRESSION", "Paramètre", current.key);
   }
+  revalidatePath("/sacristie", "layout");
   revalidateSettingsContent();
 }
 
@@ -1204,6 +1224,7 @@ export async function uploadChurchLogo(
     }
 
     await recordAudit(actor.id, "MODIFICATION", "Paramètre", "Logo");
+    revalidatePath("/sacristie", "layout");
     revalidateSettingsContent();
     return { success: true, url };
   } catch (error) {
@@ -1252,6 +1273,7 @@ export async function uploadPaymentQr(
     }
 
     await recordAudit(actor.id, "MODIFICATION", "Paramètre", `QR ${operator}`);
+    revalidatePath("/sacristie", "layout");
     revalidateSettingsContent();
     return { success: true };
   } catch (error) {
@@ -1279,6 +1301,7 @@ export async function deletePaymentQr(formData: FormData) {
     await recordAudit(actor.id, "SUPPRESSION", "Paramètre", `QR ${operator}`);
   }
 
+  revalidatePath("/sacristie", "layout");
   revalidateSettingsContent();
 }
 
@@ -1297,6 +1320,7 @@ export async function deleteChurchLogo(): Promise<
       await recordAudit(actor.id, "SUPPRESSION", "Paramètre", "Logo");
     }
 
+    revalidatePath("/sacristie", "layout");
     revalidateSettingsContent();
     return { success: true };
   } catch (error) {
@@ -1546,6 +1570,7 @@ async function exclusiveEventFeatured(excludeId?: string) {
     where: excludeId ? { NOT: { id: excludeId } } : {},
     data: { isFeatured: false },
   });
+  revalidatePath("/sacristie", "layout");
 }
 
 async function exclusiveArticleFeatured(excludeId?: string) {
@@ -1553,6 +1578,7 @@ async function exclusiveArticleFeatured(excludeId?: string) {
     where: excludeId ? { NOT: { id: excludeId } } : {},
     data: { isFeatured: false },
   });
+  revalidatePath("/sacristie", "layout");
 }
 
 function parseDisplayOrder(value: string | number | undefined) {
@@ -1581,6 +1607,7 @@ export async function createPastor(input: CreateAdminPastorInput) {
     },
   });
 
+  revalidatePath("/sacristie", "layout");
   revalidatePastorContent();
   await recordAudit(actor.id, "CRÉATION", "Pasteur", pastor.name);
   return serializePastor(pastor);
@@ -1637,6 +1664,7 @@ export async function updatePastor(id: string, input: CreateAdminPastorInput) {
     "Pasteur introuvable.",
   );
 
+  revalidatePath("/sacristie", "layout");
   revalidatePastorContent();
   await recordAudit(actor.id, "MODIFICATION", "Pasteur", pastor.name);
   return serializePastor(pastor);
@@ -1693,6 +1721,7 @@ export async function deletePastor(formData: FormData) {
   if (current) {
     await recordAudit(actor.id, "SUPPRESSION", "Pasteur", current.name);
   }
+  revalidatePath("/sacristie", "layout");
   revalidatePastorContent();
 }
 
@@ -1791,6 +1820,7 @@ export async function createDepartment(formData: FormData) {
     },
   });
 
+  revalidatePath("/sacristie", "layout");
   revalidateDepartmentContent();
   await recordAudit(actor.id, "CRÉATION", "Département", department.name);
   return serializeDepartment(department);
@@ -1841,6 +1871,7 @@ export async function updateDepartment(id: string, formData: FormData) {
     "Département introuvable.",
   );
 
+  revalidatePath("/sacristie", "layout");
   revalidateDepartmentContent();
   await recordAudit(actor.id, "MODIFICATION", "Département", department.name);
   return serializeDepartment(department);
@@ -1859,6 +1890,7 @@ export async function deleteDepartment(id: string) {
   if (current) {
     await recordAudit(actor.id, "SUPPRESSION", "Département", current.name);
   }
+  revalidatePath("/sacristie", "layout");
   revalidateDepartmentContent();
 }
 
@@ -1955,6 +1987,7 @@ async function exclusiveProjectFeatured(excludeId?: string) {
     where: excludeId ? { NOT: { id: excludeId } } : {},
     data: { isFeatured: false },
   });
+  revalidatePath("/sacristie", "layout");
 }
 
 export async function getProjects(): Promise<AdminProjectRecord[]> {
@@ -2011,6 +2044,7 @@ export async function createProject(formData: FormData) {
     },
   });
 
+  revalidatePath("/sacristie", "layout");
   revalidateProjectContent();
   await recordAudit(actor.id, "CRÉATION", "Projet", project.title);
   return serializeProject(project);
@@ -2081,6 +2115,7 @@ export async function updateProject(id: string, formData: FormData) {
     "Projet introuvable.",
   );
 
+  revalidatePath("/sacristie", "layout");
   revalidateProjectContent();
   await recordAudit(actor.id, "MODIFICATION", "Projet", project.title);
   return serializeProject(project);
@@ -2097,6 +2132,7 @@ export async function deleteProject(id: string) {
   if (current) {
     await recordAudit(actor.id, "SUPPRESSION", "Projet", current.title);
   }
+  revalidatePath("/sacristie", "layout");
   revalidateProjectContent();
 }
 
@@ -2183,6 +2219,7 @@ export async function confirmDonationPromise(donationId: string) {
   if (result.changed) {
     await recordAudit(actor.id, "MODIFICATION", "Don", donationAuditName(result.donation));
   }
+  revalidatePath("/sacristie", "layout");
   revalidateDonationContent();
   return { id: result.donation.id, status: result.donation.status as DonationPromiseStatus };
 }
@@ -2205,6 +2242,7 @@ export async function cancelDonationPromise(donationId: string) {
   });
 
   await recordAudit(actor.id, "MODIFICATION", "Don", donationAuditName(updated));
+  revalidatePath("/sacristie", "layout");
   revalidateDonationContent();
   return { id: updated.id, status: updated.status as DonationPromiseStatus };
 }
